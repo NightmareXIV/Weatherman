@@ -38,6 +38,7 @@ namespace Weatherman
             _pi.Framework.OnUpdateEvent -= HandleFrameworkUpdate;
             _pi.UiBuilder.OnBuildUi -= ConfigGui.Draw;
             _pi.ClientState.TerritoryChanged -= OnZoneChange;
+            EnableNaturalTimeFlow();
             _pi.Dispose();
         }
 

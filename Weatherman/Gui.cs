@@ -131,6 +131,8 @@ namespace Weatherman
                     ImGui.Text("First normally occurring non-blacklisted weather will be selected to replace blacklisted one.");
                     ImGui.Text("If there will be no non-blacklisted weather left to choose from, original weather will be kept.");
                     ImGui.TextColored(colorGreen, "Normally ocurring weathers in current zone are highlighted green.");
+                    ImGui.Text("To unblacklist specific zone without overriding it's weather, go to zone-specific settings and check \"Weather control\"");
+                    ImGui.Text("checkbox on chosen zone without selecting any weathers for it");
                     ImGui.SameLine();
                     ImGui.TextColored(new Vector4(1, 0, 0, 1), "Current weather is red.");
                     ImGui.Separator();
