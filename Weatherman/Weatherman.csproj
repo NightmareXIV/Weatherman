@@ -42,9 +42,13 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration.cs" />
     <Compile Include="Gui.cs" />
     <Compile Include="LvbFile.cs" />
+    <Compile Include="TimeFlowType.cs" />
     <Compile Include="Weatherman.cs" />
+    <Compile Include="WeathermanWeather.cs" />
+    <Compile Include="ZoneSettings.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Dalamud">

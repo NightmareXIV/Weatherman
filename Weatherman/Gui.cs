@@ -12,8 +12,7 @@ namespace Weatherman
     {
         private Weatherman plugin;
         private int curW = 0;
-        private bool trashBool = false;
-        private int trashInt = 0;
+        private Vector4 colorGreen = new Vector4(0,1,0,1);
         public bool configOpen = false;
 
         public Gui(Weatherman plugin)
@@ -24,6 +23,11 @@ namespace Weatherman
         public void Draw()
         {
             if (!configOpen) return;
+            if (!plugin.configuration.ConfigurationString.Equals(plugin.GetConfigurationString()))
+            {
+                plugin.configuration.Save();
+                plugin._pi.Framework.Gui.Chat.Print("Configuration saved");
+            }
             if (ImGui.Begin("Weatherman configuration", ref configOpen))
             {
                 ImGui.BeginTabBar("weatherman_settings");
@@ -43,24 +47,41 @@ namespace Weatherman
                     ImGui.Text("Weather control");
                     ImGui.NextColumn();
                     ImGui.Separator();
-                    foreach (var z in plugin.zones)
+                    var timeflowcombo = new string[] { "Not managed", "Normal", "Fixed", "InfiniDay", "InfiniDay reversed", "InfiniNight", "InfiniNight reversed" };
+                    foreach (var z in plugin.ZoneSettings.Values)
                     {
-                        ImGui.Text(z.Key + " | " + z.Value.PlaceName.Value.Name);
+                        ImGui.Text(z.ZoneId + " | " + z.ZoneName);
                         ImGui.NextColumn();
-                        ImGui.PushItemWidth(100f);
-                        ImGui.DragInt("##timecontrol"+z.Key, ref trashInt, 100.0f, 0, Weatherman.SecondsInDay-1);
+                        ImGui.PushItemWidth(150f);
+                        ImGui.Combo("##timecombo"+z.ZoneId, ref z.TimeFlow, timeflowcombo, timeflowcombo.Length);
                         ImGui.PopItemWidth();
-                        ImGui.SameLine();
-                        ImGui.Text(DateTimeOffset.FromUnixTimeSeconds(trashInt).ToString("HH:mm:ss"));
-                        ImGui.NextColumn();
-                        ImGui.Checkbox("##wcontrol" + z.Key, ref trashBool);
-                        ImGui.NextColumn();
-                        if (trashBool)
+                        if (z.TimeFlow == 2)
                         {
-                            ImGui.Columns(1);
-                            ImGui.Text("test");
-                            ImGui.Columns(3);
+                            ImGui.PushItemWidth(70f);
+                            ImGui.DragInt("##timecontrol" + z.ZoneId, ref z.CustomTime, 100.0f, 0, Weatherman.SecondsInDay - 1);
+                            ImGui.PopItemWidth();
+                            ImGui.SameLine();
+                            ImGui.Text(DateTimeOffset.FromUnixTimeSeconds(z.CustomTime).ToString("HH:mm:ss"));
                         }
+                        ImGui.NextColumn();
+                        ImGui.Checkbox("Override weather##wcontrol" + z.ZoneId, ref z.WeatherControl);
+                        if (z.WeatherControl)
+                        {
+                            if(z.SupportedWeathers.Count == 0)
+                            {
+                                ImGui.Text("Zone has no supported weathers");
+                            }
+                            else
+                            {
+                                foreach (var weather in z.SupportedWeathers)
+                                {
+                                    if (weather.IsNormal) ImGui.PushStyleColor(ImGuiCol.Text, colorGreen);
+                                    ImGui.Checkbox(weather.Id + " | " + plugin.weathers[weather.Id] + "##" + z.ZoneId, ref weather.Selected);
+                                    if (weather.IsNormal) ImGui.PopStyleColor();
+                                }
+                            }
+                        }
+                        ImGui.NextColumn();
                         ImGui.Separator();
                     }
                     ImGui.EndChild();
@@ -75,6 +96,10 @@ namespace Weatherman
                 {
                     try
                     {
+                        if(ImGui.Button("Print configuration string"))
+                        {
+                            plugin._pi.Framework.Gui.Chat.Print(plugin.GetConfigurationString());
+                        }
                         ImGui.Text("Current weather: " + *plugin.CurrentWeatherPtr + " / " + plugin.weathers[*plugin.CurrentWeatherPtr]);
                         ImGui.Text("Current time: " + *plugin.TimePtr + " / " + DateTimeOffset.FromUnixTimeSeconds(*plugin.TimePtr).ToString());
                         ImGui.Text("Current zone: " + plugin._pi.ClientState.TerritoryType + " / " +

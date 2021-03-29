@@ -6,6 +6,7 @@ using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Weatherman
 {
@@ -22,10 +23,11 @@ namespace Weatherman
         public byte* CurrentWeatherPtr;
         public Gui ConfigGui;
         public byte WeatherTestActive = 255;
-        public List<byte> ValidWeatherList;
-        public Dictionary<uint, TerritoryType> zones;
-        public Dictionary<uint, string> weathers;
+        public Dictionary<ushort, TerritoryType> zones;
+        public Dictionary<byte, string> weathers;
         public ExcelSheet<WeatherRate> weatherRates;
+        public Dictionary<ushort, ZoneSettings> ZoneSettings;
+        public Configuration configuration;
 
         public void Dispose()
         {
@@ -47,9 +49,50 @@ namespace Weatherman
             CurrentWeatherPtr = (byte*)(*(IntPtr*)_pi.TargetModuleScanner.GetStaticAddressFromSig("48 8B 05 ?? ?? ?? ?? 0F B6 EA 48 8B F9 41 8B DE 48 8B 70 08 48 85 F6 0F 84 ?? ?? ?? ??") + 0x27); //thanks daemitus
             //CurrentWeatherPtr = (byte*)(*(IntPtr*)(Process.GetCurrentProcess().MainModule.BaseAddress + 0x1D682B8) + 0x27); //yeeted from cmtool yet again 
             SafeMemory.WriteBytes(TimeStopPtr, TimeStopOn);
-            zones = pluginInterface.Data.GetExcelSheet<TerritoryType>().ToDictionary(row => row.RowId, row => row);
-            weathers = pluginInterface.Data.GetExcelSheet<Weather>().ToDictionary(row => row.RowId, row => row.Name.ToString());
+            zones = pluginInterface.Data.GetExcelSheet<TerritoryType>().ToDictionary(row => (ushort)row.RowId, row => row);
+            weathers = pluginInterface.Data.GetExcelSheet<Weather>().ToDictionary(row => (byte)row.RowId, row => row.Name.ToString());
             weatherRates = _pi.Data.GetExcelSheet<WeatherRate>();
+            ZoneSettings = new Dictionary<ushort, ZoneSettings>();
+            foreach(var z in zones)
+            {
+                var s = new ZoneSettings();
+                s.ZoneId = z.Key;
+                s.ZoneName = z.Value.PlaceName.Value.Name;
+                s.Init(this);
+                ZoneSettings.Add(s.ZoneId, s);
+            }
+            configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+            configuration.Initialize(this);
+        }
+
+        public string GetConfigurationString()
+        {
+            var configList = new List<string>();
+            foreach(var z in ZoneSettings)
+            {
+                var v = z.Value.GetString();
+                if (v != null) configList.Add(z.Key + "@" + v);
+            }
+            return string.Join("\n", configList);
+        }
+
+        public void SetConfigurationString(string s)
+        {
+            foreach(var z in s.Split('\n'))
+            {
+                try
+                {
+                    var key = ushort.Parse(z.Split('@')[0]);
+                    if (ZoneSettings.ContainsKey(key))
+                    {
+                        ZoneSettings[key].FromString(z.Split('@')[1]);
+                    }
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+            }
         }
 
         void HandleFrameworkUpdate(Framework f)
@@ -71,9 +114,9 @@ namespace Weatherman
             return false;
         }
 
-        public List<ushort> GetWeathers(ushort id) //yeeted from titleedit https://github.com/lmcintyre/TitleEditPlugin
+        public List<byte> GetWeathers(ushort id) //yeeted from titleedit https://github.com/lmcintyre/TitleEditPlugin
         {
-            var weathers = new List<ushort>();
+            var weathers = new List<byte>();
             if (!zones.TryGetValue(id, out var path)) return null;
             try
             {
@@ -82,7 +125,7 @@ namespace Weatherman
                     return null;
                 foreach (var weather in file.weatherIds)
                     if (weather > 0 && weather < 255)
-                        weathers.Add(weather);
+                        weathers.Add((byte)weather);
                 weathers.Sort();
                 return weathers;
             }
