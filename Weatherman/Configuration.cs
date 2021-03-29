@@ -12,6 +12,9 @@ namespace Weatherman
     {
         public int Version { get; set; } = 1;
         public string ConfigurationString = "";
+        public int GlobalTimeFlowControl = 0;
+        public int GlobalFixedTime = 0;
+        public Dictionary<byte, bool> BlacklistedWeathers = new Dictionary<byte, bool>();
 
         [NonSerialized]
         private Weatherman plugin;
