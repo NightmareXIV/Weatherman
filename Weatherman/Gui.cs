@@ -20,7 +20,7 @@ namespace Weatherman
         string filter = "";
         bool displayCurrentZone = true;
         bool displayOnlyModified = false;
-        bool displayOnlyReal = false;
+        bool displayOnlyReal = true;
 
         public Gui(Weatherman plugin)
         {
@@ -49,7 +49,7 @@ namespace Weatherman
             if (ImGui.Begin("Weatherman configuration", ref configOpen))
             {
                 ImGui.BeginTabBar("weatherman_settings");
-                if (ImGui.BeginTabItem("Global settings"))
+                if (ImGui.BeginTabItem("Global setting"))
                 {
                     ImGui.Text("Global time control: ");
                     ImGui.SameLine();
@@ -87,11 +87,12 @@ namespace Weatherman
                     ImGui.Checkbox("Only world zones", ref displayOnlyReal);
                     ImGui.SameLine();
                     ImGui.Checkbox("Current zone on top", ref displayCurrentZone);
-                    ImGui.SameLine();
                     if(ImGui.Button("Apply weather changes"))
                     {
                         plugin.OnZoneChange(null, plugin._pi.ClientState.TerritoryType);
                     }
+                    ImGui.SameLine();
+                    ImGui.Text("Either click this button or change your zone for weather settings to become effective.");
                     ImGui.BeginChild("##zonetable");
                     ImGui.Columns(6);
                     ImGui.Text("ID");
@@ -133,6 +134,13 @@ namespace Weatherman
                     ImGui.SameLine();
                     ImGui.TextColored(new Vector4(1, 0, 0, 1), "Current weather is red.");
                     ImGui.Separator();
+                    if (ImGui.Button("Apply weather changes"))
+                    {
+                        plugin.OnZoneChange(null, plugin._pi.ClientState.TerritoryType);
+                    }
+                    ImGui.SameLine();
+                    ImGui.Text("Either click this button or change your zone for settings to become effective.");
+                    ImGui.Separator();
                     //fucked shit begins, sorry GC
                     var temparr = plugin.configuration.BlacklistedWeathers.ToDictionary(entry => entry.Key, entry => entry.Value);
                     foreach (var w in temparr)
@@ -140,7 +148,7 @@ namespace Weatherman
                         var v = temparr[w.Key];
                         var normal = plugin.IsWeatherNormal(w.Key, plugin._pi.ClientState.TerritoryType);
                         var current = *plugin.CurrentWeatherPtr == w.Key;
-                        if (normal || current) ImGui.PushStyleColor(ImGuiCol.Text, current?new Vector4(1,0,0,1): colorGreen);
+                        if (normal || current) ImGui.PushStyleColor(ImGuiCol.Text, current?(normal? new Vector4(1, 1, 0, 1):new Vector4(1,0,0,1)): colorGreen);
                         ImGui.Checkbox(w.Key + " / " + plugin.weathers[w.Key], ref v);
                         if (normal || current) ImGui.PopStyleColor();
                         plugin.configuration.BlacklistedWeathers[w.Key] = v;
@@ -226,7 +234,7 @@ namespace Weatherman
                     if (z.WeatherControl == false && z.TimeFlow == 0 && z.FixedTime == 0 && sel.Count == 0) return;
                 }
             }
-            ImGui.Text(z.ZoneId.ToString() + "/");
+            ImGui.Text(z.ZoneId.ToString());
             ImGui.NextColumn();
             ImGui.Text(z.terr.PlaceNameZone.Value.Name);
             ImGui.NextColumn();

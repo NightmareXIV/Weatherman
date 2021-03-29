@@ -79,6 +79,7 @@ namespace Weatherman
             _pi.UiBuilder.OnBuildUi += ConfigGui.Draw;
             _pi.UiBuilder.OnOpenConfigUi += delegate { ConfigGui.configOpen = true; };
             _pi.ClientState.TerritoryChanged += OnZoneChange;
+            if(_pi.ClientState != null) OnZoneChange(null, _pi.ClientState.TerritoryType);
         }
 
         //probably easiest way to get overworld territories - includes eureka and bozja but have to add cities myself
@@ -139,16 +140,24 @@ namespace Weatherman
                 if (z.WeatherControl)
                 {
                     var weathers = new List<byte>();
-                    foreach(var v in z.SupportedWeathers)
+                    foreach (var v in z.SupportedWeathers)
                     {
                         if (v.Selected) weathers.Add(v.Id);
-                        if(UnblacklistedWeather == 0 && v.IsNormal && configuration.BlacklistedWeathers.ContainsKey(v.Id)
-                            && !configuration.BlacklistedWeathers[v.Id])
+                    }
+                    if (weathers.Count > 0) SelectedWeather = weathers[new Random().Next(0, weathers.Count)];
+                }
+                else
+                {
+                    foreach (var v in z.SupportedWeathers)
+                    {
+                        if (UnblacklistedWeather == 0
+                            && configuration.BlacklistedWeathers.ContainsKey(v.Id)
+                            && !configuration.BlacklistedWeathers[v.Id]
+                            && IsWeatherNormal(v.Id, _pi.ClientState.TerritoryType))
                         {
                             UnblacklistedWeather = v.Id;
                         }
                     }
-                    if (weathers.Count > 0) SelectedWeather = weathers[new Random().Next(0, weathers.Count)];
                 }
             }
         }
@@ -162,7 +171,9 @@ namespace Weatherman
                 {
                     *CurrentWeatherPtr = SelectedWeather;
                 }
-                if(UnblacklistedWeather != 0 && *CurrentWeatherPtr != UnblacklistedWeather && configuration.BlacklistedWeathers.ContainsKey(*CurrentWeatherPtr))
+                if(UnblacklistedWeather != 0 && *CurrentWeatherPtr != UnblacklistedWeather 
+                    && configuration.BlacklistedWeathers.ContainsKey(*CurrentWeatherPtr)
+                    && configuration.BlacklistedWeathers[*CurrentWeatherPtr])
                 {
                     _pi.Framework.Gui.Chat.Print("Blacklisted weather "+ *CurrentWeatherPtr + " found and changed");
                     *CurrentWeatherPtr = UnblacklistedWeather;
