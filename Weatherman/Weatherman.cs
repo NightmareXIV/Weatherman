@@ -31,6 +31,7 @@ namespace Weatherman
         public Configuration configuration;
         public byte SelectedWeather = 255;
         public byte UnblacklistedWeather = 0;
+        public string[] Log = new string[100];
 
         public void Dispose()
         {
@@ -39,6 +40,7 @@ namespace Weatherman
             _pi.UiBuilder.OnBuildUi -= ConfigGui.Draw;
             _pi.ClientState.TerritoryChanged -= OnZoneChange;
             EnableNaturalTimeFlow();
+            _pi.CommandManager.RemoveHandler("/weatherman");
             _pi.Dispose();
         }
 
@@ -81,6 +83,7 @@ namespace Weatherman
             _pi.UiBuilder.OnOpenConfigUi += delegate { ConfigGui.configOpen = true; };
             _pi.ClientState.TerritoryChanged += OnZoneChange;
             if(_pi.ClientState != null) OnZoneChange(null, _pi.ClientState.TerritoryType);
+            _pi.CommandManager.AddHandler("/weatherman", new Dalamud.Game.Command.CommandInfo(delegate { ConfigGui.configOpen = true; }) { });
         }
 
         //probably easiest way to get overworld territories - includes eureka and bozja but have to add cities myself
@@ -132,7 +135,7 @@ namespace Weatherman
 
         public void OnZoneChange(object s, ushort u)
         {
-            _pi.Framework.Gui.Chat.Print("Zone changed to " + u);
+            WriteLog("Zone changed to " + u + "; is world = " + IsWorldTerritory(u));
             SelectedWeather = 255;
             UnblacklistedWeather = 0;
             if (ZoneSettings.ContainsKey(u))
@@ -170,13 +173,14 @@ namespace Weatherman
                 SetTimeBySetting(GetZoneTimeFlowSetting(_pi.ClientState.TerritoryType));
                 if(SelectedWeather != 255 && *CurrentWeatherPtr != SelectedWeather)
                 {
+                    WriteLog("Weather set to " + SelectedWeather + " from "+ *CurrentWeatherPtr);
                     *CurrentWeatherPtr = SelectedWeather;
                 }
                 if(UnblacklistedWeather != 0 && *CurrentWeatherPtr != UnblacklistedWeather 
                     && configuration.BlacklistedWeathers.ContainsKey(*CurrentWeatherPtr)
                     && configuration.BlacklistedWeathers[*CurrentWeatherPtr])
                 {
-                    _pi.Framework.Gui.Chat.Print("Blacklisted weather "+ *CurrentWeatherPtr + " found and changed");
+                    WriteLog("Blacklisted weather "+ *CurrentWeatherPtr + " found and changed to " + UnblacklistedWeather);
                     *CurrentWeatherPtr = UnblacklistedWeather;
                 }
             }
@@ -186,12 +190,30 @@ namespace Weatherman
             }
         }
 
+        public void WriteLog(string line)
+        {
+            line = DateTimeOffset.Now.ToString() + ": " + line;
+            for (var i = 0; i < Log.Length; i++)
+            {
+                if(Log[i] == null)
+                {
+                    Log[i] = line;
+                    return;
+                }
+            }
+            for(var i = 1;i < Log.Length; i++)
+            {
+                Log[i - 1] = Log[i];
+            }
+            Log[Log.Length - 1] = line;
+        }
+
         void DisableNaturalTimeFlow()
         {
             if (*FirstByteTimeStopPtr == TimeStopOff[0])
             {
                 SafeMemory.WriteBytes(TimeStopPtr, TimeStopOn);
-                _pi.Framework.Gui.Chat.Print("Time flow stopped");
+                WriteLog("Time flow stopped");
             }
         }
 
@@ -200,7 +222,7 @@ namespace Weatherman
             if (*FirstByteTimeStopPtr == TimeStopOn[0])
             {
                 SafeMemory.WriteBytes(TimeStopPtr, TimeStopOff);
-                _pi.Framework.Gui.Chat.Print("Time flow reenabled");
+                WriteLog("Time flow reenabled");
             }
         }
 

@@ -15,6 +15,7 @@ namespace Weatherman
         public int GlobalTimeFlowControl = 0;
         public int GlobalFixedTime = 0;
         public Dictionary<byte, bool> BlacklistedWeathers = new Dictionary<byte, bool>();
+        public bool EnableLogging = true;
 
         [NonSerialized]
         private Weatherman plugin;
@@ -28,7 +29,7 @@ namespace Weatherman
         public void Save()
         {
             ConfigurationString = plugin.GetConfigurationString();
-            plugin._pi.Framework.Gui.Chat.Print(ConfigurationString);
+            plugin.WriteLog(ConfigurationString);
             plugin._pi.SavePluginConfig(this);
         }
     }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Numerics;
+using System.Windows.Forms;
 
 namespace Weatherman
 {
@@ -21,6 +22,7 @@ namespace Weatherman
         bool displayCurrentZone = true;
         bool displayOnlyModified = false;
         bool displayOnlyReal = true;
+        bool autoscrollLog = true;
 
         public Gui(Weatherman plugin)
         {
@@ -34,7 +36,7 @@ namespace Weatherman
                 if (configWasOpen)
                 {
                     plugin.configuration.Save();
-                    plugin._pi.Framework.Gui.Chat.Print("Configuration saved");
+                    plugin.WriteLog("Configuration saved");
                 }
                 configWasOpen = false;
                 return;
@@ -44,7 +46,7 @@ namespace Weatherman
             if (!plugin.configuration.ConfigurationString.Equals(plugin.GetConfigurationString()))
             {
                 plugin.configuration.Save();
-                plugin._pi.Framework.Gui.Chat.Print("Configuration saved");
+                plugin.WriteLog("Configuration saved");
             }
             if (ImGui.Begin("Weatherman configuration", ref configOpen))
             {
@@ -162,9 +164,11 @@ namespace Weatherman
                 {
                     try
                     {
+                        ImGui.BeginChild("##debugscreen");
+                        ImGui.Columns(2);
                         if(ImGui.Button("Print configuration string"))
                         {
-                            plugin._pi.Framework.Gui.Chat.Print(plugin.GetConfigurationString());
+                            plugin.WriteLog(plugin.GetConfigurationString());
                         }
                         ImGui.Text("Current weather: " + *plugin.CurrentWeatherPtr + " / " + plugin.weathers[*plugin.CurrentWeatherPtr]);
                         ImGui.Text("Current time: " + *plugin.TimePtr + " / " + DateTimeOffset.FromUnixTimeSeconds(*plugin.TimePtr).ToString());
@@ -207,6 +211,38 @@ namespace Weatherman
                                 ImGui.TextColored(new Vector4(0,1,0,1), "Occurs normally");
                             }
                         }
+                        ImGui.NextColumn();
+                        ImGui.Text("Log:");
+                        ImGui.SameLine();
+                        ImGui.Checkbox("Enable##log", ref plugin.configuration.EnableLogging);
+                        ImGui.SameLine();
+                        ImGui.Checkbox("Autoscroll##log", ref autoscrollLog);
+                        ImGui.SameLine();
+                        if(ImGui.Button("Copy all"))
+                        {
+                            var s = new StringBuilder();
+                            for(int i = 0; i <  plugin.Log.Length; i++)
+                            {
+                                if (plugin.Log[i] != null)
+                                {
+                                    s.AppendLine(plugin.Log[i]);
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+                            Clipboard.SetText(s.ToString());
+                        }
+                        ImGui.BeginChild("##logtext");
+                        for(var i = 0; i < plugin.Log.Length; i++)
+                        {
+                            if(plugin.Log[i] != null) ImGui.Text(plugin.Log[i]);
+                        }
+                        if (autoscrollLog) ImGui.SetScrollHereY();
+                        ImGui.EndChild();
+                        ImGui.Columns(1);
+                        ImGui.EndChild();
                     }
                     catch(Exception e)
                     {
