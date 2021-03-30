@@ -289,6 +289,7 @@ namespace Weatherman
                     if (z.WeatherControl == false && z.TimeFlow == 0 && z.FixedTime == 0 && sel.Count == 0) return;
                 }
             }
+            if (filtering && !plugin.IsWorldTerritory(z.ZoneId)) ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.5f,0.5f,0.5f,1));
             ImGui.Text(z.ZoneId.ToString());
             ImGui.NextColumn();
             ImGui.Text(z.terr.PlaceNameZone.Value.Name);
@@ -335,6 +336,7 @@ namespace Weatherman
                 z.TimeFlow = 0; 
                 z.FixedTime = 0;
             }
+            if (filtering && !plugin.IsWorldTerritory(z.ZoneId)) ImGui.PopStyleColor();
             ImGui.NextColumn();
             ImGui.Separator();
         }

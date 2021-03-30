@@ -68,15 +68,28 @@ namespace Weatherman
             }
             configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
             configuration.Initialize(this);
-            foreach(var z in ZoneSettings)
+            var normalweathers = new HashSet<byte>();
+            foreach (var z in ZoneSettings)
             {
                 foreach (var a in z.Value.SupportedWeathers)
                 {
-                    if (a.IsNormal && !configuration.BlacklistedWeathers.ContainsKey(a.Id))
+                    if (a.IsNormal)
                     {
-                        configuration.BlacklistedWeathers.Add(a.Id, false);
-                    } 
+                        normalweathers.Add(a.Id);
+                    }
                 }
+            }
+            var tempdict = new Dictionary<byte, bool>(configuration.BlacklistedWeathers);
+            foreach (var i in tempdict)
+            {
+                if (!normalweathers.Contains(i.Key))
+                {
+                    configuration.BlacklistedWeathers.Remove(i.Key);
+                }
+            }
+            foreach (var i in normalweathers)
+            {
+                if (!configuration.BlacklistedWeathers.ContainsKey(i)) configuration.BlacklistedWeathers.Add(i, false);
             }
             _pi.Framework.OnUpdateEvent += HandleFrameworkUpdate;
             ConfigGui = new Gui(this);

@@ -14,7 +14,7 @@ namespace Weatherman
         public string ConfigurationString = "";
         public int GlobalTimeFlowControl = 0;
         public int GlobalFixedTime = 0;
-        public Dictionary<byte, bool> BlacklistedWeathers = new Dictionary<byte, bool>();
+        public SortedDictionary<byte, bool> BlacklistedWeathers = new SortedDictionary<byte, bool>();
         public bool EnableLogging = true;
 
         [NonSerialized]
