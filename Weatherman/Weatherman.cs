@@ -165,7 +165,7 @@ namespace Weatherman
 
         void HandleFrameworkUpdate(Framework f)
         {
-            if (_pi.ClientState != null && _pi.ClientState.LocalPlayer != null)
+            if (_pi.ClientState != null && _pi.ClientState.LocalPlayer != null && IsWorldTerritory(_pi.ClientState.TerritoryType))
             {
                 SetTimeBySetting(GetZoneTimeFlowSetting(_pi.ClientState.TerritoryType));
                 if(SelectedWeather != 255 && *CurrentWeatherPtr != SelectedWeather)
