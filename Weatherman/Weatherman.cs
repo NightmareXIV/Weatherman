@@ -178,12 +178,14 @@ namespace Weatherman
                     }
                 }
             }
+            WriteLog("Selected weather:"+ SelectedWeather + "; unblacklisted weather: " + UnblacklistedWeather);
         }
 
         void HandleFrameworkUpdate(Framework f)
         {
             if (_pi.ClientState != null && _pi.ClientState.LocalPlayer != null 
-                && IsWorldTerritory(_pi.ClientState.TerritoryType) && !PausePlugin)
+                && (IsWorldTerritory(_pi.ClientState.TerritoryType) || configuration.Superuser) 
+                && !PausePlugin)
             {
                 SetTimeBySetting(GetZoneTimeFlowSetting(_pi.ClientState.TerritoryType));
                 if(SelectedWeather != 255 && *CurrentWeatherPtr != SelectedWeather)
@@ -207,6 +209,7 @@ namespace Weatherman
 
         public void WriteLog(string line)
         {
+            if (!configuration.EnableLogging) return;
             line = DateTimeOffset.Now.ToString() + ": " + line;
             for (var i = 0; i < Log.Length; i++)
             {

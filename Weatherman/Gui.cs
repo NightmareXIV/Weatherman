@@ -87,12 +87,17 @@ namespace Weatherman
                     ImGui.SameLine();
                     ImGui.Checkbox("Only modified", ref displayOnlyModified);
                     ImGui.SameLine();
-                    ImGui.Checkbox("Only world zones", ref displayOnlyReal);
-                    ImGui.SameLine();
+                    if (plugin.configuration.Unsafe)
+                    {
+                        ImGui.Checkbox("Only world zones", ref displayOnlyReal);
+                        ImGui.SameLine();
+                    }
                     ImGui.Checkbox("Current zone on top", ref displayCurrentZone);
                     if (!displayOnlyReal)
                     {
-                        ImGui.TextColored(new Vector4(1,0,0,1), "Warning: changes are only supported in world zones currently." +
+                        ImGui.TextColored(new Vector4(1,0,0,1), 
+                            plugin.configuration.Superuser? "Superuser more. Proceed with caution. " :
+                            "Warning: changes are only supported in world zones currently." +
                             "Settings will not become effective in other zones.");
                     }
                     if(ImGui.Button("Apply weather changes"))
@@ -181,9 +186,18 @@ namespace Weatherman
                     {
                         ImGui.BeginChild("##debugscreen");
                         ImGui.Columns(2);
+                        ImGui.BeginChild("##debug1");
                         if(ImGui.Button("Print configuration string"))
                         {
                             plugin.WriteLog(plugin.GetConfigurationString());
+                        }
+                        if (plugin.configuration.Superuser && ImGui.Button("Superuser mode active. Disable."))
+                        {
+                            plugin.configuration.Superuser = false;
+                        }
+                        if (plugin.configuration.Unsafe && ImGui.Button("Unsafe options unlocked. Disable."))
+                        {
+                            plugin.configuration.Unsafe = false;
                         }
                         ImGui.Checkbox("Pause plugin execution", ref plugin.PausePlugin);
                         ImGui.Text("Current weather: " + *plugin.CurrentWeatherPtr + " / " + plugin.weathers[*plugin.CurrentWeatherPtr]);
@@ -198,13 +212,18 @@ namespace Weatherman
                         {
                             wGui.Add(w.Key + " / " + w.Value);
                         }
-                        ImGui.Text("All weathers");
+                        ImGui.Text("Weather list");
                         ImGui.SameLine();
+                        ImGui.PushItemWidth(200f);
                         ImGui.Combo("##allweathers", ref curW, wGui.ToArray(), wGui.Count);
-                        ImGui.SameLine();
-                        if (ImGui.Button("Set"))
+                        ImGui.PopItemWidth();
+                        if (plugin.configuration.Unsafe)
                         {
-                            *plugin.CurrentWeatherPtr = (byte)curW;
+                            ImGui.SameLine();
+                            if (ImGui.Button("Set"))
+                            {
+                                *plugin.CurrentWeatherPtr = (byte)curW;
+                            }
                         }
                         ImGui.Text("Supported weathers:");
                         foreach(byte i in plugin.GetWeathers(plugin._pi.ClientState.TerritoryType))
@@ -212,26 +231,33 @@ namespace Weatherman
                             var colored = false;
                             if (*plugin.CurrentWeatherPtr == i)
                             {
-                                ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(1,0,0,1));
-                                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(1, 0, 0, 1));
+                                ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1,0,0,1));
                                 colored = true;
                             }
-                            if(ImGui.SmallButton(i + " / " + plugin.weathers[i]))
+                            if (plugin.configuration.Unsafe || plugin.IsWorldTerritory(plugin._pi.ClientState.TerritoryType))
                             {
-                                *plugin.CurrentWeatherPtr = (byte)i;
+                                if (ImGui.SmallButton(i + " / " + plugin.weathers[i]))
+                                {
+                                    *plugin.CurrentWeatherPtr = i;
+                                }
                             }
-                            if (colored) ImGui.PopStyleColor(2);
+                            else
+                            {
+                                ImGui.Text(i + " / " + plugin.weathers[i]);
+                            }
+                            if (colored) ImGui.PopStyleColor(1);
                             if(plugin.IsWeatherNormal(i, plugin._pi.ClientState.TerritoryType))
                             {
                                 ImGui.SameLine();
                                 ImGui.TextColored(new Vector4(0,1,0,1), "Occurs normally");
                             }
                         }
+                        ImGui.EndChild();
                         ImGui.NextColumn();
                         ImGui.Text("Log:");
                         ImGui.SameLine();
-                        ImGui.Checkbox("Enable##log", ref plugin.configuration.EnableLogging);
-                        ImGui.SameLine();
+                        /*ImGui.Checkbox("Enable##log", ref plugin.configuration.EnableLogging);
+                        ImGui.SameLine();*/ //why would you want to disable logging?
                         ImGui.Checkbox("Autoscroll##log", ref autoscrollLog);
                         ImGui.SameLine();
                         if(ImGui.Button("Copy all"))
@@ -290,6 +316,7 @@ namespace Weatherman
                 }
             }
             if (filtering && !plugin.IsWorldTerritory(z.ZoneId)) ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.5f,0.5f,0.5f,1));
+            if (!plugin.configuration.Unsafe && !plugin.IsWorldTerritory(z.ZoneId)) return;
             ImGui.Text(z.ZoneId.ToString());
             ImGui.NextColumn();
             ImGui.Text(z.terr.PlaceNameZone.Value.Name);
