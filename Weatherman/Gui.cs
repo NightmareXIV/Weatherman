@@ -48,6 +48,7 @@ namespace Weatherman
                 plugin.configuration.Save();
                 plugin.WriteLog("Configuration saved");
             }
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowMinSize, new Vector2(800, 350));
             if (ImGui.Begin("Weatherman configuration", ref configOpen))
             {
                 ImGui.BeginTabBar("weatherman_settings");
@@ -89,6 +90,11 @@ namespace Weatherman
                     ImGui.Checkbox("Only world zones", ref displayOnlyReal);
                     ImGui.SameLine();
                     ImGui.Checkbox("Current zone on top", ref displayCurrentZone);
+                    if (!displayOnlyReal)
+                    {
+                        ImGui.TextColored(new Vector4(1,0,0,1), "Warning: changes are only supported in world zones currently." +
+                            "Settings will not become effective in other zones.");
+                    }
                     if(ImGui.Button("Apply weather changes"))
                     {
                         plugin.OnZoneChange(null, plugin._pi.ClientState.TerritoryType);
@@ -97,6 +103,12 @@ namespace Weatherman
                     ImGui.Text("Either click this button or change your zone for weather settings to become effective.");
                     ImGui.BeginChild("##zonetable");
                     ImGui.Columns(6);
+                    ImGui.SetColumnWidth(0, 35);
+                    ImGui.SetColumnWidth(1, 140);
+                    ImGui.SetColumnWidth(2, ImGui.GetWindowWidth() - 530);
+                    ImGui.SetColumnWidth(3, 140);
+                    ImGui.SetColumnWidth(4, 170);
+                    ImGui.SetColumnWidth(5, 30);
                     ImGui.Text("ID");
                     ImGui.NextColumn();
                     ImGui.Text("Area");
@@ -113,7 +125,8 @@ namespace Weatherman
 
                     //current zone
                     if (displayCurrentZone && plugin.ZoneSettings.ContainsKey(plugin._pi.ClientState.TerritoryType)) {
-                        ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1, 0, 0, 1));
+                        ImGui.PushStyleColor(ImGuiCol.Text, 
+                            plugin.IsWorldTerritory(plugin._pi.ClientState.TerritoryType)?new Vector4(0,1,1,1):new Vector4(1, 0, 0, 1));
                         PrintZoneRow(plugin.ZoneSettings[plugin._pi.ClientState.TerritoryType], false);
                         ImGui.PopStyleColor();
                     }
@@ -132,11 +145,13 @@ namespace Weatherman
                     ImGui.Text("This setting is not effective for zones that have their weathers overriden in zone-specific settings.");
                     ImGui.Text("First normally occurring non-blacklisted weather will be selected to replace blacklisted one.");
                     ImGui.Text("If there will be no non-blacklisted weather left to choose from, original weather will be kept.");
-                    ImGui.TextColored(colorGreen, "Normally ocurring weathers in current zone are highlighted green.");
+                    ImGui.TextColored(colorGreen, "Normally occurring weathers in current zone are highlighted green.");
                     ImGui.Text("To unblacklist specific zone without overriding it's weather, go to zone-specific settings and check \"Weather control\"");
-                    ImGui.Text("checkbox on chosen zone without selecting any weathers for it");
+                    ImGui.Text("checkbox on chosen zone without selecting any weathers for it.");
                     ImGui.SameLine();
-                    ImGui.TextColored(new Vector4(1, 0, 0, 1), "Current weather is red.");
+                    ImGui.TextColored(new Vector4(1, 1, 0, 1), "Current weather is yellow (normal)");
+                    ImGui.SameLine();
+                    ImGui.TextColored(new Vector4(1, 0, 0, 1), "or red (abnormal).");
                     ImGui.Separator();
                     if (ImGui.Button("Apply weather changes"))
                     {
@@ -170,6 +185,7 @@ namespace Weatherman
                         {
                             plugin.WriteLog(plugin.GetConfigurationString());
                         }
+                        ImGui.Checkbox("Pause plugin execution", ref plugin.PausePlugin);
                         ImGui.Text("Current weather: " + *plugin.CurrentWeatherPtr + " / " + plugin.weathers[*plugin.CurrentWeatherPtr]);
                         ImGui.Text("Current time: " + *plugin.TimePtr + " / " + DateTimeOffset.FromUnixTimeSeconds(*plugin.TimePtr).ToString());
                         var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 144D / 7D / 1000D);
@@ -237,7 +253,7 @@ namespace Weatherman
                         ImGui.BeginChild("##logtext");
                         for(var i = 0; i < plugin.Log.Length; i++)
                         {
-                            if(plugin.Log[i] != null) ImGui.Text(plugin.Log[i]);
+                            if(plugin.Log[i] != null) ImGui.TextWrapped(plugin.Log[i]);
                         }
                         if (autoscrollLog) ImGui.SetScrollHereY();
                         ImGui.EndChild();
@@ -251,6 +267,7 @@ namespace Weatherman
                 }
                 ImGui.EndTabBar();
             }
+            ImGui.PopStyleVar();
         }
 
         void PrintZoneRow(ZoneSettings z, bool filtering = true)
@@ -278,12 +295,12 @@ namespace Weatherman
             ImGui.NextColumn();
             ImGui.Text(z.ZoneName);
             ImGui.NextColumn();
-            ImGui.PushItemWidth(150f);
+            ImGui.PushItemWidth(120f);
             ImGui.Combo("##timecombo" + ++uid, ref z.TimeFlow, timeflowcombo, timeflowcombo.Length);
             ImGui.PopItemWidth();
             if (z.TimeFlow == 2)
             {
-                ImGui.PushItemWidth(70f);
+                ImGui.PushItemWidth(50f);
                 ImGui.DragInt("##timecontrol" + ++uid, ref z.FixedTime, 100.0f, 0, Weatherman.SecondsInDay - 1);
                 if (z.FixedTime > Weatherman.SecondsInDay || z.FixedTime < 0) z.FixedTime = 0;
                 ImGui.PopItemWidth();

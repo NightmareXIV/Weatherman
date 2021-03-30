@@ -32,6 +32,7 @@ namespace Weatherman
         public byte SelectedWeather = 255;
         public byte UnblacklistedWeather = 0;
         public string[] Log = new string[100];
+        public bool PausePlugin = false;
 
         public void Dispose()
         {
@@ -168,7 +169,8 @@ namespace Weatherman
 
         void HandleFrameworkUpdate(Framework f)
         {
-            if (_pi.ClientState != null && _pi.ClientState.LocalPlayer != null && IsWorldTerritory(_pi.ClientState.TerritoryType))
+            if (_pi.ClientState != null && _pi.ClientState.LocalPlayer != null 
+                && IsWorldTerritory(_pi.ClientState.TerritoryType) && !PausePlugin)
             {
                 SetTimeBySetting(GetZoneTimeFlowSetting(_pi.ClientState.TerritoryType));
                 if(SelectedWeather != 255 && *CurrentWeatherPtr != SelectedWeather)
