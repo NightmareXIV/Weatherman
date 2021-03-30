@@ -7,7 +7,7 @@ Weatherman allows you to take precise control over weather and time flow in FFXI
 * Blacklist unwanted weathers. Prevent them from occurring in the whole world. You don't like rains? Never see them again in just couple mouse clicks. Zone specific settings will override blacklist, so if you like it somewhere - you don't have to give it up completely.
 
 Note: Weatherman only changes visuals. Weather-specific mobs, events, fates etc. will not be altered. 
-## Beta version
-Not tested too much - you may encounter some bugs or weird behavior. If you did so, please report about it in issues tab.
+## Note
+Some people say that changing weather and time can allow you doing things that aren't possible otherwise without naturally waiting for needed weather and time. However, after continuous usage and testing I was not able to confirm it myself. If you will be able to find something like that, please create issue about it and I'll see what can I do to fix it.
 ## How to install
-...will post later
+First, you need to be using FFXIV Quick Launcher and have in-game features enabled. Type `/xlplugins` in chat, press "Settings" button and go to "Experimental" tab. Paste this url: `https://raw.githubusercontent.com/Eternita-S/MyDalamudPlugins/main/pluginmaster.json` into "Custom plugin repositories" field and click "+" button that will appear at right side of it, then click "Save and close" button and if you did everything correctly you should be able to install Weatherman like any other plugin.
