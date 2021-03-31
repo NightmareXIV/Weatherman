@@ -115,8 +115,7 @@ namespace Weatherman
         };
         HashSet<string> AwayFromVistaMesssages = new HashSet<string>
         {
-            "You have strayed too far from the vista.",
-            "Sightseeing log entry"
+            "You have strayed too far from the vista."
         };
         void HandleChatMessage(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
         {
@@ -127,13 +126,10 @@ namespace Weatherman
                 AtVista = true;
                 WriteLog("Arrived at vista: " + m);
             }
-            foreach (var s in AwayFromVistaMesssages)
+            else if (AwayFromVistaMesssages.Contains(m))
             {
-                if (m.StartsWith(s))
-                {
-                    AtVista = false;
-                    WriteLog("Away from vista: " + m);
-                }
+                AtVista = false;
+                WriteLog("Away from vista: " + m);
             }
         }
 
