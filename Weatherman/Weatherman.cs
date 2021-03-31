@@ -1,4 +1,6 @@
 ﻿using Dalamud;
+using Dalamud.Game.Chat;
+using Dalamud.Game.Chat.SeStringHandling;
 using Dalamud.Game.Internal;
 using Dalamud.Plugin;
 using Lumina.Excel;
@@ -12,7 +14,7 @@ namespace Weatherman
 {
     unsafe class Weatherman : IDalamudPlugin
     {
-        public const int SecondsInDay = 60*60*24;
+        public const int SecondsInDay = 60 * 60 * 24;
 
         public DalamudPluginInterface _pi;
         public string Name => "Weatherman";
@@ -33,15 +35,20 @@ namespace Weatherman
         public byte UnblacklistedWeather = 0;
         public string[] Log = new string[100];
         public bool PausePlugin = false;
+        public bool AtVista = false;
+        public bool WeatherWasChanged = false;
+        public IFFXIVWeatherLuminaService WeatherSvc;
 
         public void Dispose()
         {
             configuration.Save();
             _pi.Framework.OnUpdateEvent -= HandleFrameworkUpdate;
             _pi.UiBuilder.OnBuildUi -= ConfigGui.Draw;
-            _pi.ClientState.TerritoryChanged -= OnZoneChange;
-            EnableNaturalTimeFlow();
+            _pi.ClientState.TerritoryChanged -= HandleZoneChange;
             _pi.CommandManager.RemoveHandler("/weatherman");
+            _pi.Framework.Gui.Chat.OnChatMessage -= HandleChatMessage;
+            EnableNaturalTimeFlow();
+            if (WeatherWasChanged) RestoreOriginalWeather();
             _pi.Dispose();
         }
 
@@ -57,7 +64,7 @@ namespace Weatherman
             weathers = pluginInterface.Data.GetExcelSheet<Weather>().ToDictionary(row => (byte)row.RowId, row => row.Name.ToString());
             weatherRates = _pi.Data.GetExcelSheet<WeatherRate>();
             ZoneSettings = new Dictionary<ushort, ZoneSettings>();
-            foreach(var z in zones)
+            foreach (var z in zones)
             {
                 var s = new ZoneSettings();
                 s.ZoneId = z.Key;
@@ -91,13 +98,43 @@ namespace Weatherman
             {
                 if (!configuration.BlacklistedWeathers.ContainsKey(i)) configuration.BlacklistedWeathers.Add(i, false);
             }
+            WeatherSvc = new FFXIVWeatherLuminaService(_pi.Data);
             _pi.Framework.OnUpdateEvent += HandleFrameworkUpdate;
             ConfigGui = new Gui(this);
             _pi.UiBuilder.OnBuildUi += ConfigGui.Draw;
             _pi.UiBuilder.OnOpenConfigUi += delegate { ConfigGui.configOpen = true; };
-            _pi.ClientState.TerritoryChanged += OnZoneChange;
-            if(_pi.ClientState != null) OnZoneChange(null, _pi.ClientState.TerritoryType);
+            _pi.ClientState.TerritoryChanged += HandleZoneChange;
+            if (_pi.ClientState != null) ApplyWeatherChanges(_pi.ClientState.TerritoryType);
             _pi.CommandManager.AddHandler("/weatherman", new Dalamud.Game.Command.CommandInfo(delegate { ConfigGui.configOpen = true; }) { });
+            _pi.Framework.Gui.Chat.OnChatMessage += HandleChatMessage;
+        }
+
+        HashSet<string> ArrivedAtVistaMessages = new HashSet<string>
+        {
+            "You have arrived at a vista!"
+        };
+        HashSet<string> AwayFromVistaMesssages = new HashSet<string>
+        {
+            "You have strayed too far from the vista.",
+            "Sightseeing log entry"
+        };
+        void HandleChatMessage(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
+        {
+            if ((ushort)type != 2105) return;
+            var m = message.ToString();
+            if (ArrivedAtVistaMessages.Contains(m))
+            {
+                AtVista = true;
+                WriteLog("Arrived at vista: " + m);
+            }
+            foreach (var s in AwayFromVistaMesssages)
+            {
+                if (m.StartsWith(s))
+                {
+                    AtVista = false;
+                    WriteLog("Away from vista: " + m);
+                }
+            }
         }
 
         //probably easiest way to get overworld territories - includes eureka and bozja but have to add cities myself
@@ -120,7 +157,7 @@ namespace Weatherman
         public string GetConfigurationString()
         {
             var configList = new List<string>();
-            foreach(var z in ZoneSettings)
+            foreach (var z in ZoneSettings)
             {
                 var v = z.Value.GetString();
                 if (v != null) configList.Add(z.Key + "@" + v);
@@ -130,7 +167,7 @@ namespace Weatherman
 
         public void SetConfigurationString(string s)
         {
-            foreach(var z in s.Split('\n'))
+            foreach (var z in s.Split('\n'))
             {
                 try
                 {
@@ -147,9 +184,17 @@ namespace Weatherman
             }
         }
 
-        public void OnZoneChange(object s, ushort u)
+        private void HandleZoneChange(object s, ushort u)
         {
             WriteLog("Zone changed to " + u + "; is world = " + IsWorldTerritory(u));
+            AtVista = false;
+            WeatherWasChanged = false;
+            ApplyWeatherChanges(u);
+        }
+
+        public void ApplyWeatherChanges(ushort u)
+        {
+            WriteLog("Applying weather changes");
             SelectedWeather = 255;
             UnblacklistedWeather = 0;
             if (ZoneSettings.ContainsKey(u))
@@ -184,14 +229,15 @@ namespace Weatherman
         void HandleFrameworkUpdate(Framework f)
         {
             if (_pi.ClientState != null && _pi.ClientState.LocalPlayer != null 
-                && (IsWorldTerritory(_pi.ClientState.TerritoryType) || configuration.Superuser) 
-                && !PausePlugin)
+                && IsWorldTerritory(_pi.ClientState.TerritoryType) 
+                && !PausePlugin && !AtVista)
             {
                 SetTimeBySetting(GetZoneTimeFlowSetting(_pi.ClientState.TerritoryType));
                 if(SelectedWeather != 255 && *CurrentWeatherPtr != SelectedWeather)
                 {
                     WriteLog("Weather set to " + SelectedWeather + " from "+ *CurrentWeatherPtr);
                     *CurrentWeatherPtr = SelectedWeather;
+                    WeatherWasChanged = true;
                 }
                 if(UnblacklistedWeather != 0 && *CurrentWeatherPtr != UnblacklistedWeather 
                     && configuration.BlacklistedWeathers.ContainsKey(*CurrentWeatherPtr)
@@ -199,11 +245,35 @@ namespace Weatherman
                 {
                     WriteLog("Blacklisted weather "+ *CurrentWeatherPtr + " found and changed to " + UnblacklistedWeather);
                     *CurrentWeatherPtr = UnblacklistedWeather;
+                    WeatherWasChanged = true;
                 }
             }
             else
             {
                 EnableNaturalTimeFlow();
+            }
+            if(_pi.ClientState != null && (AtVista || PausePlugin) && WeatherWasChanged)
+            {
+                RestoreOriginalWeather();
+            }
+        }
+
+        public void RestoreOriginalWeather()
+        {
+            var origweather = WeatherSvc.GetCurrentWeather(_pi.ClientState.TerritoryType, 0);
+            if (origweather.Item1 != null)
+            {
+                var origweatherid = (byte)origweather.Item1.RowId;
+                if(IsWeatherNormal(origweatherid, _pi.ClientState.TerritoryType))
+                {
+                    WeatherWasChanged = false;
+                    * CurrentWeatherPtr = origweatherid;
+                    WriteLog("Weather restored to original "+origweatherid);
+                }
+                else
+                {
+                    WriteLog("Unable to restore weather to original "+origweatherid);
+                }
             }
         }
 

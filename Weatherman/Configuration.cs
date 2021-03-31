@@ -17,7 +17,6 @@ namespace Weatherman
         public SortedDictionary<byte, bool> BlacklistedWeathers = new SortedDictionary<byte, bool>();
         public bool EnableLogging = true;
         public bool Unsafe = false;
-        public bool Superuser = false;
 
         [NonSerialized]
         private Weatherman plugin;

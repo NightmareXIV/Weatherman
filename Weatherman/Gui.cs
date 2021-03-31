@@ -96,13 +96,12 @@ namespace Weatherman
                     if (!displayOnlyReal)
                     {
                         ImGui.TextColored(new Vector4(1,0,0,1), 
-                            plugin.configuration.Superuser? "Superuser more. Proceed with caution. " :
                             "Warning: changes are only supported in world zones currently." +
-                            "Settings will not become effective in other zones.");
+                            "Settings will not become effective in other zones. This list is only for reference.");
                     }
                     if(ImGui.Button("Apply weather changes"))
                     {
-                        plugin.OnZoneChange(null, plugin._pi.ClientState.TerritoryType);
+                        plugin.ApplyWeatherChanges(plugin._pi.ClientState.TerritoryType);
                     }
                     ImGui.SameLine();
                     ImGui.Text("Either click this button or change your zone for weather settings to become effective.");
@@ -160,7 +159,7 @@ namespace Weatherman
                     ImGui.Separator();
                     if (ImGui.Button("Apply weather changes"))
                     {
-                        plugin.OnZoneChange(null, plugin._pi.ClientState.TerritoryType);
+                        plugin.ApplyWeatherChanges(plugin._pi.ClientState.TerritoryType);
                     }
                     ImGui.SameLine();
                     ImGui.Text("Either click this button or change your zone for settings to become effective.");
@@ -191,10 +190,6 @@ namespace Weatherman
                         {
                             plugin.WriteLog(plugin.GetConfigurationString());
                         }
-                        if (plugin.configuration.Superuser && ImGui.Button("Superuser mode active. Disable."))
-                        {
-                            plugin.configuration.Superuser = false;
-                        }
                         if (plugin.configuration.Unsafe && ImGui.Button("Unsafe options unlocked. Disable."))
                         {
                             plugin.configuration.Unsafe = false;
@@ -204,6 +199,14 @@ namespace Weatherman
                         ImGui.Text("Current time: " + *plugin.TimePtr + " / " + DateTimeOffset.FromUnixTimeSeconds(*plugin.TimePtr).ToString());
                         var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 144D / 7D / 1000D);
                         ImGui.Text("True ET: " + et + " / " + DateTimeOffset.FromUnixTimeSeconds(et).ToString());
+                        var tw = plugin.WeatherSvc.GetCurrentWeather(plugin._pi.ClientState.TerritoryType, 0);
+                        if(tw.Item1 != null) ImGui.Text("True weather: " + tw.Item1.RowId + " / " + tw.Item1.Name);
+                        if ((plugin.configuration.Unsafe || plugin.IsWorldTerritory(plugin._pi.ClientState.TerritoryType))
+                                && !plugin.AtVista)
+                        {
+                            ImGui.SameLine();
+                            if(ImGui.SmallButton("Set")) plugin.RestoreOriginalWeather();
+                        }
                         ImGui.Text("Current zone: " + plugin._pi.ClientState.TerritoryType + " / " +
                             plugin.zones[plugin._pi.ClientState.TerritoryType].PlaceName.Value.Name);
                         ImGui.Text("Unblacklisted weather: " + plugin.UnblacklistedWeather);
@@ -212,17 +215,19 @@ namespace Weatherman
                         {
                             wGui.Add(w.Key + " / " + w.Value);
                         }
+                        if (plugin.WeatherWasChanged) ImGui.Text("Weather in this area has been modified");
                         ImGui.Text("Weather list");
                         ImGui.SameLine();
                         ImGui.PushItemWidth(200f);
                         ImGui.Combo("##allweathers", ref curW, wGui.ToArray(), wGui.Count);
                         ImGui.PopItemWidth();
-                        if (plugin.configuration.Unsafe)
+                        if (plugin.configuration.Unsafe && !plugin.AtVista)
                         {
                             ImGui.SameLine();
                             if (ImGui.Button("Set"))
                             {
                                 *plugin.CurrentWeatherPtr = (byte)curW;
+                                plugin.WeatherWasChanged = true;
                             }
                         }
                         ImGui.Text("Supported weathers:");
@@ -234,11 +239,13 @@ namespace Weatherman
                                 ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1,0,0,1));
                                 colored = true;
                             }
-                            if (plugin.configuration.Unsafe || plugin.IsWorldTerritory(plugin._pi.ClientState.TerritoryType))
+                            if ((plugin.configuration.Unsafe || plugin.IsWorldTerritory(plugin._pi.ClientState.TerritoryType)) 
+                                && !plugin.AtVista)
                             {
                                 if (ImGui.SmallButton(i + " / " + plugin.weathers[i]))
                                 {
                                     *plugin.CurrentWeatherPtr = i;
+                                    plugin.WeatherWasChanged = true;
                                 }
                             }
                             else
