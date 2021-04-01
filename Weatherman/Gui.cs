@@ -19,10 +19,8 @@ namespace Weatherman
         bool configWasOpen = false;
         int uid = 0;
         string filter = "";
-        bool displayCurrentZone = true;
-        bool displayOnlyModified = false;
-        bool displayOnlyReal = true;
         bool autoscrollLog = true;
+        string musicFilter = "";
 
         public Gui(Weatherman plugin)
         {
@@ -48,7 +46,7 @@ namespace Weatherman
                 plugin.configuration.Save();
                 plugin.WriteLog("Configuration saved");
             }
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowMinSize, new Vector2(800, 350));
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowMinSize, new Vector2(900, 350));
             if (ImGui.Begin("Weatherman configuration", ref configOpen))
             {
                 ImGui.BeginTabBar("weatherman_settings");
@@ -75,6 +73,12 @@ namespace Weatherman
                         ImGui.SameLine();
                         ImGui.Text(DateTimeOffset.FromUnixTimeSeconds(plugin.configuration.GlobalFixedTime).ToString("HH:mm:ss"));
                     }
+                    ImGui.Checkbox("Enable music control", ref plugin.configuration.MusicEnabled);
+                    ImGui.Text("Requires Orchestrion plugin installed and enabled.");
+                    if (ImGui.Button("TrySetup"))
+                    {
+                        plugin.GetSongList();
+                    }
                     ImGui.EndTabItem();
                 }
                 if (ImGui.BeginTabItem("Zone-specific settings"))
@@ -85,19 +89,17 @@ namespace Weatherman
                     ImGui.InputTextWithHint("##filter", "ID, partial area or zone name", ref filter, 1000);
                     ImGui.PopItemWidth();
                     ImGui.SameLine();
-                    ImGui.Checkbox("Only modified", ref displayOnlyModified);
+                    ImGui.Checkbox("Only modified", ref plugin.configuration.ShowOnlyModified);
                     ImGui.SameLine();
-                    if (plugin.configuration.Unsafe)
-                    {
-                        ImGui.Checkbox("Only world zones", ref displayOnlyReal);
-                        ImGui.SameLine();
-                    }
-                    ImGui.Checkbox("Current zone on top", ref displayCurrentZone);
-                    if (!displayOnlyReal)
+                    ImGui.Checkbox("Only world zones", ref plugin.configuration.ShowOnlyWorldZones);
+                    ImGui.SameLine();
+                    ImGui.Checkbox("Current zone on top", ref plugin.configuration.ShowCurrentZoneOnTop);
+                    ImGui.SameLine();
+                    ImGui.Checkbox("Show unnamed zones", ref plugin.configuration.ShowUnnamedZones);
+                    if (!plugin.configuration.ShowOnlyWorldZones)
                     {
                         ImGui.TextColored(new Vector4(1,0,0,1), 
-                            "Warning: changes are only supported in world zones currently." +
-                            "Settings will not become effective in other zones. This list is only for reference.");
+                            "Warning: non-world zones only support music changes.");
                     }
                     if(ImGui.Button("Apply weather changes"))
                     {
@@ -106,13 +108,14 @@ namespace Weatherman
                     ImGui.SameLine();
                     ImGui.Text("Either click this button or change your zone for weather settings to become effective.");
                     ImGui.BeginChild("##zonetable");
-                    ImGui.Columns(6);
+                    ImGui.Columns(7);
                     ImGui.SetColumnWidth(0, 35);
                     ImGui.SetColumnWidth(1, 140);
-                    ImGui.SetColumnWidth(2, ImGui.GetWindowWidth() - 530);
+                    ImGui.SetColumnWidth(2, ImGui.GetWindowWidth() - 680);
                     ImGui.SetColumnWidth(3, 140);
                     ImGui.SetColumnWidth(4, 170);
-                    ImGui.SetColumnWidth(5, 30);
+                    ImGui.SetColumnWidth(5, 150);
+                    ImGui.SetColumnWidth(6, 30);
                     ImGui.Text("ID");
                     ImGui.NextColumn();
                     ImGui.Text("Area");
@@ -123,14 +126,15 @@ namespace Weatherman
                     ImGui.NextColumn();
                     ImGui.Text("Weather control");
                     ImGui.NextColumn();
+                    ImGui.Text("BGM override");
+                    ImGui.NextColumn();
                     ImGui.Text("");
                     ImGui.NextColumn();
                     ImGui.Separator();
 
                     //current zone
-                    if (displayCurrentZone && plugin.ZoneSettings.ContainsKey(plugin._pi.ClientState.TerritoryType)) {
-                        ImGui.PushStyleColor(ImGuiCol.Text, 
-                            plugin.IsWorldTerritory(plugin._pi.ClientState.TerritoryType)?new Vector4(0,1,1,1):new Vector4(1, 0, 0, 1));
+                    if (plugin.configuration.ShowCurrentZoneOnTop && plugin.ZoneSettings.ContainsKey(plugin._pi.ClientState.TerritoryType)) {
+                        ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 1, 1, 1));
                         PrintZoneRow(plugin.ZoneSettings[plugin._pi.ClientState.TerritoryType], false);
                         ImGui.PopStyleColor();
                     }
@@ -305,60 +309,110 @@ namespace Weatherman
 
         void PrintZoneRow(ZoneSettings z, bool filtering = true)
         {
+            var grayed = false;
             if (filtering)
             {
                 if (filter != ""
                     && !z.ZoneId.ToString().ToLower().Contains(filter.ToLower())
                     && !z.terr.PlaceNameZone.Value.Name.ToLower().Contains(filter.ToLower())
                     && !z.ZoneName.ToLower().Contains(filter.ToLower())) return;
-                if (displayOnlyReal && !plugin.IsWorldTerritory(z.ZoneId)) return;
-                if (displayOnlyModified)
+                //if (displayOnlyReal && !plugin.IsWorldTerritory(z.ZoneId)) return;
+                if (plugin.configuration.ShowOnlyModified)
                 {
                     var sel = new List<string>();
                     foreach (var zz in z.SupportedWeathers)
                     {
                         if (zz.Selected) sel.Add(zz.Id.ToString());
                     }
-                    if (z.WeatherControl == false && z.TimeFlow == 0 && z.FixedTime == 0 && sel.Count == 0) return;
+                    if (z.IsUntouched()) return;
+                }
+                if (!plugin.configuration.ShowUnnamedZones && z.ZoneName.Length == 0) return;
+                if (plugin.configuration.ShowOnlyWorldZones && !plugin.IsWorldTerritory(z.ZoneId)) return;
+                if (!plugin.IsWorldTerritory(z.ZoneId))
+                {
+                    grayed = true;
+                    ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.7f, 0.7f, 0.7f, 1));
                 }
             }
-            if (filtering && !plugin.IsWorldTerritory(z.ZoneId)) ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.5f,0.5f,0.5f,1));
-            if (!plugin.configuration.Unsafe && !plugin.IsWorldTerritory(z.ZoneId)) return;
             ImGui.Text(z.ZoneId.ToString());
             ImGui.NextColumn();
             ImGui.Text(z.terr.PlaceNameZone.Value.Name);
             ImGui.NextColumn();
             ImGui.Text(z.ZoneName);
             ImGui.NextColumn();
-            ImGui.PushItemWidth(120f);
-            ImGui.Combo("##timecombo" + ++uid, ref z.TimeFlow, timeflowcombo, timeflowcombo.Length);
-            ImGui.PopItemWidth();
-            if (z.TimeFlow == 2)
+            if (plugin.IsWorldTerritory(z.ZoneId))
             {
-                ImGui.PushItemWidth(50f);
-                ImGui.DragInt("##timecontrol" + ++uid, ref z.FixedTime, 100.0f, 0, Weatherman.SecondsInDay - 1);
-                if (z.FixedTime > Weatherman.SecondsInDay || z.FixedTime < 0) z.FixedTime = 0;
+                ImGui.PushItemWidth(120f);
+                ImGui.Combo("##timecombo" + ++uid, ref z.TimeFlow, timeflowcombo, timeflowcombo.Length);
                 ImGui.PopItemWidth();
-                ImGui.SameLine();
-                ImGui.Text(DateTimeOffset.FromUnixTimeSeconds(z.FixedTime).ToString("HH:mm:ss"));
+                if (z.TimeFlow == 2)
+                {
+                    ImGui.PushItemWidth(50f);
+                    ImGui.DragInt("##timecontrol" + ++uid, ref z.FixedTime, 100.0f, 0, Weatherman.SecondsInDay - 1);
+                    if (z.FixedTime > Weatherman.SecondsInDay || z.FixedTime < 0) z.FixedTime = 0;
+                    ImGui.PopItemWidth();
+                    ImGui.SameLine();
+                    ImGui.Text(DateTimeOffset.FromUnixTimeSeconds(z.FixedTime).ToString("HH:mm:ss"));
+                }
+            }
+            else
+            {
+                ImGui.Text("Unsupported");
             }
             ImGui.NextColumn();
-            ImGui.Checkbox("Override weather##wcontrol" + ++uid, ref z.WeatherControl);
-            if (z.WeatherControl)
+            if (plugin.IsWorldTerritory(z.ZoneId))
             {
-                if (z.SupportedWeathers.Count == 0)
+                ImGui.Checkbox("Override weather##wcontrol" + ++uid, ref z.WeatherControl);
+                if (z.WeatherControl)
                 {
-                    ImGui.Text("Zone has no supported weathers");
+                    if (z.SupportedWeathers.Count == 0)
+                    {
+                        ImGui.Text("Zone has no supported weathers");
+                    }
+                    else
+                    {
+                        foreach (var weather in z.SupportedWeathers)
+                        {
+                            if (weather.IsNormal) ImGui.PushStyleColor(ImGuiCol.Text, colorGreen);
+                            ImGui.Checkbox(weather.Id + " | " + plugin.weathers[weather.Id] + "##" + ++uid, ref weather.Selected);
+                            if (weather.IsNormal) ImGui.PopStyleColor();
+                        }
+                    }
+                }
+            }
+            else
+            {
+                ImGui.Text("Unsupported");
+            }
+            ImGui.NextColumn();
+            if (plugin.configuration.MusicEnabled)
+            {
+                var songs = plugin.GetSongList();
+                if (songs != null)
+                {
+                    ImGui.PushItemWidth(130f);
+                    if(ImGui.BeginCombo("##SelectSong" + ++uid, plugin.GetSongById(z.Music).ToString()))
+                    {
+                        ImGui.Text("Filter:");
+                        ImGui.SameLine();
+                        ImGui.InputText("##musicfilter"+ ++uid, ref musicFilter, 100);
+                        foreach (var s in plugin.GetSongList())
+                        if (s.Value.ToString().ToLower().Contains(musicFilter.ToLower()) && ImGui.Selectable(s.Value.ToString()))
+                        {
+                            z.Music = s.Value.Id;
+                        }
+                        ImGui.EndCombo();
+                    }
+                    ImGui.PopItemWidth();
                 }
                 else
                 {
-                    foreach (var weather in z.SupportedWeathers)
-                    {
-                        if (weather.IsNormal) ImGui.PushStyleColor(ImGuiCol.Text, colorGreen);
-                        ImGui.Checkbox(weather.Id + " | " + plugin.weathers[weather.Id] + "##" + ++uid, ref weather.Selected);
-                        if (weather.IsNormal) ImGui.PopStyleColor();
-                    }
+                    ImGui.Text("Orchestrion not found");
                 }
+            }
+            else
+            {
+                ImGui.Text("Music is not enabled");
             }
             ImGui.NextColumn();
             if (ImGui.Button("X##"+ ++uid)){
@@ -369,8 +423,9 @@ namespace Weatherman
                 z.WeatherControl = false; 
                 z.TimeFlow = 0; 
                 z.FixedTime = 0;
+                z.Music = 0;
             }
-            if (filtering && !plugin.IsWorldTerritory(z.ZoneId)) ImGui.PopStyleColor();
+            if (grayed) ImGui.PopStyleColor();
             ImGui.NextColumn();
             ImGui.Separator();
         }

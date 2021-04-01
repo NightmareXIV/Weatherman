@@ -48,6 +48,7 @@
     <Compile Include="IFFXIVWeatherLuminaService.cs" />
     <Compile Include="LvbFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Song.cs" />
     <Compile Include="TimeFlowType.cs" />
     <Compile Include="Weatherman.cs" />
     <Compile Include="WeathermanWeather.cs" />
@@ -71,6 +72,9 @@
     </Reference>
     <Reference Include="Lumina.Generated">
       <HintPath>..\..\..\..\..\..\VS\DalamudBin\Lumina.Generated.dll</HintPath>
+    </Reference>
+    <Reference Include="orchestrion">
+      <HintPath>..\..\..\..\..\..\VS\orchestrion.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Diagnostics.Process, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">

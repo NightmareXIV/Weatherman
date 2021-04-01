@@ -17,6 +17,11 @@ namespace Weatherman
         public SortedDictionary<byte, bool> BlacklistedWeathers = new SortedDictionary<byte, bool>();
         public bool EnableLogging = true;
         public bool Unsafe = false;
+        public bool MusicEnabled = false;
+        public bool ShowUnnamedZones = false;
+        public bool ShowOnlyModified = false;
+        public bool ShowOnlyWorldZones = true;
+        public bool ShowCurrentZoneOnTop = true;
 
         [NonSerialized]
         private Weatherman plugin;

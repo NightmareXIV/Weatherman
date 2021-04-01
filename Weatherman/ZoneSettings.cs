@@ -16,6 +16,7 @@ namespace Weatherman
         public int TimeFlow = 0;
         public int FixedTime = 0;
         public TerritoryType terr;
+        public int Music = 0;
 
         public ZoneSettings() { }
 
@@ -37,13 +38,14 @@ namespace Weatherman
                 TimeFlow.ToString(),
                 FixedTime.ToString()
             };
+            if (IsUntouched()) return null;
             var sel = new List<string>();
             foreach (var z in SupportedWeathers)
             {
-                if(z.Selected) sel.Add(z.Id.ToString());
+                if (z.Selected) sel.Add(z.Id.ToString());
             }
-            if (WeatherControl == false && TimeFlow == 0 && FixedTime == 0 && sel.Count == 0) return null;
             b.Add(string.Join("|", sel));
+            b.Add(Music.ToString());
             return string.Join("/", b);
         }
 
@@ -54,6 +56,7 @@ namespace Weatherman
             TimeFlow = int.Parse(ss[1]);
             FixedTime = int.Parse(ss[2]);
             var selectedw = ss[3].Split('|');
+            Music = ss.Length < 5 ? 0 : int.Parse(ss[4]);
             foreach (var i in selectedw)
             {
                 var ii = byte.Parse(i);
@@ -62,6 +65,15 @@ namespace Weatherman
                     if (z.Id == ii) z.Selected = true;
                 }
             }
+        }
+        public bool IsUntouched()
+        {
+            var sel = new List<string>();
+            foreach (var z in SupportedWeathers)
+            {
+                if (z.Selected) sel.Add(z.Id.ToString());
+            }
+            return this.WeatherControl == false && this.TimeFlow == 0 && this.FixedTime == 0 && sel.Count == 0 && this.Music == 0;
         }
     }
 }

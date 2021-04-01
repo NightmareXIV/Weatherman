@@ -6,8 +6,10 @@ using Dalamud.Plugin;
 using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace Weatherman
@@ -38,6 +40,11 @@ namespace Weatherman
         public bool AtVista = false;
         public bool WeatherWasChanged = false;
         public IFFXIVWeatherLuminaService WeatherSvc;
+        public bool BGMModified = false;
+        private Dictionary<int, Song> SongList = new Dictionary<int, Song>
+        {
+            [0] = new Song(0, "Default")
+        };
 
         public void Dispose()
         {
@@ -49,6 +56,7 @@ namespace Weatherman
             _pi.Framework.Gui.Chat.OnChatMessage -= HandleChatMessage;
             EnableNaturalTimeFlow();
             if (WeatherWasChanged) RestoreOriginalWeather();
+            if (BGMModified) StopSong();
             _pi.Dispose();
         }
 
@@ -107,6 +115,102 @@ namespace Weatherman
             if (_pi.ClientState != null) ApplyWeatherChanges(_pi.ClientState.TerritoryType);
             _pi.CommandManager.AddHandler("/weatherman", new Dalamud.Game.Command.CommandInfo(delegate { ConfigGui.configOpen = true; }) { });
             _pi.Framework.Gui.Chat.OnChatMessage += HandleChatMessage;
+        }
+
+        public IDalamudPlugin GetOrchestrionPlugin()
+        {
+            try
+            {
+                var flags = BindingFlags.NonPublic | BindingFlags.Instance;
+                Dalamud.Dalamud d = (Dalamud.Dalamud)_pi.GetType().GetField("dalamud", flags).GetValue(_pi);
+                var pmanager = d.GetType().GetProperty("PluginManager", flags).GetValue(d);
+                var plugins =
+                    (List<(IDalamudPlugin Plugin, PluginDefinition Definition, DalamudPluginInterface PluginInterface, bool IsRaw)>)
+                    pmanager.GetType().GetField("Plugins").GetValue(pmanager);
+                WriteLog("Found plugins: " + plugins.Count);
+                foreach (var p in plugins)
+                {
+                    if(p.Plugin.Name == "Orchestrion plugin")
+                    {
+                        var porch = p.Plugin;
+                        WriteLog("Found Orchestrion plugin.");
+                        return porch;
+                    }
+                }
+                return null;
+            }
+            catch(Exception e)
+            {
+                WriteLog("Can't find orchestrion plugin: " + e.Message);
+                WriteLog(e.StackTrace);
+                return null;
+            }
+        }
+
+        public void PlaySong(int id)
+        {
+            try
+            {
+                var p = GetOrchestrionPlugin();
+                if (p == null) return;
+                p.GetType().GetMethod("PlaySong").Invoke(p, new object[] { id });
+            }
+            catch(Exception e)
+            {
+                WriteLog("Failed to play song:" + e.Message);
+            }
+        }
+
+        public void StopSong()
+        {
+            try
+            {
+                var p = GetOrchestrionPlugin();
+                if (p == null) return;
+                p.GetType().GetMethod("StopSong").Invoke(p, new object[] { });
+            }
+            catch (Exception e)
+            {
+                WriteLog("Failed to stop song:" + e.Message);
+            }
+        }
+
+        public Dictionary<int, Song> GetSongList()
+        {
+            if (SongList.Count > 1) return SongList;
+            try
+            {
+                var p = GetOrchestrionPlugin();
+                if (p == null) return null;
+                var flags = BindingFlags.NonPublic | BindingFlags.Instance;
+                var slist = p.GetType().GetField("songList", flags).GetValue(p);
+                var songlist = (IDictionary)slist.GetType().GetField("songs", flags).GetValue(slist);
+                WriteLog("Songs found: "+ songlist.Count);
+                int i = 0;
+                foreach(var o in songlist.Keys)
+                {
+                    SongList.Add(++i, new Song(
+                        (int)songlist[o].GetType().GetField("Id").GetValue(songlist[o]),
+                        (string)songlist[o].GetType().GetField("Name").GetValue(songlist[o])
+                        ));
+                }
+                WriteLog("Song list contains " + SongList.Count + " entries / " + i);
+                if (SongList.Count > 1) return SongList;
+            }
+            catch (Exception e)
+            {
+                WriteLog("Failed to retrieve song list:" + e.Message);
+            }
+            return null;
+        }
+
+        public Song GetSongById(int id)
+        {
+            foreach(var i in SongList)
+            {
+                if (i.Value.Id == id) return i.Value;
+            }
+            return null;
         }
 
         HashSet<string> ArrivedAtVistaMessages = new HashSet<string>
@@ -193,9 +297,19 @@ namespace Weatherman
             WriteLog("Applying weather changes");
             SelectedWeather = 255;
             UnblacklistedWeather = 0;
+            if (BGMModified)
+            {
+                StopSong();
+                BGMModified = false;
+            }
             if (ZoneSettings.ContainsKey(u))
             {
                 var z = ZoneSettings[u];
+                if(configuration.MusicEnabled && z.Music != 0 && !BGMModified)
+                {
+                    PlaySong(z.Music);
+                    BGMModified = true;
+                }
                 if (z.WeatherControl)
                 {
                     var weathers = new List<byte>();
@@ -248,7 +362,7 @@ namespace Weatherman
             {
                 EnableNaturalTimeFlow();
             }
-            if(_pi.ClientState != null && (AtVista || PausePlugin) && WeatherWasChanged)
+            if(_pi.ClientState != null && AtVista && WeatherWasChanged)
             {
                 RestoreOriginalWeather();
             }
