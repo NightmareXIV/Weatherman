@@ -10,6 +10,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Text;
 
 namespace Weatherman
@@ -122,7 +123,7 @@ namespace Weatherman
             try
             {
                 var flags = BindingFlags.NonPublic | BindingFlags.Instance;
-                Dalamud.Dalamud d = (Dalamud.Dalamud)_pi.GetType().GetField("dalamud", flags).GetValue(_pi);
+                var d = (Dalamud.Dalamud)_pi.GetType().GetField("dalamud", flags).GetValue(_pi);
                 var pmanager = d.GetType().GetProperty("PluginManager", flags).GetValue(d);
                 var plugins =
                     (List<(IDalamudPlugin Plugin, PluginDefinition Definition, DalamudPluginInterface PluginInterface, bool IsRaw)>)
@@ -336,35 +337,43 @@ namespace Weatherman
             WriteLog("Selected weather:"+ SelectedWeather + "; unblacklisted weather: " + UnblacklistedWeather);
         }
 
+        [HandleProcessCorruptedStateExceptions]
         void HandleFrameworkUpdate(Framework f)
         {
-            if (_pi.ClientState != null && _pi.ClientState.LocalPlayer != null 
-                && IsWorldTerritory(_pi.ClientState.TerritoryType) 
-                && !PausePlugin && !AtVista)
+            try
             {
-                SetTimeBySetting(GetZoneTimeFlowSetting(_pi.ClientState.TerritoryType));
-                if(SelectedWeather != 255 && *CurrentWeatherPtr != SelectedWeather)
+                if (_pi.ClientState != null && _pi.ClientState.LocalPlayer != null
+                    && IsWorldTerritory(_pi.ClientState.TerritoryType)
+                    && !PausePlugin && !AtVista)
                 {
-                    WriteLog("Weather set to " + SelectedWeather + " from "+ *CurrentWeatherPtr);
-                    *CurrentWeatherPtr = SelectedWeather;
-                    WeatherWasChanged = true;
+                    SetTimeBySetting(GetZoneTimeFlowSetting(_pi.ClientState.TerritoryType));
+                    if (SelectedWeather != 255 && *CurrentWeatherPtr != SelectedWeather)
+                    {
+                        WriteLog("Weather set to " + SelectedWeather + " from " + *CurrentWeatherPtr);
+                        *CurrentWeatherPtr = SelectedWeather;
+                        WeatherWasChanged = true;
+                    }
+                    if (UnblacklistedWeather != 0 && *CurrentWeatherPtr != UnblacklistedWeather
+                        && configuration.BlacklistedWeathers.ContainsKey(*CurrentWeatherPtr)
+                        && configuration.BlacklistedWeathers[*CurrentWeatherPtr])
+                    {
+                        WriteLog("Blacklisted weather " + *CurrentWeatherPtr + " found and changed to " + UnblacklistedWeather);
+                        *CurrentWeatherPtr = UnblacklistedWeather;
+                        WeatherWasChanged = true;
+                    }
                 }
-                if(UnblacklistedWeather != 0 && *CurrentWeatherPtr != UnblacklistedWeather 
-                    && configuration.BlacklistedWeathers.ContainsKey(*CurrentWeatherPtr)
-                    && configuration.BlacklistedWeathers[*CurrentWeatherPtr])
+                else
                 {
-                    WriteLog("Blacklisted weather "+ *CurrentWeatherPtr + " found and changed to " + UnblacklistedWeather);
-                    *CurrentWeatherPtr = UnblacklistedWeather;
-                    WeatherWasChanged = true;
+                    EnableNaturalTimeFlow();
+                }
+                if (_pi.ClientState != null && AtVista && WeatherWasChanged)
+                {
+                    RestoreOriginalWeather();
                 }
             }
-            else
+            catch(Exception e)
             {
-                EnableNaturalTimeFlow();
-            }
-            if(_pi.ClientState != null && AtVista && WeatherWasChanged)
-            {
-                RestoreOriginalWeather();
+                WriteLog("Error in weatherman: "+e);
             }
         }
 
