@@ -55,26 +55,29 @@
     <Compile Include="ZoneSettings.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Dalamud">
+    <Reference Include="Dalamud, Version=5.2.4.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\VS\DalamudBin\Dalamud.dll</HintPath>
     </Reference>
-    <Reference Include="FFXIVClientStructs">
+    <Reference Include="FFXIVClientStructs, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\VS\DalamudBin\FFXIVClientStructs.dll</HintPath>
     </Reference>
-    <Reference Include="ImGui.NET">
+    <Reference Include="ImGui.NET, Version=1.72.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\VS\DalamudBin\ImGui.NET.dll</HintPath>
     </Reference>
-    <Reference Include="ImGuiScene">
+    <Reference Include="ImGuiScene, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\VS\DalamudBin\ImGuiScene.dll</HintPath>
     </Reference>
-    <Reference Include="Lumina">
+    <Reference Include="Lumina, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\VS\DalamudBin\Lumina.dll</HintPath>
     </Reference>
-    <Reference Include="Lumina.Generated">
-      <HintPath>..\..\..\..\..\..\VS\DalamudBin\Lumina.Generated.dll</HintPath>
-    </Reference>
-    <Reference Include="orchestrion">
-      <HintPath>..\..\..\..\..\..\VS\orchestrion.dll</HintPath>
+    <Reference Include="Lumina.Excel, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\VS\DalamudBin\Lumina.Excel.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Diagnostics.Process, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">

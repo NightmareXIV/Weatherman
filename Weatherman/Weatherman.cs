@@ -1,7 +1,7 @@
 ﻿using Dalamud;
-using Dalamud.Game.Chat;
-using Dalamud.Game.Chat.SeStringHandling;
 using Dalamud.Game.Internal;
+using Dalamud.Game.Text;
+using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin;
 using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
@@ -22,7 +22,7 @@ namespace Weatherman
         public DalamudPluginInterface _pi;
         public string Name => "Weatherman";
         public byte[] TimeStopOn = new byte[] { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
-        public byte[] TimeStopOff = new byte[] { 0x48, 0x89, 0x83, 0x08, 0x16, 0x00, 0x00 };
+        public byte[] TimeStopOff;
         public IntPtr TimeStopPtr;
         public byte* FirstByteTimeStopPtr;
         public long* TimePtr;
@@ -54,7 +54,7 @@ namespace Weatherman
             _pi.UiBuilder.OnBuildUi -= ConfigGui.Draw;
             _pi.ClientState.TerritoryChanged -= HandleZoneChange;
             _pi.CommandManager.RemoveHandler("/weatherman");
-            _pi.Framework.Gui.Chat.OnChatMessage -= HandleChatMessage;
+            _pi.Framework.Gui.Chat.OnChatMessage += HandleChatMessage;
             EnableNaturalTimeFlow();
             if (WeatherWasChanged) RestoreOriginalWeather();
             if (BGMModified) StopSong();
@@ -65,7 +65,11 @@ namespace Weatherman
         {
             _pi = pluginInterface;
             TimePtr = (long*)(_pi.Framework.Address.BaseAddress + 0x1608);
-            TimeStopPtr = _pi.TargetModuleScanner.ScanText("48 89 83 08 16 00 00 48 69"); //yeeted from cmtool https://github.com/imchillin/CMTool
+            TimeStopPtr = _pi.TargetModuleScanner.ScanText("48 89 ?? 08 16 00 00 48 69"); //yeeted from cmtool https://github.com/imchillin/CMTool
+            if(!SafeMemory.ReadBytes(TimeStopPtr, 7, out TimeStopOff))
+            {
+                throw new Exception("Could not read memory");
+            }
             CurrentWeatherPtr = (byte*)(*(IntPtr*)_pi.TargetModuleScanner.GetStaticAddressFromSig("48 8B 05 ?? ?? ?? ?? 0F B6 EA 48 8B F9 41 8B DE 48 8B 70 08 48 85 F6 0F 84 ?? ?? ?? ??") + 0x27); //thanks daemitus
             //CurrentWeatherPtr = (byte*)(*(IntPtr*)(Process.GetCurrentProcess().MainModule.BaseAddress + 0x1D682B8) + 0x27); //yeeted from cmtool yet again 
             FirstByteTimeStopPtr = (byte*)TimeStopPtr;

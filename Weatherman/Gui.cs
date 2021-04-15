@@ -324,7 +324,7 @@ namespace Weatherman
             {
                 if (filter != ""
                     && !z.ZoneId.ToString().ToLower().Contains(filter.ToLower())
-                    && !z.terr.PlaceNameZone.Value.Name.ToLower().Contains(filter.ToLower())
+                    && !z.terr.PlaceNameZone.Value.Name.ToString().ToLower().Contains(filter.ToLower())
                     && !z.ZoneName.ToLower().Contains(filter.ToLower())) return;
                 //if (displayOnlyReal && !plugin.IsWorldTerritory(z.ZoneId)) return;
                 if (plugin.configuration.ShowOnlyModified)
