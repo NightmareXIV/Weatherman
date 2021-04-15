@@ -131,7 +131,7 @@ namespace Weatherman
                 var pmanager = d.GetType().GetProperty("PluginManager", flags).GetValue(d);
                 var plugins =
                     (List<(IDalamudPlugin Plugin, PluginDefinition Definition, DalamudPluginInterface PluginInterface, bool IsRaw)>)
-                    pmanager.GetType().GetField("Plugins").GetValue(pmanager);
+                    pmanager.GetType().GetProperty("Plugins").GetValue(pmanager);
                 WriteLog("Found plugins: " + plugins.Count);
                 foreach (var p in plugins)
                 {
