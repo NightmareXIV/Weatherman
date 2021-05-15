@@ -42,7 +42,7 @@ namespace Weatherman
             // Fill out the list
             for (var i = 1; i < count; i++)
             {
-                var time = forecast[0].Item2.AddSeconds(i * secondIncrement + initialOffset);
+                var time = forecast[0].Item2.AddSeconds(i * secondIncrement);
                 var weatherTarget = CalculateTarget(time);
                 var weather = GetWeather(weatherRateIndex, weatherTarget);
                 forecast.Add((weather, time));
@@ -122,20 +122,9 @@ namespace Weatherman
             // Calibrate the time to the beginning of the weather period
             var now = DateTime.UtcNow;
             var adjustedNow = now.AddMilliseconds(-now.Millisecond).AddSeconds(initialOffset);
-            var target = CalculateTarget(adjustedNow);
-            // The overhead of a binary search actually makes a linear search significantly faster here most of the time,
-            // looking at ~14000 ticks vs ~18000 ticks on average. For the record, I only tested that for fun.
             var rootTime = adjustedNow;
-            var anyIterations = false;
-            while (CalculateTarget(rootTime) == target)
-            {
-                rootTime = rootTime.AddSeconds(-1);
-                anyIterations = true;
-            }
-            // This handles the edge case where the while loop doesn't run, and more efficiently than manipulating
-            // the root time in the while condition.
-            if (anyIterations)
-                rootTime = rootTime.AddSeconds(1);
+            var seconds = (long)(rootTime - UnixEpoch).TotalSeconds % WeatherPeriod;
+            rootTime = rootTime.AddSeconds(-seconds);
             return rootTime;
         }
 

@@ -214,7 +214,7 @@ namespace Weatherman
                                     && !plugin.AtVista)
                             {
                                 ImGui.SameLine();
-                                if (ImGui.SmallButton("Set")) plugin.RestoreOriginalWeather();
+                                if (ImGui.SmallButton("Set##resetoriginalweather")) plugin.RestoreOriginalWeather();
                             }
                             ImGui.Text("Current zone: " + plugin._pi.ClientState.TerritoryType + " / " +
                                 plugin.zones[plugin._pi.ClientState.TerritoryType].PlaceName.Value.Name);
@@ -233,7 +233,7 @@ namespace Weatherman
                             if (plugin.configuration.Unsafe && !plugin.AtVista)
                             {
                                 ImGui.SameLine();
-                                if (ImGui.Button("Set"))
+                                if (ImGui.Button("Set##setweather"))
                                 {
                                     *plugin.CurrentWeatherPtr = (byte)curW;
                                     plugin.WeatherWasChanged = true;
