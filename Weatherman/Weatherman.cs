@@ -348,7 +348,7 @@ namespace Weatherman
             {
                 if (_pi.ClientState != null && _pi.ClientState.LocalPlayer != null
                     && IsWorldTerritory(_pi.ClientState.TerritoryType)
-                    && !PausePlugin && !AtVista)
+                    && !PausePlugin && !AtVista && !IsDol())
                 {
                     SetTimeBySetting(GetZoneTimeFlowSetting(_pi.ClientState.TerritoryType));
                     if (SelectedWeather != 255 && *CurrentWeatherPtr != SelectedWeather)
@@ -370,7 +370,7 @@ namespace Weatherman
                 {
                     EnableNaturalTimeFlow();
                 }
-                if (_pi.ClientState != null && AtVista && WeatherWasChanged)
+                if (_pi.ClientState != null && (AtVista || IsDol()) && WeatherWasChanged)
                 {
                     RestoreOriginalWeather();
                 }
@@ -434,6 +434,19 @@ namespace Weatherman
             {
                 SafeMemory.WriteBytes(TimeStopPtr, TimeStopOff);
                 WriteLog("Time flow reenabled");
+            }
+        }
+
+        bool IsDol()
+        {
+            try
+            {
+                return _pi.ClientState.LocalPlayer.ClassJob.Id == 16 || _pi.ClientState.LocalPlayer.ClassJob.Id == 17 ||
+                    _pi.ClientState.LocalPlayer.ClassJob.Id == 18;
+            }
+            catch(Exception e)
+            {
+                return false;
             }
         }
 
