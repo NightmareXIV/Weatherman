@@ -79,10 +79,7 @@ namespace Weatherman
                         }
                         ImGui.Checkbox("Enable music control", ref plugin.configuration.MusicEnabled);
                         ImGui.Text("Requires Orchestrion plugin installed and enabled.");
-                        if (ImGui.Button("TrySetup"))
-                        {
-                            plugin.GetSongList();
-                        }
+                        ImGui.Checkbox("Pause plugin while using DOL classes", ref plugin.configuration.DisableDol);
                         ImGui.EndTabItem();
                     }
                     if (ImGui.BeginTabItem("Zone-specific settings"))
@@ -199,10 +196,7 @@ namespace Weatherman
                             {
                                 plugin.WriteLog(plugin.GetConfigurationString());
                             }
-                            if (plugin.configuration.Unsafe && ImGui.Button("Unsafe options unlocked. Disable."))
-                            {
-                                plugin.configuration.Unsafe = false;
-                            }
+                            ImGui.Checkbox("Unsafe options", ref plugin.configuration.Unsafe);
                             ImGui.Checkbox("Pause plugin execution", ref plugin.PausePlugin);
                             ImGui.Text("Current weather: " + *plugin.CurrentWeatherPtr + " / " + plugin.weathers[*plugin.CurrentWeatherPtr]);
                             ImGui.Text("Current time: " + *plugin.TimePtr + " / " + DateTimeOffset.FromUnixTimeSeconds(*plugin.TimePtr).ToString());

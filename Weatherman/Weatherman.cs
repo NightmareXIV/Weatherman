@@ -439,6 +439,7 @@ namespace Weatherman
 
         bool IsDol()
         {
+            if (!configuration.DisableDol) return false;
             try
             {
                 return _pi.ClientState.LocalPlayer.ClassJob.Id == 16 || _pi.ClientState.LocalPlayer.ClassJob.Id == 17 ||
