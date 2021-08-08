@@ -53,7 +53,7 @@ namespace Weatherman
                     p.WriteLog("Configuration saved");
                 }
                 ImGui.PushStyleVar(ImGuiStyleVar.WindowMinSize, new Vector2(900, 350));
-                if (ImGui.Begin("Weatherman configuration", ref configOpen))
+                if (ImGui.Begin("Weatherman 2.0", ref configOpen))
                 {
                     ImGui.BeginTabBar("weatherman_settings");
                     if (ImGui.BeginTabItem("Global setting"))
@@ -203,14 +203,26 @@ namespace Weatherman
                             {
                                 ImGui.Text("Time asm: " + timeAsm.ToHexString());
                             }
+                            if(p.memoryManager.IsTimeCustom())
+                            {
+                                ImGui.SameLine();
+                                ImGui.Text("[custom]");
+                            }
                             if (SafeMemory.ReadBytes(p.memoryManager.WeatherAsmPtr, p.memoryManager.NewWeatherAsm.Length, out var weatherAsm))
                             {
                                 ImGui.Text("Weather asm: " + weatherAsm.ToHexString());
                             }
-                            ImGui.Text("Current weather: " + *p.memoryManager.TrueWeather + " / " + p.weathers[*p.memoryManager.TrueWeather]);
-                            ImGui.Text("Current time: " + *p.memoryManager.TrueTime + " / " + DateTimeOffset.FromUnixTimeSeconds(*p.memoryManager.TrueTime).ToString());
+                            if (p.memoryManager.IsWeatherCustom())
+                            {
+                                ImGui.SameLine();
+                                ImGui.Text("[custom]");
+                            }
+                            ImGui.Text("True weather: " + *p.memoryManager.TrueWeather + " / " + p.weathers[*p.memoryManager.TrueWeather]);
+                            ImGui.Text("Displayed weather: " + p.memoryManager.GetDisplayedWeather() + " / " + p.weathers[p.memoryManager.GetDisplayedWeather()]);
+                            ImGui.Text("True time: " + *p.memoryManager.TrueTime + " / " + DateTimeOffset.FromUnixTimeSeconds(*p.memoryManager.TrueTime).ToString());
                             var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 144D / 7D / 1000D);
-                            ImGui.Text("True ET: " + et + " / " + DateTimeOffset.FromUnixTimeSeconds(et).ToString());
+                            ImGui.Text("Calculated time: " + et + " / " + DateTimeOffset.FromUnixTimeSeconds(et).ToString());
+                            if(p.memoryManager.IsTimeCustom()) ImGui.Text("Time from asm: " + p.memoryManager.GetTime());
                             ImGui.Text("Current zone: " + p.pi.ClientState.TerritoryType + " / " +
                                 p.zones[p.pi.ClientState.TerritoryType].PlaceName.Value.Name);
                             ImGui.Text("Unblacklisted weather: " + p.UnblacklistedWeather);
@@ -242,7 +254,7 @@ namespace Weatherman
                             foreach (byte i in p.GetWeathers(p.pi.ClientState.TerritoryType))
                             {
                                 var colored = false;
-                                if (p.memoryManager.GetWeather() == i)
+                                if (p.memoryManager.GetDisplayedWeather() == i)
                                 {
                                     ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1, 0, 0, 1));
                                     colored = true;

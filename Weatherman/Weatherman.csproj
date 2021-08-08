@@ -45,6 +45,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ChlogGui.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="Gui.cs" />
     <Compile Include="LvbFile.cs" />

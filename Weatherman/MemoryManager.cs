@@ -43,6 +43,11 @@ namespace Weatherman
             return *Weather; 
         }
 
+        internal byte GetDisplayedWeather()
+        {
+            return IsWeatherCustom() ? *Weather : *TrueWeather;
+        }
+
         internal void EnableCustomWeather()
         {
             if(!IsWeatherCustom()) SafeMemory.WriteBytes(WeatherAsmPtr, NewWeatherAsm);
