@@ -58,7 +58,7 @@ namespace Weatherman
                     ImGui.BeginTabBar("weatherman_settings");
                     if (ImGui.BeginTabItem("Global setting"))
                     {
-                        ImGui.Text("Global time control: ");
+                        ImGui.TextUnformatted("Global time control: ");
                         ImGui.SameLine();
                         HelpMarker("No override - time controlled by game;\n" +
                             "Normal - time controlled by p, normal flow; \nFixed - time is fixed to specified value;\n"
@@ -70,22 +70,22 @@ namespace Weatherman
                         ImGui.PopItemWidth();
                         if (p.configuration.GlobalTimeFlowControl == 2)
                         {
-                            ImGui.Text("Set desired time of day in seconds. Double-click to edit field manually.");
+                            ImGui.TextUnformatted("Set desired time of day in seconds. Double-click to edit field manually.");
                             ImGui.PushItemWidth(150f);
                             ImGui.DragInt("##timecontrolfixedglobal", ref p.configuration.GlobalFixedTime, 100.0f, 0, Weatherman.SecondsInDay - 1);
                             if (p.configuration.GlobalFixedTime > Weatherman.SecondsInDay
                                 || p.configuration.GlobalFixedTime < 0) p.configuration.GlobalFixedTime = 0;
                             ImGui.PopItemWidth();
                             ImGui.SameLine();
-                            ImGui.Text(DateTimeOffset.FromUnixTimeSeconds(p.configuration.GlobalFixedTime).ToString("HH:mm:ss"));
+                            ImGui.TextUnformatted(DateTimeOffset.FromUnixTimeSeconds(p.configuration.GlobalFixedTime).ToString("HH:mm:ss"));
                         }
                         ImGui.Checkbox("Enable music control", ref p.configuration.MusicEnabled);
-                        ImGui.Text("Requires Orchestrion plugin installed and enabled.");
+                        ImGui.TextUnformatted("Requires Orchestrion plugin installed and enabled.");
                         ImGui.EndTabItem();
                     }
                     if (ImGui.BeginTabItem("Zone-specific settings"))
                     {
-                        ImGui.Text("Filter:");
+                        ImGui.TextUnformatted("Filter:");
                         ImGui.SameLine();
                         ImGui.PushItemWidth(200f);
                         ImGui.InputTextWithHint("##filter", "ID, partial area or zone name", ref filter, 1000);
@@ -108,7 +108,7 @@ namespace Weatherman
                             p.ApplyWeatherChanges(p.pi.ClientState.TerritoryType);
                         }
                         ImGui.SameLine();
-                        ImGui.Text("Either click this button or change your zone for weather settings to become effective.");
+                        ImGui.TextUnformatted("Either click this button or change your zone for weather settings to become effective.");
                         ImGui.BeginChild("##zonetable");
                         ImGui.Columns(7);
                         ImGui.SetColumnWidth(0, 35);
@@ -118,19 +118,19 @@ namespace Weatherman
                         ImGui.SetColumnWidth(4, 170);
                         ImGui.SetColumnWidth(5, 150);
                         ImGui.SetColumnWidth(6, 30);
-                        ImGui.Text("ID");
+                        ImGui.TextUnformatted("ID");
                         ImGui.NextColumn();
-                        ImGui.Text("Area");
+                        ImGui.TextUnformatted("Area");
                         ImGui.NextColumn();
-                        ImGui.Text("Location");
+                        ImGui.TextUnformatted("Location");
                         ImGui.NextColumn();
-                        ImGui.Text("Time control");
+                        ImGui.TextUnformatted("Time control");
                         ImGui.NextColumn();
-                        ImGui.Text("Weather control");
+                        ImGui.TextUnformatted("Weather control");
                         ImGui.NextColumn();
-                        ImGui.Text("BGM override");
+                        ImGui.TextUnformatted("BGM override");
                         ImGui.NextColumn();
-                        ImGui.Text("");
+                        ImGui.TextUnformatted("");
                         ImGui.NextColumn();
                         ImGui.Separator();
 
@@ -152,13 +152,13 @@ namespace Weatherman
                     if (ImGui.BeginTabItem("Weather blacklist"))
                     {
                         ImGui.BeginChild("##wblacklist");
-                        ImGui.Text("Select weathers which you do not want to ever see again in any zone.");
-                        ImGui.Text("This setting is not effective for zones that have their weathers overriden in zone-specific settings.");
-                        ImGui.Text("First normally occurring non-blacklisted weather will be selected to replace blacklisted one.");
-                        ImGui.Text("If there will be no non-blacklisted weather left to choose from, original weather will be kept.");
+                        ImGui.TextUnformatted("Select weathers which you do not want to ever see again in any zone.");
+                        ImGui.TextUnformatted("This setting is not effective for zones that have their weathers overriden in zone-specific settings.");
+                        ImGui.TextUnformatted("First normally occurring non-blacklisted weather will be selected to replace blacklisted one.");
+                        ImGui.TextUnformatted("If there will be no non-blacklisted weather left to choose from, original weather will be kept.");
                         ImGui.TextColored(colorGreen, "Normally occurring weathers in current zone are highlighted green.");
-                        ImGui.Text("To unblacklist specific zone without overriding it's weather, go to zone-specific settings and check \"Weather control\"");
-                        ImGui.Text("checkbox on chosen zone without selecting any weathers for it.");
+                        ImGui.TextUnformatted("To unblacklist specific zone without overriding it's weather, go to zone-specific settings and check \"Weather control\"");
+                        ImGui.TextUnformatted("checkbox on chosen zone without selecting any weathers for it.");
                         ImGui.SameLine();
                         ImGui.TextColored(new Vector4(1, 1, 0, 1), "Current weather is yellow (normal)");
                         ImGui.SameLine();
@@ -169,7 +169,7 @@ namespace Weatherman
                             p.ApplyWeatherChanges(p.pi.ClientState.TerritoryType);
                         }
                         ImGui.SameLine();
-                        ImGui.Text("Either click this button or change your zone for settings to become effective.");
+                        ImGui.TextUnformatted("Either click this button or change your zone for settings to become effective.");
                         ImGui.Separator();
                         //fucked shit begins, sorry GC
                         var temparr = p.configuration.BlacklistedWeathers.ToDictionary(entry => entry.Key, entry => entry.Value);
@@ -201,37 +201,37 @@ namespace Weatherman
                             ImGui.Checkbox("Pause plugin execution", ref p.PausePlugin);
                             if (SafeMemory.ReadBytes(p.memoryManager.TimeAsmPtr, p.memoryManager.NewTimeAsm.Length, out var timeAsm))
                             {
-                                ImGui.Text("Time asm: " + timeAsm.ToHexString());
+                                ImGui.TextUnformatted("Time asm: " + timeAsm.ToHexString());
                             }
                             if(p.memoryManager.IsTimeCustom())
                             {
                                 ImGui.SameLine();
-                                ImGui.Text("[custom]");
+                                ImGui.TextUnformatted("[custom]");
                             }
                             if (SafeMemory.ReadBytes(p.memoryManager.WeatherAsmPtr, p.memoryManager.NewWeatherAsm.Length, out var weatherAsm))
                             {
-                                ImGui.Text("Weather asm: " + weatherAsm.ToHexString());
+                                ImGui.TextUnformatted("Weather asm: " + weatherAsm.ToHexString());
                             }
                             if (p.memoryManager.IsWeatherCustom())
                             {
                                 ImGui.SameLine();
-                                ImGui.Text("[custom]");
+                                ImGui.TextUnformatted("[custom]");
                             }
-                            ImGui.Text("True weather: " + *p.memoryManager.TrueWeather + " / " + p.weathers[*p.memoryManager.TrueWeather]);
-                            ImGui.Text("Displayed weather: " + p.memoryManager.GetDisplayedWeather() + " / " + p.weathers[p.memoryManager.GetDisplayedWeather()]);
-                            ImGui.Text("True time: " + *p.memoryManager.TrueTime + " / " + DateTimeOffset.FromUnixTimeSeconds(*p.memoryManager.TrueTime).ToString());
+                            ImGui.TextUnformatted("True weather: " + *p.memoryManager.TrueWeather + " / " + p.weathers[*p.memoryManager.TrueWeather]);
+                            ImGui.TextUnformatted("Displayed weather: " + p.memoryManager.GetDisplayedWeather() + " / " + p.weathers[p.memoryManager.GetDisplayedWeather()]);
+                            ImGui.TextUnformatted("True time: " + *p.memoryManager.TrueTime + " / " + DateTimeOffset.FromUnixTimeSeconds(*p.memoryManager.TrueTime).ToString());
                             var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 144D / 7D / 1000D);
-                            ImGui.Text("Calculated time: " + et + " / " + DateTimeOffset.FromUnixTimeSeconds(et).ToString());
-                            if(p.memoryManager.IsTimeCustom()) ImGui.Text("Time from asm: " + p.memoryManager.GetTime());
-                            ImGui.Text("Current zone: " + p.pi.ClientState.TerritoryType + " / " +
+                            ImGui.TextUnformatted("Calculated time: " + et + " / " + DateTimeOffset.FromUnixTimeSeconds(et).ToString());
+                            if(p.memoryManager.IsTimeCustom()) ImGui.TextUnformatted("Time from asm: " + p.memoryManager.GetTime());
+                            ImGui.TextUnformatted("Current zone: " + p.pi.ClientState.TerritoryType + " / " +
                                 p.zones[p.pi.ClientState.TerritoryType].PlaceName.Value.Name);
-                            ImGui.Text("Unblacklisted weather: " + p.UnblacklistedWeather);
+                            ImGui.TextUnformatted("Unblacklisted weather: " + p.UnblacklistedWeather);
                             List<string> wGui = new List<string>();
                             foreach (var w in p.weathers)
                             {
                                 wGui.Add(w.Key + " / " + w.Value);
                             }
-                            ImGui.Text("Weather list");
+                            ImGui.TextUnformatted("Weather list");
                             ImGui.SameLine();
                             ImGui.PushItemWidth(200f);
                             ImGui.Combo("##allweathers", ref curW, wGui.ToArray(), wGui.Count);
@@ -244,13 +244,13 @@ namespace Weatherman
                                     p.SelectedWeather = (byte)curW;
                                 }
                             }
-                            ImGui.Text("Selected weather: " + p.SelectedWeather);
+                            ImGui.TextUnformatted("Selected weather: " + p.SelectedWeather);
                             ImGui.SameLine();
                             if (ImGui.SmallButton("Reset"))
                             {
                                 p.SelectedWeather = 255;
                             }
-                            ImGui.Text("Supported weathers:");
+                            ImGui.TextUnformatted("Supported weathers:");
                             foreach (byte i in p.GetWeathers(p.pi.ClientState.TerritoryType))
                             {
                                 var colored = false;
@@ -268,7 +268,7 @@ namespace Weatherman
                                 }
                                 else
                                 {
-                                    ImGui.Text(i + " / " + p.weathers[i]);
+                                    ImGui.TextUnformatted(i + " / " + p.weathers[i]);
                                 }
                                 if (colored) ImGui.PopStyleColor(1);
                                 if (p.IsWeatherNormal(i, p.pi.ClientState.TerritoryType))
@@ -279,7 +279,7 @@ namespace Weatherman
                             }
                             ImGui.EndChild();
                             ImGui.NextColumn();
-                            ImGui.Text("Log:");
+                            ImGui.TextUnformatted("Log:");
                             ImGui.SameLine();
                             /*ImGui.Checkbox("Enable##log", ref p.configuration.EnableLogging);
                             ImGui.SameLine();*/ //why would you want to disable logging?
@@ -313,7 +313,7 @@ namespace Weatherman
                         }
                         catch (Exception e)
                         {
-                            ImGui.Text(e.Message);
+                            ImGui.TextUnformatted(e.Message);
                         }
                     }
                     ImGui.EndTabBar();
@@ -353,11 +353,11 @@ namespace Weatherman
                     ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.7f, 0.7f, 0.7f, 1));
                 }
             }
-            ImGui.Text(z.ZoneId.ToString());
+            ImGui.TextUnformatted(z.ZoneId.ToString());
             ImGui.NextColumn();
-            ImGui.Text(z.terr.PlaceNameZone.Value.Name);
+            ImGui.TextUnformatted(z.terr.PlaceNameZone.Value.Name);
             ImGui.NextColumn();
-            ImGui.Text(z.ZoneName);
+            ImGui.TextUnformatted(z.ZoneName);
             ImGui.NextColumn();
             if (p.IsWorldTerritory(z.ZoneId))
             {
@@ -371,12 +371,12 @@ namespace Weatherman
                     if (z.FixedTime > Weatherman.SecondsInDay || z.FixedTime < 0) z.FixedTime = 0;
                     ImGui.PopItemWidth();
                     ImGui.SameLine();
-                    ImGui.Text(DateTimeOffset.FromUnixTimeSeconds(z.FixedTime).ToString("HH:mm:ss"));
+                    ImGui.TextUnformatted(DateTimeOffset.FromUnixTimeSeconds(z.FixedTime).ToString("HH:mm:ss"));
                 }
             }
             else
             {
-                ImGui.Text("Unsupported");
+                ImGui.TextUnformatted("Unsupported");
             }
             ImGui.NextColumn();
             if (p.IsWorldTerritory(z.ZoneId))
@@ -386,7 +386,7 @@ namespace Weatherman
                 {
                     if (z.SupportedWeathers.Count == 0)
                     {
-                        ImGui.Text("Zone has no supported weathers");
+                        ImGui.TextUnformatted("Zone has no supported weathers");
                     }
                     else
                     {
@@ -401,7 +401,7 @@ namespace Weatherman
             }
             else
             {
-                ImGui.Text("Unsupported");
+                ImGui.TextUnformatted("Unsupported");
             }
             ImGui.NextColumn();
             if (p.configuration.MusicEnabled)
@@ -412,7 +412,7 @@ namespace Weatherman
                     ImGui.PushItemWidth(130f);
                     if(ImGui.BeginCombo("##SelectSong" + ++uid, p.GetSongById(z.Music).ToString()))
                     {
-                        ImGui.Text("Filter:");
+                        ImGui.TextUnformatted("Filter:");
                         ImGui.SameLine();
                         ImGui.InputText("##musicfilter"+ ++uid, ref musicFilter, 100);
                         foreach (var s in p.GetSongList())
@@ -426,12 +426,12 @@ namespace Weatherman
                 }
                 else
                 {
-                    ImGui.Text("Orchestrion not found");
+                    ImGui.TextUnformatted("Orchestrion not found");
                 }
             }
             else
             {
-                ImGui.Text("Music is not enabled");
+                ImGui.TextUnformatted("Music is not enabled");
             }
             ImGui.NextColumn();
             if (ImGui.Button("X##"+ ++uid)){
