@@ -8,41 +8,35 @@ using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Weatherman
 {
     unsafe class Weatherman : IDalamudPlugin
     {
-        public const int SecondsInDay = 60 * 60 * 24;
+        internal const int SecondsInDay = 60 * 60 * 24;
 
-        public DalamudPluginInterface _pi;
+        public DalamudPluginInterface pi;
         public string Name => "Weatherman";
-        public byte[] TimeStopOn = new byte[] { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
-        public byte[] TimeStopOff;
-        public IntPtr TimeStopPtr;
-        public byte* FirstByteTimeStopPtr;
-        public long* TimePtr;
-        public byte* CurrentWeatherPtr;
-        public Gui ConfigGui;
-        public byte WeatherTestActive = 255;
-        public Dictionary<ushort, TerritoryType> zones;
-        public Dictionary<byte, string> weathers;
-        public ExcelSheet<WeatherRate> weatherRates;
-        public Dictionary<ushort, ZoneSettings> ZoneSettings;
-        public Configuration configuration;
-        public byte SelectedWeather = 255;
-        public byte UnblacklistedWeather = 0;
-        public string[] Log = new string[100];
-        public bool PausePlugin = false;
-        public bool AtVista = false;
-        public bool WeatherWasChanged = false;
-        public IFFXIVWeatherLuminaService WeatherSvc;
-        public bool BGMModified = false;
-        private Dictionary<int, Song> SongList = new Dictionary<int, Song>
+        internal MemoryManager memoryManager;
+        internal Gui ConfigGui;
+        internal byte WeatherTestActive = 255;
+        internal Dictionary<ushort, TerritoryType> zones;
+        internal Dictionary<byte, string> weathers;
+        internal ExcelSheet<WeatherRate> weatherRates;
+        internal Dictionary<ushort, ZoneSettings> ZoneSettings;
+        internal Configuration configuration;
+        internal byte SelectedWeather = 255;
+        internal byte UnblacklistedWeather = 0;
+        internal string[] Log = new string[100];
+        internal bool PausePlugin = false;
+        internal bool BGMModified = false;
+        internal Dictionary<int, Song> SongList = new Dictionary<int, Song>
         {
             [0] = new Song(0, "Default")
         };
@@ -50,32 +44,22 @@ namespace Weatherman
         public void Dispose()
         {
             configuration.Save();
-            _pi.Framework.OnUpdateEvent -= HandleFrameworkUpdate;
-            _pi.UiBuilder.OnBuildUi -= ConfigGui.Draw;
-            _pi.ClientState.TerritoryChanged -= HandleZoneChange;
-            _pi.CommandManager.RemoveHandler("/weatherman");
-            _pi.Framework.Gui.Chat.OnChatMessage += HandleChatMessage;
-            EnableNaturalTimeFlow();
-            if (WeatherWasChanged) RestoreOriginalWeather();
+            pi.Framework.OnUpdateEvent -= HandleFrameworkUpdate;
+            pi.UiBuilder.OnBuildUi -= ConfigGui.Draw;
+            pi.ClientState.TerritoryChanged -= HandleZoneChange;
+            pi.CommandManager.RemoveHandler("/weatherman");
+            memoryManager.Dispose();
             if (BGMModified) StopSong();
-            _pi.Dispose();
+            pi.Dispose();
         }
 
         public void Initialize(DalamudPluginInterface pluginInterface)
         {
-            _pi = pluginInterface;
-            TimePtr = (long*)(_pi.Framework.Address.BaseAddress + 0x1608);
-            TimeStopPtr = _pi.TargetModuleScanner.ScanText("48 89 ?? 08 16 00 00 48 69"); //yeeted from cmtool https://github.com/imchillin/CMTool
-            if(!SafeMemory.ReadBytes(TimeStopPtr, 7, out TimeStopOff))
-            {
-                throw new Exception("Could not read memory");
-            }
-            CurrentWeatherPtr = (byte*)(*(IntPtr*)_pi.TargetModuleScanner.GetStaticAddressFromSig("48 8B 05 ?? ?? ?? ?? 0F B6 EA 48 8B F9 41 8B DE 48 8B 70 08 48 85 F6 0F 84 ?? ?? ?? ??") + 0x27); //thanks daemitus
-            //CurrentWeatherPtr = (byte*)(*(IntPtr*)(Process.GetCurrentProcess().MainModule.BaseAddress + 0x1D682B8) + 0x27); //yeeted from cmtool yet again 
-            FirstByteTimeStopPtr = (byte*)TimeStopPtr;
+            pi = pluginInterface;
+            memoryManager = new MemoryManager(this);
             zones = pluginInterface.Data.GetExcelSheet<TerritoryType>().ToDictionary(row => (ushort)row.RowId, row => row);
             weathers = pluginInterface.Data.GetExcelSheet<Weather>().ToDictionary(row => (byte)row.RowId, row => row.Name.ToString());
-            weatherRates = _pi.Data.GetExcelSheet<WeatherRate>();
+            weatherRates = pi.Data.GetExcelSheet<WeatherRate>();
             ZoneSettings = new Dictionary<ushort, ZoneSettings>();
             foreach (var z in zones)
             {
@@ -111,15 +95,13 @@ namespace Weatherman
             {
                 if (!configuration.BlacklistedWeathers.ContainsKey(i)) configuration.BlacklistedWeathers.Add(i, false);
             }
-            WeatherSvc = new FFXIVWeatherLuminaService(_pi.Data);
-            _pi.Framework.OnUpdateEvent += HandleFrameworkUpdate;
+            pi.Framework.OnUpdateEvent += HandleFrameworkUpdate;
             ConfigGui = new Gui(this);
-            _pi.UiBuilder.OnBuildUi += ConfigGui.Draw;
-            _pi.UiBuilder.OnOpenConfigUi += delegate { ConfigGui.configOpen = true; };
-            _pi.ClientState.TerritoryChanged += HandleZoneChange;
-            if (_pi.ClientState != null) ApplyWeatherChanges(_pi.ClientState.TerritoryType);
-            _pi.CommandManager.AddHandler("/weatherman", new Dalamud.Game.Command.CommandInfo(delegate { ConfigGui.configOpen = true; }) { });
-            _pi.Framework.Gui.Chat.OnChatMessage += HandleChatMessage;
+            pi.UiBuilder.OnBuildUi += ConfigGui.Draw;
+            pi.UiBuilder.OnOpenConfigUi += delegate { ConfigGui.configOpen = true; };
+            pi.ClientState.TerritoryChanged += HandleZoneChange;
+            if (pi.ClientState != null) ApplyWeatherChanges(pi.ClientState.TerritoryType);
+            pi.CommandManager.AddHandler("/weatherman", new Dalamud.Game.Command.CommandInfo(delegate { ConfigGui.configOpen = true; }) { });
         }
 
         public IDalamudPlugin GetOrchestrionPlugin()
@@ -127,7 +109,7 @@ namespace Weatherman
             try
             {
                 var flags = BindingFlags.NonPublic | BindingFlags.Instance;
-                var d = (Dalamud.Dalamud)_pi.GetType().GetField("dalamud", flags).GetValue(_pi);
+                var d = (Dalamud.Dalamud)pi.GetType().GetField("dalamud", flags).GetValue(pi);
                 var pmanager = d.GetType().GetProperty("PluginManager", flags).GetValue(d);
                 var plugins =
                     (List<(IDalamudPlugin Plugin, PluginDefinition Definition, DalamudPluginInterface PluginInterface, bool IsRaw)>)
@@ -218,30 +200,6 @@ namespace Weatherman
             return null;
         }
 
-        HashSet<string> ArrivedAtVistaMessages = new HashSet<string>
-        {
-            "You have arrived at a vista!"
-        };
-        HashSet<string> AwayFromVistaMesssages = new HashSet<string>
-        {
-            "You have strayed too far from the vista."
-        };
-        void HandleChatMessage(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
-        {
-            if ((ushort)type != 2105) return;
-            var m = message.ToString();
-            if (ArrivedAtVistaMessages.Contains(m))
-            {
-                AtVista = true;
-                WriteLog("Arrived at vista: " + m);
-            }
-            else if (AwayFromVistaMesssages.Contains(m))
-            {
-                AtVista = false;
-                WriteLog("Away from vista: " + m);
-            }
-        }
-
         //probably easiest way to get overworld territories - includes eureka and bozja but have to add cities myself
         HashSet<ushort> Cities = new HashSet<ushort>
         {
@@ -292,8 +250,6 @@ namespace Weatherman
         private void HandleZoneChange(object s, ushort u)
         {
             WriteLog("Zone changed to " + u + "; is world = " + IsWorldTerritory(u));
-            AtVista = false;
-            WeatherWasChanged = false;
             ApplyWeatherChanges(u);
         }
 
@@ -331,7 +287,7 @@ namespace Weatherman
                         if (UnblacklistedWeather == 0
                             && configuration.BlacklistedWeathers.ContainsKey(v.Id)
                             && !configuration.BlacklistedWeathers[v.Id]
-                            && IsWeatherNormal(v.Id, _pi.ClientState.TerritoryType))
+                            && IsWeatherNormal(v.Id, pi.ClientState.TerritoryType))
                         {
                             UnblacklistedWeather = v.Id;
                         }
@@ -346,57 +302,38 @@ namespace Weatherman
         {
             try
             {
-                if (_pi.ClientState != null && _pi.ClientState.LocalPlayer != null
-                    && IsWorldTerritory(_pi.ClientState.TerritoryType)
-                    && !PausePlugin && !AtVista && !IsDol())
+                if (pi.ClientState != null && pi.ClientState.LocalPlayer != null
+                    && IsWorldTerritory(pi.ClientState.TerritoryType)
+                    && !PausePlugin)
                 {
-                    SetTimeBySetting(GetZoneTimeFlowSetting(_pi.ClientState.TerritoryType));
-                    if (SelectedWeather != 255 && *CurrentWeatherPtr != SelectedWeather)
+                    memoryManager.EnableCustomWeather();
+                    SetTimeBySetting(GetZoneTimeFlowSetting(pi.ClientState.TerritoryType));
+                    if (SelectedWeather != 255)
                     {
-                        WriteLog("Weather set to " + SelectedWeather + " from " + *CurrentWeatherPtr);
-                        *CurrentWeatherPtr = SelectedWeather;
-                        WeatherWasChanged = true;
+                        if(memoryManager.GetWeather() != SelectedWeather) memoryManager.SetWeather(SelectedWeather);
                     }
-                    if (UnblacklistedWeather != 0 && *CurrentWeatherPtr != UnblacklistedWeather
-                        && configuration.BlacklistedWeathers.ContainsKey(*CurrentWeatherPtr)
-                        && configuration.BlacklistedWeathers[*CurrentWeatherPtr])
+                    else
                     {
-                        WriteLog("Blacklisted weather " + *CurrentWeatherPtr + " found and changed to " + UnblacklistedWeather);
-                        *CurrentWeatherPtr = UnblacklistedWeather;
-                        WeatherWasChanged = true;
+                        var suggesterWeather = *memoryManager.TrueWeather;
+                        if (UnblacklistedWeather != 0 && suggesterWeather != UnblacklistedWeather
+                        && configuration.BlacklistedWeathers.ContainsKey(suggesterWeather)
+                        && configuration.BlacklistedWeathers[suggesterWeather])
+                        {
+                            suggesterWeather = UnblacklistedWeather;
+                        }
+                        if (memoryManager.GetWeather() != suggesterWeather) memoryManager.SetWeather(suggesterWeather);
                     }
+                    
                 }
                 else
                 {
-                    EnableNaturalTimeFlow();
-                }
-                if (_pi.ClientState != null && (AtVista || IsDol()) && WeatherWasChanged)
-                {
-                    RestoreOriginalWeather();
+                    memoryManager.DisableCustomTime();
+                    memoryManager.DisableCustomWeather();
                 }
             }
             catch(Exception e)
             {
                 WriteLog("Error in weatherman: "+e);
-            }
-        }
-
-        public void RestoreOriginalWeather()
-        {
-            var origweather = WeatherSvc.GetCurrentWeather(_pi.ClientState.TerritoryType, 0);
-            if (origweather.Item1 != null)
-            {
-                var origweatherid = (byte)origweather.Item1.RowId;
-                if(IsWeatherNormal(origweatherid, _pi.ClientState.TerritoryType))
-                {
-                    WeatherWasChanged = false;
-                    * CurrentWeatherPtr = origweatherid;
-                    WriteLog("Weather restored to original "+origweatherid);
-                }
-                else
-                {
-                    WriteLog("Unable to restore weather to original "+origweatherid);
-                }
             }
         }
 
@@ -419,31 +356,13 @@ namespace Weatherman
             Log[Log.Length - 1] = line;
         }
 
-        void DisableNaturalTimeFlow()
-        {
-            if (*FirstByteTimeStopPtr == TimeStopOff[0])
-            {
-                SafeMemory.WriteBytes(TimeStopPtr, TimeStopOn);
-                WriteLog("Time flow stopped");
-            }
-        }
-
-        void EnableNaturalTimeFlow()
-        {
-            if (*FirstByteTimeStopPtr == TimeStopOn[0])
-            {
-                SafeMemory.WriteBytes(TimeStopPtr, TimeStopOff);
-                WriteLog("Time flow reenabled");
-            }
-        }
-
         bool IsDol()
         {
             if (!configuration.DisableDol) return false;
             try
             {
-                return _pi.ClientState.LocalPlayer.ClassJob.Id == 16 || _pi.ClientState.LocalPlayer.ClassJob.Id == 17 ||
-                    _pi.ClientState.LocalPlayer.ClassJob.Id == 18;
+                return pi.ClientState.LocalPlayer.ClassJob.Id == 16 || pi.ClientState.LocalPlayer.ClassJob.Id == 17 ||
+                    pi.ClientState.LocalPlayer.ClassJob.Id == 18;
             }
             catch(Exception e)
             {
@@ -455,56 +374,52 @@ namespace Weatherman
         {
             if(setting == 0) //game managed
             {
-                EnableNaturalTimeFlow();
+                memoryManager.DisableCustomTime();
             }
             else if (setting == 1) //normal
             {
-                DisableNaturalTimeFlow();
+                memoryManager.EnableCustomTime();
                 var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 144D / 7D / 1000D);
-                var timeOfDay = et % SecondsInDay;
-                *TimePtr = et;
+                memoryManager.SetTime((uint)(et % SecondsInDay));
             }
             else if (setting == 2) //fixed
             {
-                DisableNaturalTimeFlow();
-                var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 144D / 7D / 1000D);
-                var timeOfDay = et % SecondsInDay;
-                et -= timeOfDay;
-                et += GetZoneTimeFixedSetting(_pi.ClientState.TerritoryType);
-                *TimePtr = et;
+                memoryManager.EnableCustomTime();
+                uint et = (uint)GetZoneTimeFixedSetting(pi.ClientState.TerritoryType);
+                memoryManager.SetTime(et);
             }
             else if (setting == 3) //infiniday
             {
-                DisableNaturalTimeFlow();
+                memoryManager.EnableCustomTime();
                 var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 144D / 7D / 1000D);
                 var timeOfDay = et % SecondsInDay;
                 if (timeOfDay > 18 * 60 * 60 || timeOfDay < 6 * 60 * 60) et += SecondsInDay / 2;
-                *TimePtr = et;
+                memoryManager.SetTime((uint)(et % SecondsInDay));
             }
             else if (setting == 4) //infiniday r
             {
-                DisableNaturalTimeFlow();
+                memoryManager.EnableCustomTime();
                 var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 144D / 7D / 1000D);
                 var timeOfDay = et % SecondsInDay;
                 if (timeOfDay > 18 * 60 * 60) et -= 2 * (timeOfDay - 18 * 60 * 60);
                 if (timeOfDay < 6 * 60 * 60) et += 2 * (6 * 60 * 60 - timeOfDay);
-                *TimePtr = et;
+                memoryManager.SetTime((uint)(et % SecondsInDay));
             }
             else if (setting == 5) //infininight
             {
-                DisableNaturalTimeFlow();
+                memoryManager.EnableCustomTime();
                 var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 144D / 7D / 1000D);
                 var timeOfDay = et % SecondsInDay;
                 if (timeOfDay < 18 * 60 * 60 && timeOfDay > 6 * 60 * 60) et += SecondsInDay / 2;
-                *TimePtr = et;
+                memoryManager.SetTime((uint)(et % SecondsInDay));
             }
             else if (setting == 6) //infininight r
             {
-                DisableNaturalTimeFlow();
+                memoryManager.EnableCustomTime();
                 var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 144D / 7D / 1000D);
                 var timeOfDay = et % SecondsInDay;
                 if (timeOfDay < 18 * 60 * 60 && timeOfDay > 6 * 60 * 60) et -= 2 * (timeOfDay - 6 * 60 * 60);
-                *TimePtr = et;
+                memoryManager.SetTime((uint)(et % SecondsInDay));
             }
         }
 
@@ -542,7 +457,7 @@ namespace Weatherman
             if (!zones.TryGetValue(id, out var path)) return null;
             try
             {
-                var file = _pi.Data.GetFile<LvbFile>($"bg/{path.Bg}.lvb");
+                var file = pi.Data.GetFile<LvbFile>($"bg/{path.Bg}.lvb");
                 if (file?.weatherIds == null || file.weatherIds.Length == 0)
                     return null;
                 foreach (var weather in file.weatherIds)

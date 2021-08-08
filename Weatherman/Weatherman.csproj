@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\DalamudPackager.1.2.2\build\DalamudPackager.props" Condition="Exists('..\packages\DalamudPackager.1.2.2\build\DalamudPackager.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -12,6 +13,8 @@
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -43,54 +46,64 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration.cs" />
-    <Compile Include="FFXIVWeatherLuminaService.cs" />
     <Compile Include="Gui.cs" />
-    <Compile Include="IFFXIVWeatherLuminaService.cs" />
     <Compile Include="LvbFile.cs" />
+    <Compile Include="MemoryManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Song.cs" />
+    <Compile Include="Static.cs" />
     <Compile Include="TimeFlowType.cs" />
     <Compile Include="Weatherman.cs" />
     <Compile Include="WeathermanWeather.cs" />
     <Compile Include="ZoneSettings.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Dalamud, Version=5.2.4.1, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\VS\DalamudBin\Dalamud.dll</HintPath>
+    <Reference Include="Dalamud">
+      <HintPath>..\..\dev\Dalamud.dll</HintPath>
+      <Private>False</Private>
     </Reference>
-    <Reference Include="FFXIVClientStructs, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\VS\DalamudBin\FFXIVClientStructs.dll</HintPath>
+    <Reference Include="FFXIVClientStructs">
+      <HintPath>..\..\dev\FFXIVClientStructs.dll</HintPath>
+      <Private>False</Private>
     </Reference>
-    <Reference Include="ImGui.NET, Version=1.72.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\VS\DalamudBin\ImGui.NET.dll</HintPath>
+    <Reference Include="ImGui.NET">
+      <HintPath>..\..\dev\ImGui.NET.dll</HintPath>
+      <Private>False</Private>
     </Reference>
-    <Reference Include="ImGuiScene, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\VS\DalamudBin\ImGuiScene.dll</HintPath>
+    <Reference Include="ImGuiScene">
+      <HintPath>..\..\dev\ImGuiScene.dll</HintPath>
+      <Private>False</Private>
     </Reference>
-    <Reference Include="Lumina, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\VS\DalamudBin\Lumina.dll</HintPath>
+    <Reference Include="Lumina">
+      <HintPath>..\..\dev\Lumina.dll</HintPath>
+      <Private>False</Private>
     </Reference>
-    <Reference Include="Lumina.Excel, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\VS\DalamudBin\Lumina.Excel.dll</HintPath>
+    <Reference Include="Lumina.Excel">
+      <HintPath>..\..\dev\Lumina.Excel.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Diagnostics.Process, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Diagnostics.Process.4.3.0\lib\net461\System.Diagnostics.Process.dll</HintPath>
       <Private>True</Private>
-      <Private>True</Private>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System.Numerics" />
-    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Weatherman.json" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\DalamudPackager.1.2.2\build\DalamudPackager.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\DalamudPackager.1.2.2\build\DalamudPackager.props'))" />
+    <Error Condition="!Exists('..\packages\DalamudPackager.1.2.2\build\DalamudPackager.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\DalamudPackager.1.2.2\build\DalamudPackager.targets'))" />
+  </Target>
+  <Import Project="..\packages\DalamudPackager.1.2.2\build\DalamudPackager.targets" Condition="Exists('..\packages\DalamudPackager.1.2.2\build\DalamudPackager.targets')" />
 </Project>
