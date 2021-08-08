@@ -306,11 +306,11 @@ namespace Weatherman
                     && IsWorldTerritory(pi.ClientState.TerritoryType)
                     && !PausePlugin)
                 {
-                    memoryManager.EnableCustomWeather();
                     SetTimeBySetting(GetZoneTimeFlowSetting(pi.ClientState.TerritoryType));
                     if (SelectedWeather != 255)
                     {
-                        if(memoryManager.GetWeather() != SelectedWeather) memoryManager.SetWeather(SelectedWeather);
+                        memoryManager.EnableCustomWeather();
+                        if (memoryManager.GetWeather() != SelectedWeather) memoryManager.SetWeather(SelectedWeather);
                     }
                     else
                     {
@@ -321,7 +321,20 @@ namespace Weatherman
                         {
                             suggesterWeather = UnblacklistedWeather;
                         }
-                        if (memoryManager.GetWeather() != suggesterWeather) memoryManager.SetWeather(suggesterWeather);
+                        //this is to retain smooth transitions
+                        if(suggesterWeather == *memoryManager.TrueWeather)
+                        {
+                            memoryManager.DisableCustomWeather();
+                        }
+                        else
+                        {
+                            memoryManager.EnableCustomWeather();
+                            if (memoryManager.GetWeather() != suggesterWeather)
+                            {
+                                memoryManager.SetWeather(suggesterWeather);
+                            }
+                        }
+                        
                     }
                     
                 }
@@ -354,20 +367,6 @@ namespace Weatherman
                 Log[i - 1] = Log[i];
             }
             Log[Log.Length - 1] = line;
-        }
-
-        bool IsDol()
-        {
-            if (!configuration.DisableDol) return false;
-            try
-            {
-                return pi.ClientState.LocalPlayer.ClassJob.Id == 16 || pi.ClientState.LocalPlayer.ClassJob.Id == 17 ||
-                    pi.ClientState.LocalPlayer.ClassJob.Id == 18;
-            }
-            catch(Exception e)
-            {
-                return false;
-            }
         }
 
         void SetTimeBySetting(int setting)

@@ -80,8 +80,7 @@ namespace Weatherman
                             ImGui.Text(DateTimeOffset.FromUnixTimeSeconds(p.configuration.GlobalFixedTime).ToString("HH:mm:ss"));
                         }
                         ImGui.Checkbox("Enable music control", ref p.configuration.MusicEnabled);
-                        ImGui.Text("Requires Orchestrion p installed and enabled.");
-                        ImGui.Checkbox("Pause p while using DOL classes", ref p.configuration.DisableDol);
+                        ImGui.Text("Requires Orchestrion plugin installed and enabled.");
                         ImGui.EndTabItem();
                     }
                     if (ImGui.BeginTabItem("Zone-specific settings"))
@@ -199,7 +198,7 @@ namespace Weatherman
                                 p.WriteLog(p.GetConfigurationString());
                             }
                             ImGui.Checkbox("Unsafe options", ref p.configuration.Unsafe);
-                            ImGui.Checkbox("Pause p execution", ref p.PausePlugin);
+                            ImGui.Checkbox("Pause plugin execution", ref p.PausePlugin);
                             if (SafeMemory.ReadBytes(p.memoryManager.TimeAsmPtr, p.memoryManager.NewTimeAsm.Length, out var timeAsm))
                             {
                                 ImGui.Text("Time asm: " + timeAsm.ToHexString());
