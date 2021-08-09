@@ -62,7 +62,7 @@ namespace Weatherman
                         ImGui.TextUnformatted("Global time control: ");
                         ImGui.SameLine();
                         HelpMarker("No override - time controlled by game;\n" +
-                            "Normal - time controlled by p, normal flow; \nFixed - time is fixed to specified value;\n"
+                            "Normal - time controlled by plugin, normal flow; \nFixed - time is fixed to specified value;\n"
                             + "InfiniDay - instead of night, another day cycle will begin\n"
                             + "InfiniDay reversed - instead of night, day cycle rewinds backward\n"
                             + "InfiniNight/InfiniNight reversed - same as day options");
