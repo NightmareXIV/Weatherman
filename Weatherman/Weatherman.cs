@@ -36,6 +36,10 @@ namespace Weatherman
         internal string[] Log = new string[100];
         internal bool PausePlugin = false;
         internal bool BGMModified = false;
+        internal Stopwatch stopwatch;
+        internal long totalTime = 0;
+        internal long totalTicks = 0;
+        internal bool profiling = false;
         internal Dictionary<int, Song> SongList = new Dictionary<int, Song>
         {
             [0] = new Song(0, "Default")
@@ -56,6 +60,7 @@ namespace Weatherman
         public void Initialize(DalamudPluginInterface pluginInterface)
         {
             pi = pluginInterface;
+            stopwatch = new Stopwatch();
             memoryManager = new MemoryManager(this);
             zones = pluginInterface.Data.GetExcelSheet<TerritoryType>().ToDictionary(row => (ushort)row.RowId, row => row);
             weathers = pluginInterface.Data.GetExcelSheet<Weather>().ToDictionary(row => (byte)row.RowId, row => row.Name.ToString());
@@ -306,6 +311,11 @@ namespace Weatherman
         {
             try
             {
+                if (profiling)
+                {
+                    totalTicks++;
+                    stopwatch.Restart();
+                }
                 if (pi.ClientState != null && pi.ClientState.LocalPlayer != null
                     && IsWorldTerritory(pi.ClientState.TerritoryType)
                     && !PausePlugin)
@@ -346,6 +356,11 @@ namespace Weatherman
                 {
                     memoryManager.DisableCustomTime();
                     memoryManager.DisableCustomWeather();
+                }
+                if (profiling)
+                {
+                    stopwatch.Stop();
+                    totalTime += stopwatch.ElapsedTicks;
                 }
             }
             catch(Exception e)

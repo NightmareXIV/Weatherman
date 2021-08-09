@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using System.Runtime.ExceptionServices;
 using Dalamud;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace Weatherman
 {
@@ -17,7 +18,7 @@ namespace Weatherman
         private Weatherman p;
         private int curW = 0;
         private Vector4 colorGreen = new Vector4(0,1,0,1);
-        public bool configOpen = false;
+        internal bool configOpen = false;
         string[] timeflowcombo = new string[] { "No override", "Normal", "Fixed", "InfiniDay", "InfiniDay reversed", "InfiniNight", "InfiniNight reversed" };
         bool configWasOpen = false;
         int uid = 0;
@@ -199,6 +200,19 @@ namespace Weatherman
                             }
                             ImGui.Checkbox("Unsafe options", ref p.configuration.Unsafe);
                             ImGui.Checkbox("Pause plugin execution", ref p.PausePlugin);
+                            ImGui.Checkbox("Profiling", ref p.profiling);
+                            if (p.profiling)
+                            {
+                                ImGui.Text("Total time: " + p.totalTime);
+                                ImGui.Text("Total ticks: " + p.totalTicks);
+                                ImGui.Text("Tick avg: " + (float)p.totalTime / (float)p.totalTicks);
+                                ImGui.Text("MS avg: " + ((float)p.totalTime / (float)p.totalTicks) / (float)Stopwatch.Frequency * 1000 + " ms");
+                                if (ImGui.Button("Reset##SW"))
+                                {
+                                    p.totalTicks = 0;
+                                    p.totalTime = 0;
+                                }
+                            }
                             if (SafeMemory.ReadBytes(p.memoryManager.TimeAsmPtr, p.memoryManager.NewTimeAsm.Length, out var timeAsm))
                             {
                                 ImGui.TextUnformatted("Time asm: " + timeAsm.ToHexString());
@@ -246,7 +260,7 @@ namespace Weatherman
                             }
                             ImGui.TextUnformatted("Selected weather: " + p.SelectedWeather);
                             ImGui.SameLine();
-                            if (ImGui.SmallButton("Reset"))
+                            if (ImGui.SmallButton("Reset##weather"))
                             {
                                 p.SelectedWeather = 255;
                             }
