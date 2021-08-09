@@ -30,14 +30,46 @@ namespace Weatherman
         public void Initialize(Weatherman plugin)
         {
             this.plugin = plugin;
-            plugin.SetConfigurationString(ConfigurationString);
+            SetConfigurationString(ConfigurationString);
         }
 
         public void Save()
         {
-            ConfigurationString = plugin.GetConfigurationString();
+            ConfigurationString = GetConfigurationString();
             plugin.WriteLog(ConfigurationString);
             plugin.pi.SavePluginConfig(this);
+        }
+
+
+
+        public string GetConfigurationString()
+        {
+            var configList = new List<string>();
+            foreach (var z in plugin.ZoneSettings)
+            {
+                var v = z.Value.GetString();
+                if (v != null) configList.Add(z.Key + "@" + v);
+            }
+            return string.Join("\n", configList);
+        }
+
+        public void SetConfigurationString(string s)
+        {
+            foreach (var z in s.Split('\n'))
+            {
+                try
+                {
+                    var key = ushort.Parse(z.Split('@')[0]);
+                    if (plugin.ZoneSettings.ContainsKey(key))
+                    {
+                        plugin.ZoneSettings[key].FromString(z.Split('@')[1]);
+                    }
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+            }
         }
     }
 }

@@ -48,7 +48,7 @@ namespace Weatherman
                 }
                 uid = 0;
                 configWasOpen = true;
-                if (!p.configuration.ConfigurationString.Equals(p.GetConfigurationString()))
+                if (!p.configuration.ConfigurationString.Equals(p.configuration.GetConfigurationString()))
                 {
                     p.configuration.Save();
                     p.WriteLog("Configuration saved");
@@ -196,7 +196,7 @@ namespace Weatherman
                             ImGui.BeginChild("##debug1");
                             if (ImGui.Button("Print configuration string"))
                             {
-                                p.WriteLog(p.GetConfigurationString());
+                                p.WriteLog(p.configuration.GetConfigurationString());
                             }
                             ImGui.Checkbox("Unsafe options", ref p.configuration.Unsafe);
                             ImGui.Checkbox("Pause plugin execution", ref p.PausePlugin);
@@ -420,16 +420,16 @@ namespace Weatherman
             ImGui.NextColumn();
             if (p.configuration.MusicEnabled)
             {
-                var songs = p.GetSongList();
+                var songs = p.orchestrionController.GetSongList();
                 if (songs != null)
                 {
                     ImGui.PushItemWidth(130f);
-                    if(ImGui.BeginCombo("##SelectSong" + ++uid, p.GetSongById(z.Music).ToString()))
+                    if(ImGui.BeginCombo("##SelectSong" + ++uid, p.orchestrionController.GetSongById(z.Music).ToString()))
                     {
                         ImGui.TextUnformatted("Filter:");
                         ImGui.SameLine();
                         ImGui.InputText("##musicfilter"+ ++uid, ref musicFilter, 100);
-                        foreach (var s in p.GetSongList())
+                        foreach (var s in p.orchestrionController.GetSongList())
                         if (s.Value.ToString().ToLower().Contains(musicFilter.ToLower()) && ImGui.Selectable(s.Value.ToString()))
                         {
                             z.Music = s.Value.Id;

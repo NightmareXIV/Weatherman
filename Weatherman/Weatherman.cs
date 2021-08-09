@@ -24,6 +24,7 @@ namespace Weatherman
         public DalamudPluginInterface pi;
         public string Name => "Weatherman";
         internal MemoryManager memoryManager;
+        internal OrchestrionController orchestrionController;
         internal Gui ConfigGui;
         internal byte WeatherTestActive = 255;
         internal Dictionary<ushort, TerritoryType> zones;
@@ -35,15 +36,10 @@ namespace Weatherman
         internal byte UnblacklistedWeather = 0;
         internal string[] Log = new string[100];
         internal bool PausePlugin = false;
-        internal bool BGMModified = false;
         internal Stopwatch stopwatch;
         internal long totalTime = 0;
         internal long totalTicks = 0;
         internal bool profiling = false;
-        internal Dictionary<int, Song> SongList = new Dictionary<int, Song>
-        {
-            [0] = new Song(0, "Default")
-        };
 
         public void Dispose()
         {
@@ -53,7 +49,8 @@ namespace Weatherman
             pi.ClientState.TerritoryChanged -= HandleZoneChange;
             pi.CommandManager.RemoveHandler("/weatherman");
             memoryManager.Dispose();
-            if (BGMModified) StopSong();
+            if (orchestrionController.BGMModified) orchestrionController.StopSong();
+            orchestrionController.Dispose();
             pi.Dispose();
         }
 
@@ -61,6 +58,7 @@ namespace Weatherman
         {
             pi = pluginInterface;
             stopwatch = new Stopwatch();
+            orchestrionController = new OrchestrionController(this);
             memoryManager = new MemoryManager(this);
             zones = pluginInterface.Data.GetExcelSheet<TerritoryType>().ToDictionary(row => (ushort)row.RowId, row => row);
             weathers = pluginInterface.Data.GetExcelSheet<Weather>().ToDictionary(row => (byte)row.RowId, row => row.Name.ToString());
@@ -113,102 +111,6 @@ namespace Weatherman
             }
         }
 
-        public IDalamudPlugin GetOrchestrionPlugin()
-        {
-            try
-            {
-                var flags = BindingFlags.NonPublic | BindingFlags.Instance;
-                var d = (Dalamud.Dalamud)pi.GetType().GetField("dalamud", flags).GetValue(pi);
-                var pmanager = d.GetType().GetProperty("PluginManager", flags).GetValue(d);
-                var plugins =
-                    (List<(IDalamudPlugin Plugin, PluginDefinition Definition, DalamudPluginInterface PluginInterface, bool IsRaw)>)
-                    pmanager.GetType().GetProperty("Plugins").GetValue(pmanager);
-                WriteLog("Found plugins: " + plugins.Count);
-                foreach (var p in plugins)
-                {
-                    if(p.Plugin.Name == "Orchestrion plugin")
-                    {
-                        var porch = p.Plugin;
-                        WriteLog("Found Orchestrion plugin.");
-                        return porch;
-                    }
-                }
-                return null;
-            }
-            catch(Exception e)
-            {
-                WriteLog("Can't find orchestrion plugin: " + e.Message);
-                WriteLog(e.StackTrace);
-                return null;
-            }
-        }
-
-        public void PlaySong(int id)
-        {
-            try
-            {
-                var p = GetOrchestrionPlugin();
-                if (p == null) return;
-                p.GetType().GetMethod("PlaySong").Invoke(p, new object[] { id });
-            }
-            catch(Exception e)
-            {
-                WriteLog("Failed to play song:" + e.Message);
-            }
-        }
-
-        public void StopSong()
-        {
-            try
-            {
-                var p = GetOrchestrionPlugin();
-                if (p == null) return;
-                p.GetType().GetMethod("StopSong").Invoke(p, new object[] { });
-            }
-            catch (Exception e)
-            {
-                WriteLog("Failed to stop song:" + e.Message);
-            }
-        }
-
-        public Dictionary<int, Song> GetSongList()
-        {
-            if (SongList.Count > 1) return SongList;
-            try
-            {
-                var p = GetOrchestrionPlugin();
-                if (p == null) return null;
-                var flags = BindingFlags.NonPublic | BindingFlags.Instance;
-                var slist = p.GetType().GetField("songList", flags).GetValue(p);
-                var songlist = (IDictionary)slist.GetType().GetField("songs", flags).GetValue(slist);
-                WriteLog("Songs found: "+ songlist.Count);
-                int i = 0;
-                foreach(var o in songlist.Keys)
-                {
-                    SongList.Add(++i, new Song(
-                        (int)songlist[o].GetType().GetField("Id").GetValue(songlist[o]),
-                        (string)songlist[o].GetType().GetField("Name").GetValue(songlist[o])
-                        ));
-                }
-                WriteLog("Song list contains " + SongList.Count + " entries / " + i);
-                if (SongList.Count > 1) return SongList;
-            }
-            catch (Exception e)
-            {
-                WriteLog("Failed to retrieve song list:" + e.Message);
-            }
-            return null;
-        }
-
-        public Song GetSongById(int id)
-        {
-            foreach(var i in SongList)
-            {
-                if (i.Value.Id == id) return i.Value;
-            }
-            return null;
-        }
-
         //probably easiest way to get overworld territories - includes eureka and bozja but have to add cities myself
         HashSet<ushort> Cities = new HashSet<ushort>
         {
@@ -226,36 +128,6 @@ namespace Weatherman
             return Cities.Contains(ZoneSettings[territory].ZoneId) || ZoneSettings[territory].terr.Mount;
         }
 
-        public string GetConfigurationString()
-        {
-            var configList = new List<string>();
-            foreach (var z in ZoneSettings)
-            {
-                var v = z.Value.GetString();
-                if (v != null) configList.Add(z.Key + "@" + v);
-            }
-            return string.Join("\n", configList);
-        }
-
-        public void SetConfigurationString(string s)
-        {
-            foreach (var z in s.Split('\n'))
-            {
-                try
-                {
-                    var key = ushort.Parse(z.Split('@')[0]);
-                    if (ZoneSettings.ContainsKey(key))
-                    {
-                        ZoneSettings[key].FromString(z.Split('@')[1]);
-                    }
-                }
-                catch (Exception)
-                {
-                    continue;
-                }
-            }
-        }
-
         private void HandleZoneChange(object s, ushort u)
         {
             WriteLog("Zone changed to " + u + "; is world = " + IsWorldTerritory(u));
@@ -267,18 +139,18 @@ namespace Weatherman
             WriteLog("Applying weather changes");
             SelectedWeather = 255;
             UnblacklistedWeather = 0;
-            if (BGMModified)
+            if (orchestrionController.BGMModified)
             {
-                StopSong();
-                BGMModified = false;
+                orchestrionController.StopSong();
+                orchestrionController.BGMModified = false;
             }
             if (ZoneSettings.ContainsKey(u))
             {
                 var z = ZoneSettings[u];
-                if(configuration.MusicEnabled && z.Music != 0 && !BGMModified)
+                if(configuration.MusicEnabled && z.Music != 0 && !orchestrionController.BGMModified)
                 {
-                    PlaySong(z.Music);
-                    BGMModified = true;
+                    orchestrionController.PlaySong(z.Music);
+                    orchestrionController.BGMModified = true;
                 }
                 if (z.WeatherControl)
                 {

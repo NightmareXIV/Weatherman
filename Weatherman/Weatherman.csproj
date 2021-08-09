@@ -50,6 +50,7 @@
     <Compile Include="Gui.cs" />
     <Compile Include="LvbFile.cs" />
     <Compile Include="MemoryManager.cs" />
+    <Compile Include="OrchestrionController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Song.cs" />
     <Compile Include="Static.cs" />
