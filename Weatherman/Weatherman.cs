@@ -104,7 +104,7 @@ namespace Weatherman
             pi.UiBuilder.OnOpenConfigUi += delegate { ConfigGui.configOpen = true; };
             pi.ClientState.TerritoryChanged += HandleZoneChange;
             if (pi.ClientState != null) ApplyWeatherChanges(pi.ClientState.TerritoryType);
-            pi.CommandManager.AddHandler("/weatherman", new Dalamud.Game.Command.CommandInfo(delegate { ConfigGui.configOpen = true; }) { });
+            pi.CommandManager.AddHandler("/weatherman", new Dalamud.Game.Command.CommandInfo(delegate { ConfigGui.configOpen = true; }) { HelpMessage = "Open plugin settings" });
             if(ChlogGui.ChlogVersion > configuration.ChlogReadVer)
             {
                 new ChlogGui(this);
