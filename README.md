@@ -1,6 +1,8 @@
 # Weatherman
 Don't wait for perfect weather. Create it yourself!
 Weatherman allows you to take precise control over weather and time flow in FFXIV. From as simple things as removing rains or bringing everlasting day to precise selection of weather and time for every single zone individually - Weatherman got you covered.
+## Weatherman 2.0
+New Weatherman version will no longer change game variables. Instead it will patch functions that are responsible for rendering environment. This way game variables left untouched and no longer will cause side effects like incorrect eorzean time or time change affecting current BGM.
 ## Install
 Dalamud repository:
 
@@ -14,7 +16,5 @@ Detailed instructions available here: https://github.com/Eternita-S/MyDalamudPlu
 * Replace zone bgm with any other zone bgm. Requires Orchestrion plugin to be installed.
 
 Note: Weatherman only changes visuals. Weather-specific mobs, events, fates etc. will not be altered. 
-## Note
-Some people say that changing weather and time can allow you doing things that aren't possible otherwise without naturally waiting for needed weather and time. However, after continuous usage and testing I was not able to confirm it myself. If you will be able to find something like that, please create issue about it and I'll see what can I do to fix it.
 ## Vistas
 Vistas conditions are checked server-side. It's not possible to cheat them with this plugin. However to prevent any possibility of sending data to servers that would be impossible without this plugin once you approach vista plugin will pause weather and time processing and restore them to normal states. I recommend that you pause plugin execution if you are actively doing vistas though (`/weatherman` -> debug -> pause plugin execution). 
