@@ -125,6 +125,7 @@ namespace Weatherman
         public bool IsWorldTerritory(ushort territory)
         {
             if (!ZoneSettings.ContainsKey(territory)) return false;
+            if (configuration.Anywhere) return true;
             return Cities.Contains(ZoneSettings[territory].ZoneId) || ZoneSettings[territory].terr.Mount;
         }
 
@@ -165,13 +166,15 @@ namespace Weatherman
                 {
                     foreach (var v in z.SupportedWeathers)
                     {
-                        if (UnblacklistedWeather == 0
-                            && configuration.BlacklistedWeathers.ContainsKey(v.Id)
+                        var unblacklistedWeatherCandidates = new List<byte>();
+                        if (configuration.BlacklistedWeathers.ContainsKey(v.Id)
                             && !configuration.BlacklistedWeathers[v.Id]
                             && IsWeatherNormal(v.Id, pi.ClientState.TerritoryType))
                         {
-                            UnblacklistedWeather = v.Id;
+                            unblacklistedWeatherCandidates.Add(v.Id);
                         }
+                        if(unblacklistedWeatherCandidates.Count > 0) UnblacklistedWeather = 
+                                unblacklistedWeatherCandidates[new Random().Next(0, unblacklistedWeatherCandidates.Count)];
                     }
                 }
             }

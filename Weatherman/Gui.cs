@@ -199,6 +199,7 @@ namespace Weatherman
                                 p.WriteLog(p.configuration.GetConfigurationString());
                             }
                             ImGui.Checkbox("Unsafe options", ref p.configuration.Unsafe);
+                            ImGui.Checkbox("Use anywhere", ref p.configuration.Anywhere);
                             ImGui.Checkbox("Pause plugin execution", ref p.PausePlugin);
                             ImGui.Checkbox("Profiling", ref p.profiling);
                             if (p.profiling)

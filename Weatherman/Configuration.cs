@@ -23,6 +23,7 @@ namespace Weatherman
         public bool ShowOnlyWorldZones = true;
         public bool ShowCurrentZoneOnTop = true;
         public int ChlogReadVer = 1;
+        [NonSerialized] public bool Anywhere = false;
 
         [NonSerialized]
         private Weatherman plugin;
