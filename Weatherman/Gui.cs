@@ -155,7 +155,7 @@ namespace Weatherman
                         ImGui.BeginChild("##wblacklist");
                         ImGui.TextUnformatted("Select weathers which you do not want to ever see again in any zone.");
                         ImGui.TextUnformatted("This setting is not effective for zones that have their weathers overriden in zone-specific settings.");
-                        ImGui.TextUnformatted("First normally occurring non-blacklisted weather will be selected to replace blacklisted one.");
+                        ImGui.TextUnformatted("Random normally occurring non-blacklisted weather will be selected to replace blacklisted one.");
                         ImGui.TextUnformatted("If there will be no non-blacklisted weather left to choose from, original weather will be kept.");
                         ImGui.TextColored(colorGreen, "Normally occurring weathers in current zone are highlighted green.");
                         ImGui.TextUnformatted("To unblacklist specific zone without overriding it's weather, go to zone-specific settings and check \"Weather control\"");

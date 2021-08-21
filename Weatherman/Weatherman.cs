@@ -164,18 +164,18 @@ namespace Weatherman
                 }
                 else
                 {
+                    var unblacklistedWeatherCandidates = new List<byte>();
                     foreach (var v in z.SupportedWeathers)
                     {
-                        var unblacklistedWeatherCandidates = new List<byte>();
                         if (configuration.BlacklistedWeathers.ContainsKey(v.Id)
                             && !configuration.BlacklistedWeathers[v.Id]
                             && IsWeatherNormal(v.Id, pi.ClientState.TerritoryType))
                         {
                             unblacklistedWeatherCandidates.Add(v.Id);
                         }
-                        if(unblacklistedWeatherCandidates.Count > 0) UnblacklistedWeather = 
-                                unblacklistedWeatherCandidates[new Random().Next(0, unblacklistedWeatherCandidates.Count)];
                     }
+                    if (unblacklistedWeatherCandidates.Count > 0) UnblacklistedWeather =
+                             unblacklistedWeatherCandidates[new Random().Next(0, unblacklistedWeatherCandidates.Count)];
                 }
             }
             WriteLog("Selected weather:"+ SelectedWeather + "; unblacklisted weather: " + UnblacklistedWeather);
