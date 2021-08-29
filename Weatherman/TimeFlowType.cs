@@ -13,6 +13,7 @@ namespace Weatherman
         InfiniDay,
         InfiniDayReversed,
         InfiniNight,
-        InfiniNightReversed
+        InfiniNightReversed,
+        RealWorld
     }
 }

@@ -19,7 +19,7 @@ namespace Weatherman
         private int curW = 0;
         private Vector4 colorGreen = new Vector4(0,1,0,1);
         internal bool configOpen = false;
-        string[] timeflowcombo = new string[] { "No override", "Normal", "Fixed", "InfiniDay", "InfiniDay reversed", "InfiniNight", "InfiniNight reversed" };
+        string[] timeflowcombo = new string[] { "No override", "Normal", "Fixed", "InfiniDay", "InfiniDay reversed", "InfiniNight", "InfiniNight reversed", "Real world time" };
         bool configWasOpen = false;
         int uid = 0;
         string filter = "";
@@ -237,7 +237,8 @@ namespace Weatherman
                             ImGui.TextUnformatted("True time: " + *p.memoryManager.TrueTime + " / " + DateTimeOffset.FromUnixTimeSeconds(*p.memoryManager.TrueTime).ToString());
                             var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 144D / 7D / 1000D);
                             ImGui.TextUnformatted("Calculated time: " + et + " / " + DateTimeOffset.FromUnixTimeSeconds(et).ToString());
-                            if(p.memoryManager.IsTimeCustom()) ImGui.TextUnformatted("Time from asm: " + p.memoryManager.GetTime());
+                            if(p.memoryManager.IsTimeCustom()) ImGui.TextUnformatted("Time from asm: " + p.memoryManager.GetTime() + " / " + 
+                                DateTimeOffset.FromUnixTimeSeconds(p.memoryManager.GetTime()).ToLocalTime().ToString());
                             ImGui.TextUnformatted("Current zone: " + p.pi.ClientState.TerritoryType + " / " +
                                 p.zones[p.pi.ClientState.TerritoryType].PlaceName.Value.Name);
                             ImGui.TextUnformatted("Unblacklisted weather: " + p.UnblacklistedWeather);

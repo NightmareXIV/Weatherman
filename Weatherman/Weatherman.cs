@@ -314,6 +314,12 @@ namespace Weatherman
                 if (timeOfDay < 18 * 60 * 60 && timeOfDay > 6 * 60 * 60) et -= 2 * (timeOfDay - 6 * 60 * 60);
                 memoryManager.SetTime((uint)(et % SecondsInDay));
             }
+            else if (setting == 7) //real world
+            {
+                memoryManager.EnableCustomTime();
+                var et = DateTimeOffset.Now.ToUnixTimeSeconds();
+                memoryManager.SetTime((uint)(et % SecondsInDay));
+            }
         }
 
         int GetZoneTimeFlowSetting(ushort terr)
