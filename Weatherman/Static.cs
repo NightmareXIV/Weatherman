@@ -8,11 +8,14 @@ using System.Threading.Tasks;
 namespace Weatherman
 {
     unsafe static class Static
-    {
-        [DllImport("kernel32.dll")]
-        internal static extern bool VirtualProtectEx(IntPtr hProcess, UIntPtr lpAddress,
-            IntPtr dwSize, MemoryProtection flNewProtect, out MemoryProtection lpflOldProtect);
-        public enum MemoryProtection : uint
+	{
+		[DllImport("kernel32.dll")]
+		internal static extern bool VirtualProtectEx(IntPtr hProcess, UIntPtr lpAddress,
+			IntPtr dwSize, MemoryProtection flNewProtect, out MemoryProtection lpflOldProtect);
+		[DllImport("kernel32.dll")]
+		internal static extern bool VirtualProtect(UIntPtr lpAddress,
+			IntPtr dwSize, MemoryProtection flNewProtect, out MemoryProtection lpflOldProtect);
+		public enum MemoryProtection : uint
         {
 	        Execute = 0x10,
 	        ExecuteRead = 0x20,

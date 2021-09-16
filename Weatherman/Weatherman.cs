@@ -1,7 +1,9 @@
 ﻿using Dalamud;
+using Dalamud.Game;
 using Dalamud.Game.Internal;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Logging;
 using Dalamud.Plugin;
 using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
@@ -21,7 +23,6 @@ namespace Weatherman
     {
         internal const int SecondsInDay = 60 * 60 * 24;
 
-        public DalamudPluginInterface pi;
         public string Name => "Weatherman";
         internal MemoryManager memoryManager;
         internal OrchestrionController orchestrionController;
@@ -44,25 +45,24 @@ namespace Weatherman
         public void Dispose()
         {
             configuration.Save();
-            pi.Framework.OnUpdateEvent -= HandleFrameworkUpdate;
-            pi.UiBuilder.OnBuildUi -= ConfigGui.Draw;
-            pi.ClientState.TerritoryChanged -= HandleZoneChange;
-            pi.CommandManager.RemoveHandler("/weatherman");
+            Svc.Framework.Update -= HandleFrameworkUpdate;
+            Svc.PluginInterface.UiBuilder.Draw -= ConfigGui.Draw;
+            Svc.ClientState.TerritoryChanged -= HandleZoneChange;
+            Svc.Commands.RemoveHandler("/weatherman");
             memoryManager.Dispose();
             if (orchestrionController.BGMModified) orchestrionController.StopSong();
             orchestrionController.Dispose();
-            pi.Dispose();
         }
 
-        public void Initialize(DalamudPluginInterface pluginInterface)
+        public Weatherman(DalamudPluginInterface pluginInterface)
         {
-            pi = pluginInterface;
+            pluginInterface.Create<Svc>();
             stopwatch = new Stopwatch();
             orchestrionController = new OrchestrionController(this);
             memoryManager = new MemoryManager(this);
-            zones = pluginInterface.Data.GetExcelSheet<TerritoryType>().ToDictionary(row => (ushort)row.RowId, row => row);
-            weathers = pluginInterface.Data.GetExcelSheet<Weather>().ToDictionary(row => (byte)row.RowId, row => row.Name.ToString());
-            weatherRates = pi.Data.GetExcelSheet<WeatherRate>();
+            zones = Svc.Data.GetExcelSheet<TerritoryType>().ToDictionary(row => (ushort)row.RowId, row => row);
+            weathers = Svc.Data.GetExcelSheet<Weather>().ToDictionary(row => (byte)row.RowId, row => row.Name.ToString());
+            weatherRates = Svc.Data.GetExcelSheet<WeatherRate>();
             ZoneSettings = new Dictionary<ushort, ZoneSettings>();
             foreach (var z in zones)
             {
@@ -98,13 +98,13 @@ namespace Weatherman
             {
                 if (!configuration.BlacklistedWeathers.ContainsKey(i)) configuration.BlacklistedWeathers.Add(i, false);
             }
-            pi.Framework.OnUpdateEvent += HandleFrameworkUpdate;
+            Svc.Framework.Update += HandleFrameworkUpdate;
             ConfigGui = new Gui(this);
-            pi.UiBuilder.OnBuildUi += ConfigGui.Draw;
-            pi.UiBuilder.OnOpenConfigUi += delegate { ConfigGui.configOpen = true; };
-            pi.ClientState.TerritoryChanged += HandleZoneChange;
-            if (pi.ClientState != null) ApplyWeatherChanges(pi.ClientState.TerritoryType);
-            pi.CommandManager.AddHandler("/weatherman", new Dalamud.Game.Command.CommandInfo(delegate { ConfigGui.configOpen = true; }) { HelpMessage = "Open plugin settings" });
+            Svc.PluginInterface.UiBuilder.Draw += ConfigGui.Draw;
+            Svc.PluginInterface.UiBuilder.OpenConfigUi += delegate { ConfigGui.configOpen = true; };
+            Svc.ClientState.TerritoryChanged += HandleZoneChange;
+            ApplyWeatherChanges(Svc.ClientState.TerritoryType);
+            Svc.Commands.AddHandler("/weatherman", new Dalamud.Game.Command.CommandInfo(delegate { ConfigGui.configOpen = true; }) { HelpMessage = "Open plugin settings" });
             if(ChlogGui.ChlogVersion > configuration.ChlogReadVer)
             {
                 new ChlogGui(this);
@@ -169,7 +169,7 @@ namespace Weatherman
                     {
                         if (configuration.BlacklistedWeathers.ContainsKey(v.Id)
                             && !configuration.BlacklistedWeathers[v.Id]
-                            && IsWeatherNormal(v.Id, pi.ClientState.TerritoryType))
+                            && IsWeatherNormal(v.Id, Svc.ClientState.TerritoryType))
                         {
                             unblacklistedWeatherCandidates.Add(v.Id);
                         }
@@ -191,11 +191,11 @@ namespace Weatherman
                     totalTicks++;
                     stopwatch.Restart();
                 }
-                if (pi.ClientState != null && pi.ClientState.LocalPlayer != null
-                    && IsWorldTerritory(pi.ClientState.TerritoryType)
+                if (Svc.ClientState.LocalPlayer != null
+                    && IsWorldTerritory(Svc.ClientState.TerritoryType)
                     && !PausePlugin)
                 {
-                    SetTimeBySetting(GetZoneTimeFlowSetting(pi.ClientState.TerritoryType));
+                    SetTimeBySetting(GetZoneTimeFlowSetting(Svc.ClientState.TerritoryType));
                     if (SelectedWeather != 255)
                     {
                         memoryManager.EnableCustomWeather();
@@ -278,7 +278,7 @@ namespace Weatherman
             else if (setting == 2) //fixed
             {
                 memoryManager.EnableCustomTime();
-                uint et = (uint)GetZoneTimeFixedSetting(pi.ClientState.TerritoryType);
+                uint et = (uint)GetZoneTimeFixedSetting(Svc.ClientState.TerritoryType);
                 memoryManager.SetTime(et);
             }
             else if (setting == 3) //infiniday
@@ -356,7 +356,7 @@ namespace Weatherman
             if (!zones.TryGetValue(id, out var path)) return null;
             try
             {
-                var file = pi.Data.GetFile<LvbFile>($"bg/{path.Bg}.lvb");
+                var file = Svc.Data.GetFile<LvbFile>($"bg/{path.Bg}.lvb");
                 if (file?.weatherIds == null || file.weatherIds.Length == 0)
                     return null;
                 foreach (var weather in file.weatherIds)

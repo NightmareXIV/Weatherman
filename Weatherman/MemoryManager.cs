@@ -100,9 +100,9 @@ namespace Weatherman
             this.p = p;
 
             //setup time
-            TrueTime = (long*)(p.pi.Framework.Address.BaseAddress + 0x1608);
-            TimeAsmPtr = p.pi.TargetModuleScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC 30 4C 8B 15") + 0x16;
-            if (Static.VirtualProtectEx(Process.GetCurrentProcess().Handle,
+            TrueTime = (long*)(Svc.Framework.Address.BaseAddress + 0x1608);
+            TimeAsmPtr = Svc.SigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC 30 4C 8B 15") + 0x16;
+            if (Static.VirtualProtect(
                 (UIntPtr)(TimeAsmPtr + 0x3).ToPointer(), (IntPtr)0x4,
                 Static.MemoryProtection.ExecuteReadWrite, out var oldProtection) == false)
             {
@@ -124,9 +124,9 @@ namespace Weatherman
             FirstByteTimeAsm = (byte*)TimeAsmPtr;
 
             //setup weather
-            TrueWeather = (byte*)(*(IntPtr*)p.pi.TargetModuleScanner.GetStaticAddressFromSig("48 8B 05 ?? ?? ?? ?? 0F B6 EA 48 8B F9 41 8B DE 48 8B 70 08 48 85 F6 0F 84 ?? ?? ?? ??") + 0x27);
-            WeatherAsmPtr = p.pi.TargetModuleScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC 30 80 B9 ?? ?? ?? ?? ?? 49 8B F8 0F 29 74 24") + 0x55;
-            if (Static.VirtualProtectEx(Process.GetCurrentProcess().Handle,
+            TrueWeather = (byte*)(*(IntPtr*)Svc.SigScanner.GetStaticAddressFromSig("48 8B 05 ?? ?? ?? ?? 0F B6 EA 48 8B F9 41 8B DE 48 8B 70 08 48 85 F6 0F 84 ?? ?? ?? ??") + 0x27);
+            WeatherAsmPtr = Svc.SigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC 30 80 B9 ?? ?? ?? ?? ?? 49 8B F8 0F 29 74 24") + 0x55;
+            if (Static.VirtualProtect(
                 (UIntPtr)(WeatherAsmPtr + 0x1).ToPointer(), (IntPtr)0x1,
                 Static.MemoryProtection.ExecuteReadWrite, out var oldProtectionWeather) == false)
             {

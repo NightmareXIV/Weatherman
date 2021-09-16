@@ -4,5 +4,5 @@
 	"InternalName": "Weatherman",
 	"Description": "Allows precise control over time and weather zone by zone or globally.",
 	"RepoUrl": "https://github.com/Eternita-S/Weatherman",
-	"DalamudApiLevel": 3
+	"DalamudApiLevel": 4
 }

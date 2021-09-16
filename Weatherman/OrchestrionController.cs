@@ -32,7 +32,7 @@ namespace Weatherman
         {
             try
             {
-                var flags = BindingFlags.NonPublic | BindingFlags.Instance;
+                /*var flags = BindingFlags.NonPublic | BindingFlags.Instance;
                 var d = (Dalamud.Dalamud)plugin.pi.GetType().GetField("dalamud", flags).GetValue(plugin.pi);
                 var pmanager = d.GetType().GetProperty("PluginManager", flags).GetValue(d);
                 var plugins =
@@ -47,7 +47,7 @@ namespace Weatherman
                         plugin.WriteLog("Found Orchestrion plugin.");
                         return porch;
                     }
-                }
+                }*/
                 return null;
             }
             catch (Exception e)

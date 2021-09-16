@@ -15,18 +15,18 @@ namespace Weatherman
         public ChlogGui(Weatherman p)
         {
             this.p = p;
-            p.pi.UiBuilder.OnBuildUi += Draw;
+            Svc.PluginInterface.UiBuilder.Draw += Draw;
         }
 
         public void Dispose()
         {
-            p.pi.UiBuilder.OnBuildUi -= Draw;
+            Svc.PluginInterface.UiBuilder.Draw -= Draw;
         }
 
         void Draw()
         {
             if (!open) return;
-            if (!p.pi.ClientState.IsLoggedIn) return;
+            if (!Svc.ClientState.IsLoggedIn) return;
             ImGui.Begin("Weatherman has been updated", ref open, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize);
             ImGui.TextUnformatted("Meet Weatherman 2.0!\n" +
                 "Fundamental principle of the plugin has been changed.\n" +

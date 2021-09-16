@@ -106,7 +106,7 @@ namespace Weatherman
                         }
                         if (ImGui.Button("Apply weather changes"))
                         {
-                            p.ApplyWeatherChanges(p.pi.ClientState.TerritoryType);
+                            p.ApplyWeatherChanges(Svc.ClientState.TerritoryType);
                         }
                         ImGui.SameLine();
                         ImGui.TextUnformatted("Either click this button or change your zone for weather settings to become effective.");
@@ -136,10 +136,10 @@ namespace Weatherman
                         ImGui.Separator();
 
                         //current zone
-                        if (p.configuration.ShowCurrentZoneOnTop && p.ZoneSettings.ContainsKey(p.pi.ClientState.TerritoryType))
+                        if (p.configuration.ShowCurrentZoneOnTop && p.ZoneSettings.ContainsKey(Svc.ClientState.TerritoryType))
                         {
                             ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 1, 1, 1));
-                            PrintZoneRow(p.ZoneSettings[p.pi.ClientState.TerritoryType], false);
+                            PrintZoneRow(p.ZoneSettings[Svc.ClientState.TerritoryType], false);
                             ImGui.PopStyleColor();
                         }
 
@@ -167,7 +167,7 @@ namespace Weatherman
                         ImGui.Separator();
                         if (ImGui.Button("Apply weather changes"))
                         {
-                            p.ApplyWeatherChanges(p.pi.ClientState.TerritoryType);
+                            p.ApplyWeatherChanges(Svc.ClientState.TerritoryType);
                         }
                         ImGui.SameLine();
                         ImGui.TextUnformatted("Either click this button or change your zone for settings to become effective.");
@@ -177,7 +177,7 @@ namespace Weatherman
                         foreach (var w in temparr)
                         {
                             var v = temparr[w.Key];
-                            var normal = p.IsWeatherNormal(w.Key, p.pi.ClientState.TerritoryType);
+                            var normal = p.IsWeatherNormal(w.Key, Svc.ClientState.TerritoryType);
                             var current = *p.memoryManager.TrueWeather == w.Key;
                             if (normal || current) ImGui.PushStyleColor(ImGuiCol.Text, current ? (normal ? new Vector4(1, 1, 0, 1) : new Vector4(1, 0, 0, 1)) : colorGreen);
                             ImGui.Checkbox(w.Key + " / " + p.weathers[w.Key], ref v);
@@ -239,8 +239,8 @@ namespace Weatherman
                             ImGui.TextUnformatted("Calculated time: " + et + " / " + DateTimeOffset.FromUnixTimeSeconds(et).ToString());
                             if(p.memoryManager.IsTimeCustom()) ImGui.TextUnformatted("Time from asm: " + p.memoryManager.GetTime() + " / " + 
                                 DateTimeOffset.FromUnixTimeSeconds(p.memoryManager.GetTime()).ToLocalTime().ToString());
-                            ImGui.TextUnformatted("Current zone: " + p.pi.ClientState.TerritoryType + " / " +
-                                p.zones[p.pi.ClientState.TerritoryType].PlaceName.Value.Name);
+                            ImGui.TextUnformatted("Current zone: " + Svc.ClientState.TerritoryType + " / " +
+                                p.zones[Svc.ClientState.TerritoryType].PlaceName.Value.Name);
                             ImGui.TextUnformatted("Unblacklisted weather: " + p.UnblacklistedWeather);
                             List<string> wGui = new List<string>();
                             foreach (var w in p.weathers)
@@ -267,7 +267,7 @@ namespace Weatherman
                                 p.SelectedWeather = 255;
                             }
                             ImGui.TextUnformatted("Supported weathers:");
-                            foreach (byte i in p.GetWeathers(p.pi.ClientState.TerritoryType))
+                            foreach (byte i in p.GetWeathers(Svc.ClientState.TerritoryType))
                             {
                                 var colored = false;
                                 if (p.memoryManager.GetDisplayedWeather() == i)
@@ -275,7 +275,7 @@ namespace Weatherman
                                     ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1, 0, 0, 1));
                                     colored = true;
                                 }
-                                if ((p.configuration.Unsafe || p.IsWorldTerritory(p.pi.ClientState.TerritoryType)))
+                                if ((p.configuration.Unsafe || p.IsWorldTerritory(Svc.ClientState.TerritoryType)))
                                 {
                                     if (ImGui.SmallButton(i + " / " + p.weathers[i]))
                                     {
@@ -287,7 +287,7 @@ namespace Weatherman
                                     ImGui.TextUnformatted(i + " / " + p.weathers[i]);
                                 }
                                 if (colored) ImGui.PopStyleColor(1);
-                                if (p.IsWeatherNormal(i, p.pi.ClientState.TerritoryType))
+                                if (p.IsWeatherNormal(i, Svc.ClientState.TerritoryType))
                                 {
                                     ImGui.SameLine();
                                     ImGui.TextColored(new Vector4(0, 1, 0, 1), "Occurs normally");
@@ -335,6 +335,7 @@ namespace Weatherman
                     ImGui.EndTabBar();
                 }
                 ImGui.PopStyleVar();
+                ImGui.End();
             }
             catch(Exception e)
             {
