@@ -9,7 +9,7 @@ namespace Weatherman
 {
     class ChlogGui
     {
-        public const int ChlogVersion = 3;
+        public const int ChlogVersion = 4;
         readonly Weatherman p;
         bool open = true;
         public ChlogGui(Weatherman p)
@@ -28,21 +28,9 @@ namespace Weatherman
             if (!open) return;
             if (!Svc.ClientState.IsLoggedIn) return;
             ImGui.Begin("Weatherman has been updated", ref open, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize);
-            ImGui.TextUnformatted("Meet Weatherman 2.0!\n" +
-                "Fundamental principle of the plugin has been changed.\n" +
-                "Instead of setting time and weather variables in memory, Weatherman 2.0 patches code directly, \n" +
-                "   allowing game to preserve it's true variables while changing only visuals.\n" +
-                "- Eorzean clock is no longer affected by Weatherman\n" +
-                "- BGM no longer affected by Weatherman\n" +
-                "- Vistas no longer affected by Weatherman\n" +
-                "- DOL pause was removed and no longer needed as game will always have it's true information\n" +
-                "- Weather will no longer jump back and forth on quest completion or just randomly\n" +
-                "- Weather changes are now always instant\n" +
-                "- Anamnesis program no longer affected by Weatherman\n" +
-                "\n" +
-                "Big updates, however, means that big testing is needed. \n" +
-                "Please report about all encountered errors and unexpected behavior of plugin.\n" +
-                "Thank you for using Weatherman 2.0!");
+            ImGui.TextUnformatted("API 4 version.\n" +
+                "Orchestrion functions are temporary unavailable and will be updated later.\n" +
+                "(or maybe removed at all since this function gets built into orchestrion plugin itself some time soon)");
             if (ImGui.Button("Close this window"))
             {
                 open = false;

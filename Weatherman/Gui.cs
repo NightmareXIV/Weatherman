@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Numerics;
-using System.Windows.Forms;
 using System.Runtime.ExceptionServices;
 using Dalamud;
 using System.Runtime.InteropServices;
@@ -315,7 +314,7 @@ namespace Weatherman
                                         break;
                                     }
                                 }
-                                Clipboard.SetText(s.ToString());
+                                ImGui.SetClipboardText(s.ToString());
                             }
                             ImGui.BeginChild("##logtext");
                             for (var i = 0; i < p.Log.Length; i++)
