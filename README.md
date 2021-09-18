@@ -2,6 +2,7 @@
 Don't wait for perfect weather. Create it yourself!
 Weatherman allows you to take precise control over weather and time flow in FFXIV. From as simple things as removing rains or bringing everlasting day to precise selection of weather and time for every single zone individually - Weatherman got you covered.
 <p align="center"><img src="https://raw.githubusercontent.com/Eternita-S/Weatherman/master/Weatherman/res/icon.png"></p>
+
 ## Weatherman 2.0
 New Weatherman version will no longer change game variables. Instead it will patch functions that are responsible for rendering environment. This way game variables left untouched and no longer will cause side effects like incorrect eorzean time or time change affecting current BGM.
 ## Install
