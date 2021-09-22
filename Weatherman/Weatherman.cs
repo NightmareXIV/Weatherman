@@ -317,7 +317,8 @@ namespace Weatherman
             else if (setting == 7) //real world
             {
                 memoryManager.EnableCustomTime();
-                var et = DateTimeOffset.Now.ToUnixTimeSeconds();
+                var now = DateTimeOffset.Now;
+                var et = (now + now.Offset).ToUnixTimeSeconds();
                 memoryManager.SetTime((uint)(et % SecondsInDay));
             }
         }
