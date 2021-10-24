@@ -32,22 +32,18 @@ namespace Weatherman
         {
             try
             {
-                /*var flags = BindingFlags.NonPublic | BindingFlags.Instance;
-                var d = (Dalamud.Dalamud)plugin.pi.GetType().GetField("dalamud", flags).GetValue(plugin.pi);
-                var pmanager = d.GetType().GetProperty("PluginManager", flags).GetValue(d);
-                var plugins =
-                    (List<(IDalamudPlugin Plugin, PluginDefinition Definition, DalamudPluginInterface PluginInterface, bool IsRaw)>)
-                    pmanager.GetType().GetProperty("Plugins").GetValue(pmanager);
-                plugin.WriteLog("Found plugins: " + plugins.Count);
-                foreach (var p in plugins)
+                var pluginManager = Svc.PluginInterface.GetType().Assembly.
+                    GetType("Dalamud.Service`1", true).MakeGenericType(Svc.PluginInterface.GetType().Assembly.GetType("Dalamud.Plugin.Internal.PluginManager", true)).
+                    GetMethod("Get").Invoke(null, BindingFlags.Default, null, new object[] { }, null);
+                var installedPlugins = (System.Collections.IList)pluginManager.GetType().GetProperty("InstalledPlugins").GetValue(pluginManager);
+
+                foreach (var t in installedPlugins)
                 {
-                    if (p.Plugin.Name == "Orchestrion plugin")
+                    if ((string)t.GetType().GetProperty("Name").GetValue(t) == "Orchestrion")
                     {
-                        var porch = p.Plugin;
-                        plugin.WriteLog("Found Orchestrion plugin.");
-                        return porch;
+                        return (IDalamudPlugin)t.GetType().GetField("instance", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(t);
                     }
-                }*/
+                }
                 return null;
             }
             catch (Exception e)

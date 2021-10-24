@@ -237,7 +237,7 @@ namespace Weatherman
                             var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 144D / 7D / 1000D);
                             ImGui.TextUnformatted("Calculated time: " + et + " / " + DateTimeOffset.FromUnixTimeSeconds(et).ToString());
                             if(p.memoryManager.IsTimeCustom()) ImGui.TextUnformatted("Time from asm: " + p.memoryManager.GetTime() + " / " + 
-                                DateTimeOffset.FromUnixTimeSeconds(p.memoryManager.GetTime()).ToLocalTime().ToString());
+                                DateTimeOffset.FromUnixTimeSeconds(p.memoryManager.GetTime()).ToLocalTime().AlreadyLocal().ToString());
                             ImGui.TextUnformatted("Current zone: " + Svc.ClientState.TerritoryType + " / " +
                                 p.zones[Svc.ClientState.TerritoryType].PlaceName.Value.Name);
                             ImGui.TextUnformatted("Unblacklisted weather: " + p.UnblacklistedWeather);

@@ -9,7 +9,7 @@ namespace Weatherman
 {
     class ChlogGui
     {
-        public const int ChlogVersion = 4;
+        public const int ChlogVersion = 5;
         readonly Weatherman p;
         bool open = true;
         public ChlogGui(Weatherman p)
@@ -28,9 +28,7 @@ namespace Weatherman
             if (!open) return;
             if (!Svc.ClientState.IsLoggedIn) return;
             ImGui.Begin("Weatherman has been updated", ref open, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize);
-            ImGui.TextUnformatted("API 4 version.\n" +
-                "Orchestrion functions are temporary unavailable and will be updated later.\n" +
-                "(or maybe removed at all since this function gets built into orchestrion plugin itself some time soon)");
+            ImGui.TextUnformatted("Orchestrion plugin support is back!");
             if (ImGui.Button("Close this window"))
             {
                 open = false;

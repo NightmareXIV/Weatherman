@@ -40,5 +40,10 @@ namespace Weatherman
             }
 			return b.ToString().ToUpper() ;
         }
+
+		public static DateTimeOffset AlreadyLocal(this DateTimeOffset d)
+        {
+			return d.Subtract(d.Offset);
+        }
     }
 }
