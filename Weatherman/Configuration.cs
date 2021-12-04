@@ -24,6 +24,10 @@ namespace Weatherman
         public bool ShowCurrentZoneOnTop = true;
         public int ChlogReadVer = 1;
         [NonSerialized] public bool Anywhere = false;
+        public bool DisplayNotifications = false;
+        public bool DisableInCutscene = true;
+        public bool EnableTimeControl = true;
+        public bool EnableWeatherControl = true;
 
         [NonSerialized]
         private Weatherman plugin;

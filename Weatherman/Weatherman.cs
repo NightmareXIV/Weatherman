@@ -1,8 +1,10 @@
 ﻿using Dalamud;
 using Dalamud.Game;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Internal;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Logging;
 using Dalamud.Plugin;
 using Lumina.Excel;
@@ -138,6 +140,7 @@ namespace Weatherman
         public void ApplyWeatherChanges(ushort u)
         {
             WriteLog("Applying weather changes");
+            var resolution = new List<string>();
             SelectedWeather = 255;
             UnblacklistedWeather = 0;
             if (orchestrionController.BGMModified)
@@ -152,15 +155,25 @@ namespace Weatherman
                 {
                     orchestrionController.PlaySong(z.Music);
                     orchestrionController.BGMModified = true;
+                    resolution.Add($"BGM changed to: {(orchestrionController.GetSongList().TryGetValue(z.Music, out Song song)?song.Name:z.Music)}");
                 }
                 if (z.WeatherControl)
                 {
+                    resolution.Add("Weather control enabled in this zone.");
                     var weathers = new List<byte>();
                     foreach (var v in z.SupportedWeathers)
                     {
                         if (v.Selected) weathers.Add(v.Id);
                     }
-                    if (weathers.Count > 0) SelectedWeather = weathers[new Random().Next(0, weathers.Count)];
+                    if (weathers.Count > 0)
+                    {
+                        SelectedWeather = weathers[new Random().Next(0, weathers.Count)];
+                        resolution.Add($"Selected weather: {this.weathers[SelectedWeather]}");
+                    }
+                    else
+                    {
+                        resolution.Add("Natural weather is preserved.");
+                    }
                 }
                 else
                 {
@@ -174,11 +187,19 @@ namespace Weatherman
                             unblacklistedWeatherCandidates.Add(v.Id);
                         }
                     }
-                    if (unblacklistedWeatherCandidates.Count > 0) UnblacklistedWeather =
+                    if (unblacklistedWeatherCandidates.Count > 0)
+                    {
+                        UnblacklistedWeather =
                              unblacklistedWeatherCandidates[new Random().Next(0, unblacklistedWeatherCandidates.Count)];
+                        resolution.Add($"Unblacklisted weather selected: {this.weathers[UnblacklistedWeather]}");
+                    }
                 }
             }
             WriteLog("Selected weather:"+ SelectedWeather + "; unblacklisted weather: " + UnblacklistedWeather);
+            if (configuration.DisplayNotifications)
+            {
+                Svc.PluginInterface.UiBuilder.AddNotification(String.Join("\n", resolution), "Weatherman zone change report", NotificationType.Info, 10000);
+            }
         }
 
         [HandleProcessCorruptedStateExceptions]
@@ -193,37 +214,64 @@ namespace Weatherman
                 }
                 if (Svc.ClientState.LocalPlayer != null
                     && IsWorldTerritory(Svc.ClientState.TerritoryType)
-                    && !PausePlugin)
+                    && !PausePlugin
+                    && !(configuration.DisableInCutscene && (Svc.Condition[ConditionFlag.OccupiedInCutSceneEvent]
+                    || Svc.Condition[ConditionFlag.WatchingCutscene78])))
                 {
-                    SetTimeBySetting(GetZoneTimeFlowSetting(Svc.ClientState.TerritoryType));
-                    if (SelectedWeather != 255)
+                    if (configuration.EnableTimeControl)
                     {
-                        memoryManager.EnableCustomWeather();
-                        if (memoryManager.GetWeather() != SelectedWeather) memoryManager.SetWeather(SelectedWeather);
+                        SetTimeBySetting(GetZoneTimeFlowSetting(Svc.ClientState.TerritoryType));
                     }
                     else
                     {
-                        var suggesterWeather = *memoryManager.TrueWeather;
-                        if (UnblacklistedWeather != 0 && suggesterWeather != UnblacklistedWeather
-                        && configuration.BlacklistedWeathers.ContainsKey(suggesterWeather)
-                        && configuration.BlacklistedWeathers[suggesterWeather])
+                        memoryManager.DisableCustomTime();
+                    }
+                    if (configuration.EnableWeatherControl)
+                    {
+                        if (SelectedWeather != 255)
                         {
-                            suggesterWeather = UnblacklistedWeather;
-                        }
-                        //this is to retain smooth transitions
-                        if(suggesterWeather == *memoryManager.TrueWeather)
-                        {
-                            memoryManager.DisableCustomWeather();
+                            memoryManager.EnableCustomWeather();
+                            if (memoryManager.GetWeather() != SelectedWeather)
+                            {
+                                memoryManager.SetWeather(SelectedWeather);
+                                if (configuration.DisplayNotifications)
+                                {
+                                    Svc.PluginInterface.UiBuilder.AddNotification($"{weathers[SelectedWeather]}\nReason: selected by user", "Weatherman: weather changed", NotificationType.Info, 5000);
+                                }
+                            }
                         }
                         else
                         {
-                            memoryManager.EnableCustomWeather();
-                            if (memoryManager.GetWeather() != suggesterWeather)
+                            var suggesterWeather = *memoryManager.TrueWeather;
+                            if (UnblacklistedWeather != 0 && suggesterWeather != UnblacklistedWeather
+                            && configuration.BlacklistedWeathers.ContainsKey(suggesterWeather)
+                            && configuration.BlacklistedWeathers[suggesterWeather])
                             {
-                                memoryManager.SetWeather(suggesterWeather);
+                                suggesterWeather = UnblacklistedWeather;
                             }
+                            //this is to retain smooth transitions
+                            if (suggesterWeather == *memoryManager.TrueWeather)
+                            {
+                                memoryManager.DisableCustomWeather();
+                            }
+                            else
+                            {
+                                memoryManager.EnableCustomWeather();
+                                if (memoryManager.GetWeather() != suggesterWeather)
+                                {
+                                    memoryManager.SetWeather(suggesterWeather);
+                                    if (configuration.DisplayNotifications)
+                                    {
+                                        Svc.PluginInterface.UiBuilder.AddNotification($"{weathers[SelectedWeather]}\nReason: found blacklisted weather", "Weatherman: weather changed", NotificationType.Info, 5000);
+                                    }
+                                }
+                            }
+
                         }
-                        
+                    }
+                    else
+                    {
+                        memoryManager.DisableCustomWeather();
                     }
                     
                 }
@@ -344,7 +392,7 @@ namespace Weatherman
         public bool IsWeatherNormal(byte id, ushort terr)
         {
             var w = new HashSet<Weather>();
-            foreach (var u in weatherRates.GetRow(zones[terr].WeatherRate).UnkStruct0)
+            foreach (var u in weatherRates.GetRow(zones[terr].WeatherRate).UnkData0)
             {
                 if (u.Weather != 0 && u.Weather == id) return true; 
             }

@@ -12,7 +12,7 @@ namespace Weatherman
     {
         Weatherman p;
         internal byte[] NewTimeAsm = new byte[] { 0x49, 0xC7, 0xC1, 0x00, 0x00, 0x00, 0x00 };
-        private byte[] OldTimeAsm = new byte[] { 0x4D, 0x8B, 0x8A, 0x08, 0x16, 0x00, 0x00 };
+        private byte[] OldTimeAsm = new byte[] { 0x4D, 0x8B, 0x8A, 0x70, 0x17, 0x00, 0x00 };
         internal IntPtr TimeAsmPtr;
         private byte* FirstByteTimeAsm;
         private uint* Time;
@@ -100,8 +100,8 @@ namespace Weatherman
             this.p = p;
 
             //setup time
-            TrueTime = (long*)(Svc.Framework.Address.BaseAddress + 0x1608);
-            TimeAsmPtr = Svc.SigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC 30 4C 8B 15") + 0x16;
+            TrueTime = (long*)(Svc.Framework.Address.BaseAddress + 0x1770);
+            TimeAsmPtr = Svc.SigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC 30 4C 8B 15") + 0x19;
             if (Static.VirtualProtect(
                 (UIntPtr)(TimeAsmPtr + 0x3).ToPointer(), (IntPtr)0x4,
                 Static.MemoryProtection.ExecuteReadWrite, out var oldProtection) == false)

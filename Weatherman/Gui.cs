@@ -81,6 +81,9 @@ namespace Weatherman
                         }
                         ImGui.Checkbox("Enable music control", ref p.configuration.MusicEnabled);
                         ImGui.TextUnformatted("Requires Orchestrion plugin installed and enabled.");
+                        ImGui.Checkbox("Disable plugin in cutscenes", ref p.configuration.DisableInCutscene);
+                        ImGui.Checkbox("Enable time control", ref p.configuration.EnableTimeControl);
+                        ImGui.Checkbox("Enable weather control", ref p.configuration.EnableWeatherControl);
                         ImGui.EndTabItem();
                     }
                     if (ImGui.BeginTabItem("Zone-specific settings"))
