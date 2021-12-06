@@ -122,7 +122,9 @@ namespace Weatherman
             628, //kugane
             418, 419, //ishgard
             819, //crys
-            820 //eulmore
+            820, //eulmore
+            962, //sharla
+            963, //dragoncity
         };
         public bool IsWorldTerritory(ushort territory)
         {
