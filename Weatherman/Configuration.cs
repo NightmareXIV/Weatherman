@@ -16,7 +16,7 @@ namespace Weatherman
         public int GlobalFixedTime = 0;
         public SortedDictionary<byte, bool> BlacklistedWeathers = new SortedDictionary<byte, bool>();
         public bool EnableLogging = true;
-        public bool Unsafe = false;
+        [NonSerialized] public bool Unsafe = false;
         public bool MusicEnabled = false;
         public bool ShowUnnamedZones = false;
         public bool ShowOnlyModified = false;

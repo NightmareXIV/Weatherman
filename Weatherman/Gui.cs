@@ -200,8 +200,8 @@ namespace Weatherman
                             {
                                 p.WriteLog(p.configuration.GetConfigurationString());
                             }
-                            ImGui.Checkbox("Unsafe options", ref p.configuration.Unsafe);
-                            ImGui.Checkbox("Use anywhere", ref p.configuration.Anywhere);
+                            //ImGui.Checkbox("Unsafe options", ref p.configuration.Unsafe);
+                            //ImGui.Checkbox("Use anywhere", ref p.configuration.Anywhere);
                             ImGui.Checkbox("Pause plugin execution", ref p.PausePlugin);
                             ImGui.Checkbox("Profiling", ref p.profiling);
                             if (p.profiling)
@@ -400,22 +400,33 @@ namespace Weatherman
             ImGui.NextColumn();
             if (p.IsWorldTerritory(z.ZoneId))
             {
-                ImGui.Checkbox("Override weather##wcontrol" + ++uid, ref z.WeatherControl);
                 if (z.WeatherControl)
                 {
-                    if (z.SupportedWeathers.Count == 0)
+                    ImGui.Checkbox("##wcontrol" + ++uid, ref z.WeatherControl);
+                    ImGui.SameLine();
+                    ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
+                    var wCount = z.SupportedWeathers.Where(w => w.Selected).Count();
+                    if (ImGui.BeginCombo($"##wcontrolc{uid}", wCount == 0? "Original" : $"{wCount} weathers"))
                     {
-                        ImGui.TextUnformatted("Zone has no supported weathers");
-                    }
-                    else
-                    {
-                        foreach (var weather in z.SupportedWeathers)
+                        if (z.SupportedWeathers.Count == 0)
                         {
-                            if (weather.IsNormal) ImGui.PushStyleColor(ImGuiCol.Text, colorGreen);
-                            ImGui.Checkbox(weather.Id + " | " + p.weathers[weather.Id] + "##" + ++uid, ref weather.Selected);
-                            if (weather.IsNormal) ImGui.PopStyleColor();
+                            ImGui.TextUnformatted("Zone has no supported weathers");
                         }
+                        else
+                        {
+                            foreach (var weather in z.SupportedWeathers)
+                            {
+                                if (weather.IsNormal) ImGui.PushStyleColor(ImGuiCol.Text, colorGreen);
+                                ImGui.Checkbox(weather.Id + " | " + p.weathers[weather.Id] + "##" + ++uid, ref weather.Selected);
+                                if (weather.IsNormal) ImGui.PopStyleColor();
+                            }
+                        }
+                        ImGui.EndCombo();
                     }
+                }
+                else
+                {
+                    ImGui.Checkbox("Override weather##wcontrol" + ++uid, ref z.WeatherControl);
                 }
             }
             else
