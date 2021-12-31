@@ -60,7 +60,7 @@ namespace Weatherman
             {
                 var p = GetOrchestrionPlugin();
                 if (p == null) return;
-                p.GetType().GetMethod("PlaySong").Invoke(p, new object[] { id });
+                p.GetType().GetMethod("PlaySong").Invoke(p, new object[] { id, false });
             }
             catch (Exception e)
             {
