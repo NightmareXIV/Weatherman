@@ -18,5 +18,4 @@ Detailed instructions available here: https://github.com/Eternita-S/MyDalamudPlu
 * Replace zone bgm with any other zone bgm. Requires Orchestrion plugin to be installed.
 
 Note: Weatherman only changes visuals. Weather-specific mobs, events, fates etc. will not be altered. 
-## Vistas
-Vistas conditions are checked server-side. It's not possible to cheat them with this plugin. However to prevent any possibility of sending data to servers that would be impossible without this plugin once you approach vista plugin will pause weather and time processing and restore them to normal states. I recommend that you pause plugin execution if you are actively doing vistas though (`/weatherman` -> debug -> pause plugin execution). 
+
