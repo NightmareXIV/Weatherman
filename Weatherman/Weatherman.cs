@@ -139,6 +139,15 @@ namespace Weatherman
             ApplyWeatherChanges(u);
         }
 
+        void OnLogout()
+        {
+            if (orchestrionController.BGMModified)
+            {
+                orchestrionController.StopSong();
+                orchestrionController.BGMModified = false;
+            }
+        }
+
         public void ApplyWeatherChanges(ushort u)
         {
             WriteLog("Applying weather changes");

@@ -1,4 +1,5 @@
-﻿using Dalamud.Plugin;
+﻿using Dalamud.Logging;
+using Dalamud.Plugin;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -60,6 +61,7 @@ namespace Weatherman
             {
                 var p = GetOrchestrionPlugin();
                 if (p == null) return;
+                PluginLog.Debug($"Calling PlaySong id={id}");
                 p.GetType().GetMethod("PlaySong").Invoke(p, new object[] { id, false });
             }
             catch (Exception e)
@@ -74,6 +76,7 @@ namespace Weatherman
             {
                 var p = GetOrchestrionPlugin();
                 if (p == null) return;
+                PluginLog.Debug($"Calling StopSong");
                 p.GetType().GetMethod("StopSong").Invoke(p, new object[] { });
             }
             catch (Exception e)
