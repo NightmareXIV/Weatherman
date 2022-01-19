@@ -174,7 +174,7 @@ namespace Weatherman
                         ImGui.SameLine();
                         ImGui.TextUnformatted("Either click this button or change your zone for settings to become effective.");
                         ImGui.Separator();
-                        //fucked shit begins, sorry GC
+
                         var temparr = p.configuration.BlacklistedWeathers.ToDictionary(entry => entry.Key, entry => entry.Value);
                         foreach (var w in temparr)
                         {

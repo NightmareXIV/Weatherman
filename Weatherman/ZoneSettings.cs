@@ -29,7 +29,6 @@ namespace Weatherman
             }
         }
 
-        //yes I probably could nicely serialize all that shit but you know what? fuck that.
         public string GetString()
         {
             var b = new List<string>

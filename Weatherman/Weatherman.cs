@@ -43,16 +43,18 @@ namespace Weatherman
         internal long totalTime = 0;
         internal long totalTicks = 0;
         internal bool profiling = false;
+        internal bool InCutscene = false;
 
         public void Dispose()
         {
             configuration.Save();
             Svc.Framework.Update -= HandleFrameworkUpdate;
+            Svc.ClientState.Logout -= StopSongIfModified;
             Svc.PluginInterface.UiBuilder.Draw -= ConfigGui.Draw;
             Svc.ClientState.TerritoryChanged -= HandleZoneChange;
             Svc.Commands.RemoveHandler("/weatherman");
             memoryManager.Dispose();
-            if (orchestrionController.BGMModified) orchestrionController.StopSong();
+            StopSongIfModified();
             orchestrionController.Dispose();
         }
 
@@ -111,6 +113,7 @@ namespace Weatherman
             {
                 new ChlogGui(this);
             }*/
+            Svc.ClientState.Logout += StopSongIfModified;
         }
 
         //probably easiest way to get overworld territories - includes eureka and bozja but have to add cities myself
@@ -135,11 +138,11 @@ namespace Weatherman
 
         private void HandleZoneChange(object s, ushort u)
         {
-            WriteLog("Zone changed to " + u + "; is world = " + IsWorldTerritory(u));
+            PluginLog.Debug("Zone changed to " + u + "; is world = " + IsWorldTerritory(u));
             ApplyWeatherChanges(u);
         }
 
-        void OnLogout()
+        void StopSongIfModified(object _ = null, object __ = null)
         {
             if (orchestrionController.BGMModified)
             {
@@ -154,11 +157,7 @@ namespace Weatherman
             var resolution = new List<string>();
             SelectedWeather = 255;
             UnblacklistedWeather = 0;
-            if (orchestrionController.BGMModified)
-            {
-                orchestrionController.StopSong();
-                orchestrionController.BGMModified = false;
-            }
+            StopSongIfModified();
             if (ZoneSettings.ContainsKey(u))
             {
                 var z = ZoneSettings[u];
@@ -213,7 +212,6 @@ namespace Weatherman
             }
         }
 
-        [HandleProcessCorruptedStateExceptions]
         void HandleFrameworkUpdate(Framework f)
         {
             try
@@ -223,11 +221,31 @@ namespace Weatherman
                     totalTicks++;
                     stopwatch.Restart();
                 }
+                if(Svc.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Svc.Condition[ConditionFlag.WatchingCutscene78])
+                {
+                    if(!InCutscene)
+                    {
+                        PluginLog.Debug("Cutscene started");
+                        InCutscene = true;
+                        if (configuration.DisableInCutscene)
+                        {
+                            StopSongIfModified();
+                        }
+                    }
+                }
+                else
+                {
+                    if (InCutscene)
+                    {
+                        PluginLog.Debug("Cutscene ended");
+                        InCutscene = false;
+                        ApplyWeatherChanges(Svc.ClientState.TerritoryType);
+                    }
+                }
                 if (Svc.ClientState.LocalPlayer != null
                     && IsWorldTerritory(Svc.ClientState.TerritoryType)
                     && !PausePlugin
-                    && !(configuration.DisableInCutscene && (Svc.Condition[ConditionFlag.OccupiedInCutSceneEvent]
-                    || Svc.Condition[ConditionFlag.WatchingCutscene78])))
+                    && !(configuration.DisableInCutscene && InCutscene))
                 {
                     if (configuration.EnableTimeControl)
                     {

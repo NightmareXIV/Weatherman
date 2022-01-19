@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace Weatherman
 {
-    //this is fucked and I do not like it but I have no choice
     class WeathermanWeather
     {
         public byte Id;
