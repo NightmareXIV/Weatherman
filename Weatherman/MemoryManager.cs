@@ -125,7 +125,7 @@ namespace Weatherman
 
             //setup weather
             TrueWeather = //(byte*)(Process.GetCurrentProcess().MainModule.BaseAddress + 0x1E7B0D8); 
-                (byte*)(*(IntPtr*)Svc.SigScanner.GetStaticAddressFromSig("48 8B 0D ?? ?? ?? ?? 4C 8B 05 ?? ?? ?? ?? 44 0F B6 4E") + 0x28); //thanks to Caraxi
+                (byte*)(Svc.SigScanner.GetStaticAddressFromSig("48 8B 0D ?? ?? ?? ?? 4C 8B 05 ?? ?? ?? ?? 44 0F B6 4E") + 0x28); //thanks to Caraxi
             WeatherAsmPtr = Svc.SigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC 30 80 B9 ?? ?? ?? ?? ?? 49 8B F8 0F 29 74 24") + 0x55;
             if (Static.VirtualProtect(
                 (UIntPtr)(WeatherAsmPtr + 0x1).ToPointer(), (IntPtr)0x1,
