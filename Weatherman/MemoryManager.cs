@@ -124,7 +124,8 @@ namespace Weatherman
             FirstByteTimeAsm = (byte*)TimeAsmPtr;
 
             //setup weather
-            TrueWeather = (byte*)(*(IntPtr*)Svc.SigScanner.GetStaticAddressFromSig("48 8B 05 ?? ?? ?? ?? 0F B6 EA 48 8B F9 41 8B DE 48 8B 70 08 48 85 F6 0F 84 ?? ?? ?? ??") + 0x27);
+            TrueWeather = (byte*)(Process.GetCurrentProcess().MainModule.BaseAddress + 0x1E7B0D8); //sig later
+                //(byte*)(*(IntPtr*)Svc.SigScanner.GetStaticAddressFromSig("48 8B 05 ?? ?? ?? ?? 0F B6 EA 48 8B F9 41 8B DE 48 8B 70 08 48 85 F6 0F 84 ?? ?? ?? ??") + 0x27);
             WeatherAsmPtr = Svc.SigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC 30 80 B9 ?? ?? ?? ?? ?? 49 8B F8 0F 29 74 24") + 0x55;
             if (Static.VirtualProtect(
                 (UIntPtr)(WeatherAsmPtr + 0x1).ToPointer(), (IntPtr)0x1,
