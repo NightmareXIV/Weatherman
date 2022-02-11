@@ -117,7 +117,7 @@ namespace Weatherman
         }
 
         //probably easiest way to get overworld territories - includes eureka and bozja but have to add cities myself
-        HashSet<ushort> Cities = new HashSet<ushort>
+        HashSet<ushort> Cities = new()
         {
             128, 129, //limsa lominsa
             132, 133, //gridania
