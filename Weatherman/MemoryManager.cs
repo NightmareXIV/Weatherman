@@ -1,4 +1,5 @@
 ﻿using Dalamud;
+using Dalamud.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -124,9 +125,10 @@ namespace Weatherman
             FirstByteTimeAsm = (byte*)TimeAsmPtr;
 
             //setup weather
-            TrueWeather = //(byte*)(Process.GetCurrentProcess().MainModule.BaseAddress + 0x1E7B0D8); 
-                (byte*)(Svc.SigScanner.GetStaticAddressFromSig("48 8B 0D ?? ?? ?? ?? 4C 8B 05 ?? ?? ?? ?? 44 0F B6 4E") + 0x28); //thanks to Caraxi
+            TrueWeather = (byte*)(*(IntPtr*)Svc.SigScanner.GetStaticAddressFromSig("48 8B 05 ?? ?? ?? ?? 48 83 C1 10 48 89 74 24") + 0x26);
+            PluginLog.Information($"Weather ptr: {(IntPtr)TrueWeather:X16}");
             WeatherAsmPtr = Svc.SigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC 30 80 B9 ?? ?? ?? ?? ?? 49 8B F8 0F 29 74 24") + 0x55;
+            PluginLog.Information($"Weather asm ptr: {(IntPtr)WeatherAsmPtr:X16}");
             if (Static.VirtualProtect(
                 (UIntPtr)(WeatherAsmPtr + 0x1).ToPointer(), (IntPtr)0x1,
                 Static.MemoryProtection.ExecuteReadWrite, out var oldProtectionWeather) == false)
