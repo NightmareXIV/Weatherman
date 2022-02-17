@@ -41,7 +41,6 @@ namespace Weatherman
         public void Save()
         {
             ConfigurationString = GetConfigurationString();
-            plugin.WriteLog(ConfigurationString);
             Svc.PluginInterface.SavePluginConfig(this);
         }
 

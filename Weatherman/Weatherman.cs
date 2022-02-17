@@ -153,62 +153,61 @@ namespace Weatherman
 
         public void ApplyWeatherChanges(ushort u)
         {
-            WriteLog("Applying weather changes");
-            var resolution = new List<string>();
-            SelectedWeather = 255;
-            UnblacklistedWeather = 0;
-            StopSongIfModified();
-            if (ZoneSettings.ContainsKey(u))
+            try
             {
-                var z = ZoneSettings[u];
-                if(configuration.MusicEnabled && z.Music != 0 && !orchestrionController.BGMModified)
+                PluginLog.Debug("Applying weather changes");
+                SelectedWeather = 255;
+                UnblacklistedWeather = 0;
+                StopSongIfModified();
+                if (ZoneSettings.ContainsKey(u))
                 {
-                    orchestrionController.PlaySong(z.Music);
-                    orchestrionController.BGMModified = true;
-                    resolution.Add($"BGM changed to: {(orchestrionController.GetSongList().TryGetValue(z.Music, out Song song)?song.Name:z.Music)}");
-                }
-                if (z.WeatherControl)
-                {
-                    resolution.Add("Weather control enabled in this zone.");
-                    var weathers = new List<byte>();
-                    foreach (var v in z.SupportedWeathers)
+                    var z = ZoneSettings[u];
+                    if (configuration.MusicEnabled && z.Music != 0 && !orchestrionController.BGMModified)
                     {
-                        if (v.Selected) weathers.Add(v.Id);
-                    }
-                    if (weathers.Count > 0)
+                        orchestrionController.PlaySong(z.Music);
+                        orchestrionController.BGMModified = true;
+                        }
+                    if (z.WeatherControl)
                     {
-                        SelectedWeather = weathers[new Random().Next(0, weathers.Count)];
-                        resolution.Add($"Selected weather: {this.weathers[SelectedWeather]}");
+                        var weathers = new List<byte>();
+                        foreach (var v in z.SupportedWeathers)
+                        {
+                            if (v.Selected) weathers.Add(v.Id);
+                        }
+                        if (weathers.Count > 0)
+                        {
+                            SelectedWeather = weathers[new Random().Next(0, weathers.Count)];
+                        }
+                        else
+                        {
+                            
+                        }
                     }
                     else
                     {
-                        resolution.Add("Natural weather is preserved.");
-                    }
-                }
-                else
-                {
-                    var unblacklistedWeatherCandidates = new List<byte>();
-                    foreach (var v in z.SupportedWeathers)
-                    {
-                        if (configuration.BlacklistedWeathers.ContainsKey(v.Id)
-                            && !configuration.BlacklistedWeathers[v.Id]
-                            && IsWeatherNormal(v.Id, Svc.ClientState.TerritoryType))
+                        var unblacklistedWeatherCandidates = new List<byte>();
+                        foreach (var v in z.SupportedWeathers)
                         {
-                            unblacklistedWeatherCandidates.Add(v.Id);
+                            if (configuration.BlacklistedWeathers.ContainsKey(v.Id)
+                                && !configuration.BlacklistedWeathers[v.Id]
+                                && IsWeatherNormal(v.Id, Svc.ClientState.TerritoryType))
+                            {
+                                unblacklistedWeatherCandidates.Add(v.Id);
+                            }
+                        }
+                        if (unblacklistedWeatherCandidates.Count > 0)
+                        {
+                            UnblacklistedWeather =
+                                 unblacklistedWeatherCandidates[new Random().Next(0, unblacklistedWeatherCandidates.Count)];
                         }
                     }
-                    if (unblacklistedWeatherCandidates.Count > 0)
-                    {
-                        UnblacklistedWeather =
-                             unblacklistedWeatherCandidates[new Random().Next(0, unblacklistedWeatherCandidates.Count)];
-                        resolution.Add($"Unblacklisted weather selected: {this.weathers[UnblacklistedWeather]}");
-                    }
                 }
+                PluginLog.Debug("Selected weather:" + SelectedWeather + "; unblacklisted weather: " + UnblacklistedWeather);
+                
             }
-            WriteLog("Selected weather:"+ SelectedWeather + "; unblacklisted weather: " + UnblacklistedWeather);
-            if (configuration.DisplayNotifications)
+            catch(Exception e)
             {
-                Svc.PluginInterface.UiBuilder.AddNotification(String.Join("\n", resolution), "Weatherman zone change report", NotificationType.Info, 10000);
+                PluginLog.Error($"{e.Message}\n{e.StackTrace ?? ""}");
             }
         }
 
@@ -221,9 +220,9 @@ namespace Weatherman
                     totalTicks++;
                     stopwatch.Restart();
                 }
-                if(Svc.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Svc.Condition[ConditionFlag.WatchingCutscene78])
+                if (Svc.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Svc.Condition[ConditionFlag.WatchingCutscene78])
                 {
-                    if(!InCutscene)
+                    if (!InCutscene)
                     {
                         PluginLog.Debug("Cutscene started");
                         InCutscene = true;
@@ -302,7 +301,7 @@ namespace Weatherman
                     {
                         memoryManager.DisableCustomWeather();
                     }
-                    
+
                 }
                 else
                 {
@@ -315,29 +314,10 @@ namespace Weatherman
                     totalTime += stopwatch.ElapsedTicks;
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                WriteLog("Error in weatherman: "+e);
+                PluginLog.Error($"{e.Message}\n{e.StackTrace ?? ""}");
             }
-        }
-
-        public void WriteLog(string line)
-        {
-            if (!configuration.EnableLogging) return;
-            line = DateTimeOffset.Now.ToString() + ": " + line;
-            for (var i = 0; i < Log.Length; i++)
-            {
-                if(Log[i] == null)
-                {
-                    Log[i] = line;
-                    return;
-                }
-            }
-            for(var i = 1;i < Log.Length; i++)
-            {
-                Log[i - 1] = Log[i];
-            }
-            Log[Log.Length - 1] = line;
         }
 
         void SetTimeBySetting(int setting)

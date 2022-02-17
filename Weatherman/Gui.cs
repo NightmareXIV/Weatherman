@@ -9,6 +9,7 @@ using System.Runtime.ExceptionServices;
 using Dalamud;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using Dalamud.Logging;
 
 namespace Weatherman
 {
@@ -40,7 +41,7 @@ namespace Weatherman
                     if (configWasOpen)
                     {
                         p.configuration.Save();
-                        p.WriteLog("Configuration saved");
+                        PluginLog.Debug("Configuration saved");
                     }
                     configWasOpen = false;
                     return;
@@ -50,7 +51,7 @@ namespace Weatherman
                 if (!p.configuration.ConfigurationString.Equals(p.configuration.GetConfigurationString()))
                 {
                     p.configuration.Save();
-                    p.WriteLog("Configuration saved");
+                    PluginLog.Debug("Configuration saved");
                 }
                 ImGui.PushStyleVar(ImGuiStyleVar.WindowMinSize, new Vector2(900, 350));
                 if (ImGui.Begin("Weatherman 2.0", ref configOpen))
@@ -198,10 +199,10 @@ namespace Weatherman
                             ImGui.BeginChild("##debug1");
                             if (ImGui.Button("Print configuration string"))
                             {
-                                p.WriteLog(p.configuration.GetConfigurationString());
+                                PluginLog.Verbose(p.configuration.GetConfigurationString());
                             }
-                            ImGui.Checkbox("Unsafe options", ref p.configuration.Unsafe);
-                            ImGui.Checkbox("Use anywhere", ref p.configuration.Anywhere);
+                            //ImGui.Checkbox("Unsafe options", ref p.configuration.Unsafe);
+                            //ImGui.Checkbox("Use anywhere", ref p.configuration.Anywhere);
                             ImGui.Checkbox("Pause plugin execution", ref p.PausePlugin);
                             ImGui.Checkbox("Profiling", ref p.profiling);
                             if (p.profiling)
@@ -341,7 +342,7 @@ namespace Weatherman
             }
             catch(Exception e)
             {
-                p.WriteLog("Error in weatherman: "+e);
+                PluginLog.Error($"{e.Message}\n{e.StackTrace ?? ""}");
             }
         }
 

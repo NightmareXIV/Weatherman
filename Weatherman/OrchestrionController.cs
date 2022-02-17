@@ -49,8 +49,8 @@ namespace Weatherman
             }
             catch (Exception e)
             {
-                plugin.WriteLog("Can't find orchestrion plugin: " + e.Message);
-                plugin.WriteLog(e.StackTrace);
+                PluginLog.Error("Can't find orchestrion plugin: " + e.Message);
+                PluginLog.Error(e.StackTrace);
                 return null;
             }
         }
@@ -66,7 +66,7 @@ namespace Weatherman
             }
             catch (Exception e)
             {
-                plugin.WriteLog("Failed to play song:" + e.Message);
+                PluginLog.Error("Failed to play song:" + e.Message);
             }
         }
 
@@ -81,7 +81,7 @@ namespace Weatherman
             }
             catch (Exception e)
             {
-                plugin.WriteLog("Failed to stop song:" + e.Message);
+                PluginLog.Error("Failed to stop song:" + e.Message);
             }
         }
 
@@ -92,10 +92,10 @@ namespace Weatherman
             {
                 var p = GetOrchestrionPlugin();
                 if (p == null) return null;
-                var flags = BindingFlags.NonPublic | BindingFlags.Instance;
-                var slist = p.GetType().GetField("songList", flags).GetValue(p);
-                var songlist = (IDictionary)slist.GetType().GetField("songs", flags).GetValue(slist);
-                plugin.WriteLog("Songs found: " + songlist.Count);
+                var flags = BindingFlags.NonPublic | BindingFlags.Static;
+                var slist = p.GetType().Assembly.GetType("Orchestrion.SongList", true);
+                var songlist = (IDictionary)slist.GetField("_songs", flags).GetValue(slist);
+                PluginLog.Debug("Songs found: " + songlist.Count);
                 int i = 0;
                 foreach (var o in songlist.Keys)
                 {
@@ -104,14 +104,14 @@ namespace Weatherman
                         (string)songlist[o].GetType().GetField("Name").GetValue(songlist[o])
                         ));
                 }
-                plugin.WriteLog("Song list contains " + SongList.Count + " entries / " + i);
-                if (SongList.Count > 1) return SongList;
+                PluginLog.Debug("Song list contains " + SongList.Count + " entries / " + i);
+                //if (SongList.Count > 1) return SongList;
             }
             catch (Exception e)
             {
-                plugin.WriteLog("Failed to retrieve song list:" + e.Message);
+                PluginLog.Error("Failed to retrieve song list:" + e.Message + "\n" + e.StackTrace ?? "");
             }
-            return null;
+            return SongList;
         }
 
         public Song GetSongById(int id)
@@ -120,7 +120,7 @@ namespace Weatherman
             {
                 if (i.Value.Id == id) return i.Value;
             }
-            return null;
+            return new Song(id, id.ToString());
         }
     }
 }
