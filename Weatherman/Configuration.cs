@@ -22,7 +22,7 @@ namespace Weatherman
         public bool ShowOnlyModified = false;
         public bool ShowOnlyWorldZones = true;
         public bool ShowCurrentZoneOnTop = true;
-        public int ChlogReadVer = 1;
+        public int ChlogReadVer = ChlogGui.ChlogVersion;
         [NonSerialized] public bool Anywhere = false;
         public bool DisplayNotifications = false;
         public bool DisableInCutscene = true;

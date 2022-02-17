@@ -109,10 +109,10 @@ namespace Weatherman
             Svc.ClientState.TerritoryChanged += HandleZoneChange;
             ApplyWeatherChanges(Svc.ClientState.TerritoryType);
             Svc.Commands.AddHandler("/weatherman", new Dalamud.Game.Command.CommandInfo(delegate { ConfigGui.configOpen = true; }) { HelpMessage = "Open plugin settings" });
-            /*if(ChlogGui.ChlogVersion > configuration.ChlogReadVer)
+            if(ChlogGui.ChlogVersion > configuration.ChlogReadVer)
             {
                 new ChlogGui(this);
-            }*/
+            }
             Svc.ClientState.Logout += StopSongIfModified;
         }
 
