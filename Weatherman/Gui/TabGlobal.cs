@@ -30,6 +30,7 @@
             ImGui.Checkbox("Disable plugin in cutscenes", ref p.configuration.DisableInCutscene);
             ImGui.Checkbox("Enable time control", ref p.configuration.EnableTimeControl);
             ImGui.Checkbox("Enable weather control", ref p.configuration.EnableWeatherControl);
+            ImGui.Checkbox("Disable clock out of sync check", ref p.configuration.NoClockNag);
         }
     }
 }

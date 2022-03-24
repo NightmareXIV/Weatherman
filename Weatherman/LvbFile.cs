@@ -2,7 +2,7 @@
 
 namespace Weatherman
 {
-    public class LvbFile : FileResource //yeeted from titleedit https://github.com/lmcintyre/TitleEditPlugin
+    public class LvbFile : FileResource //from titleedit https://github.com/lmcintyre/TitleEditPlugin
     {
         public ushort[] weatherIds;
 

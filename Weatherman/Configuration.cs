@@ -21,6 +21,7 @@ namespace Weatherman
         public bool DisableInCutscene = true;
         public bool EnableTimeControl = true;
         public bool EnableWeatherControl = true;
+        public bool NoClockNag = false;
 
         [NonSerialized]
         private Weatherman plugin;

@@ -2,7 +2,7 @@
 {
     class ChlogGui
     {
-        public const int ChlogVersion = 7;
+        public const int ChlogVersion = 8;
         readonly Weatherman p;
         bool open = true;
         public ChlogGui(Weatherman p)
@@ -21,8 +21,8 @@
             if (!open) return;
             if (!Svc.ClientState.IsLoggedIn) return;
             ImGui.Begin("Weatherman has been updated", ref open, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize);
-            ImGui.TextUnformatted("Fixed occasional crash on login/teleport with music control enabled\n" +
-                "and implemented measures against crashes on errors.");
+            ImGui.TextUnformatted("This update is mainly code cleanup and optimizations.\n" +
+                "It also brings Quick control tab, which allows you to temporarily change time and weather without need to change global or zone settings.");
             if (ImGui.Button("Close this window"))
             {
                 open = false;

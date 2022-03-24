@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game;
+using Dalamud.Game.Command;
 using Dalamud.Plugin;
 using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
@@ -32,6 +33,7 @@ namespace Weatherman
         internal Dictionary<byte, string> weathers;
         internal ExcelSheet<WeatherRate> weatherRates;
         internal Dictionary<ushort, ZoneSettings> ZoneSettings;
+        internal ClockOffNag clockOffNag;
         internal Configuration configuration;
         internal byte SelectedWeather = 255;
         internal byte UnblacklistedWeather = 0;
@@ -54,6 +56,7 @@ namespace Weatherman
             Svc.ClientState.TerritoryChanged -= HandleZoneChange;
             Svc.Commands.RemoveHandler("/weatherman");
             memoryManager.Dispose();
+            clockOffNag.Dispose();
             StopSongIfModified();
             orchestrionController.Dispose();
         }
@@ -62,24 +65,26 @@ namespace Weatherman
         {
             pluginInterface.Create<Svc>();
             new TickScheduler(delegate { 
-                stopwatch = new Stopwatch();
-                orchestrionController = new OrchestrionController(this);
-                memoryManager = new MemoryManager(this);
+                stopwatch = new();
+                orchestrionController = new(this);
+                memoryManager = new(this);
                 zones = Svc.Data.GetExcelSheet<TerritoryType>().ToDictionary(row => (ushort)row.RowId, row => row);
                 worldZones.UnionWith(Svc.Data.GetExcelSheet<TerritoryType>().Where(x => x.Mount).Select(x => (ushort)x.RowId));
                 weathers = Svc.Data.GetExcelSheet<Weather>().ToDictionary(row => (byte)row.RowId, row => row.Name.ToString());
                 weatherRates = Svc.Data.GetExcelSheet<WeatherRate>();
-                ZoneSettings = new Dictionary<ushort, ZoneSettings>();
+                ZoneSettings = new();
                 foreach (var z in zones)
                 {
-                    var s = new ZoneSettings();
-                    s.ZoneId = z.Key;
-                    s.ZoneName = z.Value.PlaceName.Value.Name;
-                    s.terr = z.Value;
+                    var s = new ZoneSettings
+                    {
+                        ZoneId = z.Key,
+                        ZoneName = z.Value.PlaceName.Value.Name,
+                        terr = z.Value
+                    };
                     s.Init(this);
                     ZoneSettings.Add(s.ZoneId, s);
                 }
-                configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+                configuration = pluginInterface.GetPluginConfig() as Configuration ?? new();
                 configuration.Initialize(this);
                 var normalweathers = new HashSet<byte>();
                 foreach (var z in ZoneSettings)
@@ -105,17 +110,18 @@ namespace Weatherman
                     if (!configuration.BlacklistedWeathers.ContainsKey(i)) configuration.BlacklistedWeathers.Add(i, false);
                 }
                 Svc.Framework.Update += HandleFrameworkUpdate;
-                ConfigGui = new Gui(this);
+                ConfigGui = new(this);
                 Svc.PluginInterface.UiBuilder.Draw += ConfigGui.Draw;
                 Svc.PluginInterface.UiBuilder.OpenConfigUi += delegate { ConfigGui.configOpen = true; };
                 Svc.ClientState.TerritoryChanged += HandleZoneChange;
                 ApplyWeatherChanges(Svc.ClientState.TerritoryType);
-                Svc.Commands.AddHandler("/weatherman", new Dalamud.Game.Command.CommandInfo(delegate { ConfigGui.configOpen = true; }) { HelpMessage = "Open plugin settings" });
+                Svc.Commands.AddHandler("/weatherman", new CommandInfo(delegate { ConfigGui.configOpen = true; }) { HelpMessage = "Open plugin settings" });
                 if(ChlogGui.ChlogVersion > configuration.ChlogReadVer)
                 {
                     new ChlogGui(this);
                 }
                 Svc.ClientState.Logout += StopSongIfModified;
+                clockOffNag = new(this);
                 Init = true;
             }, Svc.Framework);
         }
@@ -327,7 +333,7 @@ namespace Weatherman
                 else if (setting == 1) //normal
                 {
                     memoryManager.EnableCustomTime();
-                    var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * Weatherman.ETMult / 1000D);
+                    var et = GetET();
                     memoryManager.SetTime((uint)(et % SecondsInDay));
                 }
                 else if (setting == 2) //fixed
@@ -339,7 +345,7 @@ namespace Weatherman
                 else if (setting == 3) //infiniday
                 {
                     memoryManager.EnableCustomTime();
-                    var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * Weatherman.ETMult / 1000D);
+                    var et = GetET();
                     var timeOfDay = et % SecondsInDay;
                     if (timeOfDay > 18 * 60 * 60 || timeOfDay < 6 * 60 * 60) et += SecondsInDay / 2;
                     memoryManager.SetTime((uint)(et % SecondsInDay));
@@ -347,7 +353,7 @@ namespace Weatherman
                 else if (setting == 4) //infiniday r
                 {
                     memoryManager.EnableCustomTime();
-                    var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * Weatherman.ETMult / 1000D);
+                    var et = GetET();
                     var timeOfDay = et % SecondsInDay;
                     if (timeOfDay > 18 * 60 * 60) et -= 2 * (timeOfDay - 18 * 60 * 60);
                     if (timeOfDay < 6 * 60 * 60) et += 2 * (6 * 60 * 60 - timeOfDay);
@@ -356,7 +362,7 @@ namespace Weatherman
                 else if (setting == 5) //infininight
                 {
                     memoryManager.EnableCustomTime();
-                    var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * Weatherman.ETMult / 1000D);
+                    var et = GetET();
                     var timeOfDay = et % SecondsInDay;
                     if (timeOfDay < 18 * 60 * 60 && timeOfDay > 6 * 60 * 60) et += SecondsInDay / 2;
                     memoryManager.SetTime((uint)(et % SecondsInDay));
@@ -364,7 +370,7 @@ namespace Weatherman
                 else if (setting == 6) //infininight r
                 {
                     memoryManager.EnableCustomTime();
-                    var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * Weatherman.ETMult / 1000D);
+                    var et = GetET();
                     var timeOfDay = et % SecondsInDay;
                     if (timeOfDay < 18 * 60 * 60 && timeOfDay > 6 * 60 * 60) et -= 2 * (timeOfDay - 6 * 60 * 60);
                     memoryManager.SetTime((uint)(et % SecondsInDay));
@@ -426,6 +432,11 @@ namespace Weatherman
                 PluginLog.Error(e, $"Failed to load lvb for {path}");
             }
             return null;
+        }
+
+        internal long GetET()
+        {
+            return (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * ETMult / 1000D);
         }
     }
 }
