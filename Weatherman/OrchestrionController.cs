@@ -1,22 +1,12 @@
-﻿using Dalamud.Logging;
-using Dalamud.Plugin;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Weatherman
+﻿namespace Weatherman
 {
     class OrchestrionController : IDisposable
     {
         private Weatherman plugin;
         internal bool BGMModified = false;
-        internal Dictionary<int, Song> SongList = new Dictionary<int, Song>
+        internal List<Song> SongList = new()
         {
-            [0] = new Song(0, "Default")
+            new Song(0, "Default")
         };
 
         public OrchestrionController(Weatherman p)
@@ -29,7 +19,7 @@ namespace Weatherman
             
         }
 
-        public IDalamudPlugin GetOrchestrionPlugin()
+        /*public IDalamudPlugin GetOrchestrionPlugin()
         {
             try
             {
@@ -53,16 +43,14 @@ namespace Weatherman
                 PluginLog.Error(e.StackTrace);
                 return null;
             }
-        }
+        }*/
 
         public void PlaySong(int id)
         {
             try
             {
-                var p = GetOrchestrionPlugin();
-                if (p == null) return;
-                PluginLog.Debug($"Calling PlaySong id={id}");
-                p.GetType().GetMethod("PlaySong").Invoke(p, new object[] { id, false });
+                PluginLog.Debug("Invoked PlaySong " + id);
+                Svc.PluginInterface.GetIpcSubscriber<int, bool>("Orch.PlaySong").InvokeFunc(id);
             }
             catch (Exception e)
             {
@@ -74,10 +62,8 @@ namespace Weatherman
         {
             try
             {
-                var p = GetOrchestrionPlugin();
-                if (p == null) return;
-                PluginLog.Debug($"Calling StopSong");
-                p.GetType().GetMethod("StopSong").Invoke(p, new object[] { });
+                PluginLog.Debug("Invoked StopSong");
+                Svc.PluginInterface.GetIpcSubscriber<int, bool>("Orch.PlaySong").InvokeFunc(0);
             }
             catch (Exception e)
             {
@@ -85,27 +71,12 @@ namespace Weatherman
             }
         }
 
-        public Dictionary<int, Song> GetSongList()
+        public List<Song> GetSongList()
         {
             if (SongList.Count > 1) return SongList;
             try
             {
-                var p = GetOrchestrionPlugin();
-                if (p == null) return null;
-                var flags = BindingFlags.NonPublic | BindingFlags.Static;
-                var slist = p.GetType().Assembly.GetType("Orchestrion.SongList", true);
-                var songlist = (IDictionary)slist.GetField("_songs", flags).GetValue(slist);
-                PluginLog.Debug("Songs found: " + songlist.Count);
-                int i = 0;
-                foreach (var o in songlist.Keys)
-                {
-                    SongList.Add(++i, new Song(
-                        (int)songlist[o].GetType().GetField("Id").GetValue(songlist[o]),
-                        (string)songlist[o].GetType().GetField("Name").GetValue(songlist[o])
-                        ));
-                }
-                PluginLog.Debug("Song list contains " + SongList.Count + " entries / " + i);
-                //if (SongList.Count > 1) return SongList;
+                SongList.AddRange(Svc.PluginInterface.GetIpcSubscriber<List<Song>>("Orch.AllSongInfo").InvokeFunc());
             }
             catch (Exception e)
             {
@@ -116,10 +87,8 @@ namespace Weatherman
 
         public Song GetSongById(int id)
         {
-            foreach (var i in SongList)
-            {
-                if (i.Value.Id == id) return i.Value;
-            }
+            var a = SongList.Find(x => x.Id == id);
+            if (a != null) return a;
             return new Song(id, id.ToString());
         }
     }

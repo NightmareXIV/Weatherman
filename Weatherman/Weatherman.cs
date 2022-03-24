@@ -1,29 +1,15 @@
-﻿using Dalamud;
-using Dalamud.Game;
-using Dalamud.Game.ClientState.Conditions;
-using Dalamud.Game.Internal;
-using Dalamud.Game.Text;
-using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Interface.Internal.Notifications;
-using Dalamud.Logging;
+﻿using Dalamud.Game;
 using Dalamud.Plugin;
 using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.ExceptionServices;
-using System.Runtime.InteropServices;
-using System.Text;
 
 namespace Weatherman
 {
     unsafe class Weatherman : IDalamudPlugin
     {
         internal const int SecondsInDay = 60 * 60 * 24;
+        internal static double ETMult = 144D / 7D;
+        internal static bool Init = false;
 
         public string Name => "Weatherman";
         internal MemoryManager memoryManager;
@@ -31,19 +17,33 @@ namespace Weatherman
         internal Gui ConfigGui;
         internal byte WeatherTestActive = 255;
         internal Dictionary<ushort, TerritoryType> zones;
+        internal HashSet<ushort> worldZones = new()
+        {
+            128, 129, //limsa lominsa
+            132, 133, //gridania
+            130, 131, //uldah
+            628, //kugane
+            418, 419, //ishgard
+            819, //crys
+            820, //eulmore
+            962, //sharla
+            963, //dragoncity
+        };
         internal Dictionary<byte, string> weathers;
         internal ExcelSheet<WeatherRate> weatherRates;
         internal Dictionary<ushort, ZoneSettings> ZoneSettings;
         internal Configuration configuration;
         internal byte SelectedWeather = 255;
         internal byte UnblacklistedWeather = 0;
-        internal string[] Log = new string[100];
         internal bool PausePlugin = false;
         internal Stopwatch stopwatch;
         internal long totalTime = 0;
         internal long totalTicks = 0;
         internal bool profiling = false;
         internal bool InCutscene = false;
+
+        internal bool TimeOverride = false;
+        internal int TimeOverrideValue = 0;
 
         public void Dispose()
         {
@@ -61,79 +61,69 @@ namespace Weatherman
         public Weatherman(DalamudPluginInterface pluginInterface)
         {
             pluginInterface.Create<Svc>();
-            stopwatch = new Stopwatch();
-            orchestrionController = new OrchestrionController(this);
-            memoryManager = new MemoryManager(this);
-            zones = Svc.Data.GetExcelSheet<TerritoryType>().ToDictionary(row => (ushort)row.RowId, row => row);
-            weathers = Svc.Data.GetExcelSheet<Weather>().ToDictionary(row => (byte)row.RowId, row => row.Name.ToString());
-            weatherRates = Svc.Data.GetExcelSheet<WeatherRate>();
-            ZoneSettings = new Dictionary<ushort, ZoneSettings>();
-            foreach (var z in zones)
-            {
-                var s = new ZoneSettings();
-                s.ZoneId = z.Key;
-                s.ZoneName = z.Value.PlaceName.Value.Name;
-                s.terr = z.Value;
-                s.Init(this);
-                ZoneSettings.Add(s.ZoneId, s);
-            }
-            configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
-            configuration.Initialize(this);
-            var normalweathers = new HashSet<byte>();
-            foreach (var z in ZoneSettings)
-            {
-                foreach (var a in z.Value.SupportedWeathers)
+            new TickScheduler(delegate { 
+                stopwatch = new Stopwatch();
+                orchestrionController = new OrchestrionController(this);
+                memoryManager = new MemoryManager(this);
+                zones = Svc.Data.GetExcelSheet<TerritoryType>().ToDictionary(row => (ushort)row.RowId, row => row);
+                worldZones.UnionWith(Svc.Data.GetExcelSheet<TerritoryType>().Where(x => x.Mount).Select(x => (ushort)x.RowId));
+                weathers = Svc.Data.GetExcelSheet<Weather>().ToDictionary(row => (byte)row.RowId, row => row.Name.ToString());
+                weatherRates = Svc.Data.GetExcelSheet<WeatherRate>();
+                ZoneSettings = new Dictionary<ushort, ZoneSettings>();
+                foreach (var z in zones)
                 {
-                    if (a.IsNormal)
+                    var s = new ZoneSettings();
+                    s.ZoneId = z.Key;
+                    s.ZoneName = z.Value.PlaceName.Value.Name;
+                    s.terr = z.Value;
+                    s.Init(this);
+                    ZoneSettings.Add(s.ZoneId, s);
+                }
+                configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+                configuration.Initialize(this);
+                var normalweathers = new HashSet<byte>();
+                foreach (var z in ZoneSettings)
+                {
+                    foreach (var a in z.Value.SupportedWeathers)
                     {
-                        normalweathers.Add(a.Id);
+                        if (a.IsNormal)
+                        {
+                            normalweathers.Add(a.Id);
+                        }
                     }
                 }
-            }
-            var tempdict = new Dictionary<byte, bool>(configuration.BlacklistedWeathers);
-            foreach (var i in tempdict)
-            {
-                if (!normalweathers.Contains(i.Key))
+                var tempdict = new Dictionary<byte, bool>(configuration.BlacklistedWeathers);
+                foreach (var i in tempdict)
                 {
-                    configuration.BlacklistedWeathers.Remove(i.Key);
+                    if (!normalweathers.Contains(i.Key))
+                    {
+                        configuration.BlacklistedWeathers.Remove(i.Key);
+                    }
                 }
-            }
-            foreach (var i in normalweathers)
-            {
-                if (!configuration.BlacklistedWeathers.ContainsKey(i)) configuration.BlacklistedWeathers.Add(i, false);
-            }
-            Svc.Framework.Update += HandleFrameworkUpdate;
-            ConfigGui = new Gui(this);
-            Svc.PluginInterface.UiBuilder.Draw += ConfigGui.Draw;
-            Svc.PluginInterface.UiBuilder.OpenConfigUi += delegate { ConfigGui.configOpen = true; };
-            Svc.ClientState.TerritoryChanged += HandleZoneChange;
-            ApplyWeatherChanges(Svc.ClientState.TerritoryType);
-            Svc.Commands.AddHandler("/weatherman", new Dalamud.Game.Command.CommandInfo(delegate { ConfigGui.configOpen = true; }) { HelpMessage = "Open plugin settings" });
-            if(ChlogGui.ChlogVersion > configuration.ChlogReadVer)
-            {
-                new ChlogGui(this);
-            }
-            Svc.ClientState.Logout += StopSongIfModified;
+                foreach (var i in normalweathers)
+                {
+                    if (!configuration.BlacklistedWeathers.ContainsKey(i)) configuration.BlacklistedWeathers.Add(i, false);
+                }
+                Svc.Framework.Update += HandleFrameworkUpdate;
+                ConfigGui = new Gui(this);
+                Svc.PluginInterface.UiBuilder.Draw += ConfigGui.Draw;
+                Svc.PluginInterface.UiBuilder.OpenConfigUi += delegate { ConfigGui.configOpen = true; };
+                Svc.ClientState.TerritoryChanged += HandleZoneChange;
+                ApplyWeatherChanges(Svc.ClientState.TerritoryType);
+                Svc.Commands.AddHandler("/weatherman", new Dalamud.Game.Command.CommandInfo(delegate { ConfigGui.configOpen = true; }) { HelpMessage = "Open plugin settings" });
+                if(ChlogGui.ChlogVersion > configuration.ChlogReadVer)
+                {
+                    new ChlogGui(this);
+                }
+                Svc.ClientState.Logout += StopSongIfModified;
+                Init = true;
+            }, Svc.Framework);
         }
 
-        //probably easiest way to get overworld territories - includes eureka and bozja but have to add cities myself
-        HashSet<ushort> Cities = new()
-        {
-            128, 129, //limsa lominsa
-            132, 133, //gridania
-            130, 131, //uldah
-            628, //kugane
-            418, 419, //ishgard
-            819, //crys
-            820, //eulmore
-            962, //sharla
-            963, //dragoncity
-        };
         public bool IsWorldTerritory(ushort territory)
         {
             if (!ZoneSettings.ContainsKey(territory)) return false;
-            if (configuration.Anywhere) return true;
-            return Cities.Contains(ZoneSettings[territory].ZoneId) || ZoneSettings[territory].terr.Mount;
+            return worldZones.Contains(ZoneSettings[territory].ZoneId);
         }
 
         private void HandleZoneChange(object s, ushort u)
@@ -156,6 +146,7 @@ namespace Weatherman
             try
             {
                 PluginLog.Debug("Applying weather changes");
+                TimeOverride = false;
                 SelectedWeather = 255;
                 UnblacklistedWeather = 0;
                 StopSongIfModified();
@@ -166,7 +157,7 @@ namespace Weatherman
                     {
                         orchestrionController.PlaySong(z.Music);
                         orchestrionController.BGMModified = true;
-                        }
+                    }
                     if (z.WeatherControl)
                     {
                         var weathers = new List<byte>();
@@ -322,61 +313,69 @@ namespace Weatherman
 
         void SetTimeBySetting(int setting)
         {
-            if(setting == 0) //game managed
-            {
-                memoryManager.DisableCustomTime();
-            }
-            else if (setting == 1) //normal
+            if (TimeOverride)
             {
                 memoryManager.EnableCustomTime();
-                var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 144D / 7D / 1000D);
-                memoryManager.SetTime((uint)(et % SecondsInDay));
+                memoryManager.SetTime((uint)TimeOverrideValue);
             }
-            else if (setting == 2) //fixed
+            else
             {
-                memoryManager.EnableCustomTime();
-                uint et = (uint)GetZoneTimeFixedSetting(Svc.ClientState.TerritoryType);
-                memoryManager.SetTime(et);
-            }
-            else if (setting == 3) //infiniday
-            {
-                memoryManager.EnableCustomTime();
-                var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 144D / 7D / 1000D);
-                var timeOfDay = et % SecondsInDay;
-                if (timeOfDay > 18 * 60 * 60 || timeOfDay < 6 * 60 * 60) et += SecondsInDay / 2;
-                memoryManager.SetTime((uint)(et % SecondsInDay));
-            }
-            else if (setting == 4) //infiniday r
-            {
-                memoryManager.EnableCustomTime();
-                var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 144D / 7D / 1000D);
-                var timeOfDay = et % SecondsInDay;
-                if (timeOfDay > 18 * 60 * 60) et -= 2 * (timeOfDay - 18 * 60 * 60);
-                if (timeOfDay < 6 * 60 * 60) et += 2 * (6 * 60 * 60 - timeOfDay);
-                memoryManager.SetTime((uint)(et % SecondsInDay));
-            }
-            else if (setting == 5) //infininight
-            {
-                memoryManager.EnableCustomTime();
-                var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 144D / 7D / 1000D);
-                var timeOfDay = et % SecondsInDay;
-                if (timeOfDay < 18 * 60 * 60 && timeOfDay > 6 * 60 * 60) et += SecondsInDay / 2;
-                memoryManager.SetTime((uint)(et % SecondsInDay));
-            }
-            else if (setting == 6) //infininight r
-            {
-                memoryManager.EnableCustomTime();
-                var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 144D / 7D / 1000D);
-                var timeOfDay = et % SecondsInDay;
-                if (timeOfDay < 18 * 60 * 60 && timeOfDay > 6 * 60 * 60) et -= 2 * (timeOfDay - 6 * 60 * 60);
-                memoryManager.SetTime((uint)(et % SecondsInDay));
-            }
-            else if (setting == 7) //real world
-            {
-                memoryManager.EnableCustomTime();
-                var now = DateTimeOffset.Now;
-                var et = (now + now.Offset).ToUnixTimeSeconds();
-                memoryManager.SetTime((uint)(et % SecondsInDay));
+                if (setting == 0) //game managed
+                {
+                    memoryManager.DisableCustomTime();
+                }
+                else if (setting == 1) //normal
+                {
+                    memoryManager.EnableCustomTime();
+                    var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * Weatherman.ETMult / 1000D);
+                    memoryManager.SetTime((uint)(et % SecondsInDay));
+                }
+                else if (setting == 2) //fixed
+                {
+                    memoryManager.EnableCustomTime();
+                    uint et = (uint)GetZoneTimeFixedSetting(Svc.ClientState.TerritoryType);
+                    memoryManager.SetTime(et);
+                }
+                else if (setting == 3) //infiniday
+                {
+                    memoryManager.EnableCustomTime();
+                    var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * Weatherman.ETMult / 1000D);
+                    var timeOfDay = et % SecondsInDay;
+                    if (timeOfDay > 18 * 60 * 60 || timeOfDay < 6 * 60 * 60) et += SecondsInDay / 2;
+                    memoryManager.SetTime((uint)(et % SecondsInDay));
+                }
+                else if (setting == 4) //infiniday r
+                {
+                    memoryManager.EnableCustomTime();
+                    var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * Weatherman.ETMult / 1000D);
+                    var timeOfDay = et % SecondsInDay;
+                    if (timeOfDay > 18 * 60 * 60) et -= 2 * (timeOfDay - 18 * 60 * 60);
+                    if (timeOfDay < 6 * 60 * 60) et += 2 * (6 * 60 * 60 - timeOfDay);
+                    memoryManager.SetTime((uint)(et % SecondsInDay));
+                }
+                else if (setting == 5) //infininight
+                {
+                    memoryManager.EnableCustomTime();
+                    var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * Weatherman.ETMult / 1000D);
+                    var timeOfDay = et % SecondsInDay;
+                    if (timeOfDay < 18 * 60 * 60 && timeOfDay > 6 * 60 * 60) et += SecondsInDay / 2;
+                    memoryManager.SetTime((uint)(et % SecondsInDay));
+                }
+                else if (setting == 6) //infininight r
+                {
+                    memoryManager.EnableCustomTime();
+                    var et = (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * Weatherman.ETMult / 1000D);
+                    var timeOfDay = et % SecondsInDay;
+                    if (timeOfDay < 18 * 60 * 60 && timeOfDay > 6 * 60 * 60) et -= 2 * (timeOfDay - 6 * 60 * 60);
+                    memoryManager.SetTime((uint)(et % SecondsInDay));
+                }
+                else if (setting == 7) //real world
+                {
+                    memoryManager.EnableCustomTime();
+                    var now = DateTimeOffset.Now;
+                    var et = (now + now.Offset).ToUnixTimeSeconds();
+                    memoryManager.SetTime((uint)(et % SecondsInDay));
+                }
             }
         }
 
@@ -400,7 +399,6 @@ namespace Weatherman
 
         public bool IsWeatherNormal(byte id, ushort terr)
         {
-            var w = new HashSet<Weather>();
             foreach (var u in weatherRates.GetRow(zones[terr].WeatherRate).UnkData0)
             {
                 if (u.Weather != 0 && u.Weather == id) return true; 
@@ -408,7 +406,7 @@ namespace Weatherman
             return false;
         }
 
-        public List<byte> GetWeathers(ushort id) //yeeted from titleedit https://github.com/lmcintyre/TitleEditPlugin
+        public List<byte> GetWeathers(ushort id) //from titleedit https://github.com/lmcintyre/TitleEditPlugin
         {
             var weathers = new List<byte>();
             if (!zones.TryGetValue(id, out var path)) return null;

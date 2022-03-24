@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.InteropServices;
 
 namespace Weatherman
 {
@@ -32,7 +27,7 @@ namespace Weatherman
 
 		public static string ToHexString(this byte[] array)
         {
-			StringBuilder b = new StringBuilder();
+			StringBuilder b = new();
 			foreach(var el in array)
             {
 				b.Append(Convert.ToString(el, 16).PadLeft(2, '0'));

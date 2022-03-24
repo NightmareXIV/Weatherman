@@ -1,5 +1,4 @@
-﻿using System;
-using Lumina.Data;
+﻿using Lumina.Data;
 
 namespace Weatherman
 {

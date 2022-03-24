@@ -1,9 +1,4 @@
 ﻿using Dalamud.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Weatherman
 {
@@ -14,16 +9,14 @@ namespace Weatherman
         public string ConfigurationString = "";
         public int GlobalTimeFlowControl = 0;
         public int GlobalFixedTime = 0;
-        public SortedDictionary<byte, bool> BlacklistedWeathers = new SortedDictionary<byte, bool>();
+        public SortedDictionary<byte, bool> BlacklistedWeathers = new();
         public bool EnableLogging = true;
-        [NonSerialized] public bool Unsafe = false;
         public bool MusicEnabled = false;
         public bool ShowUnnamedZones = false;
         public bool ShowOnlyModified = false;
         public bool ShowOnlyWorldZones = true;
         public bool ShowCurrentZoneOnTop = true;
         public int ChlogReadVer = ChlogGui.ChlogVersion;
-        [NonSerialized] public bool Anywhere = false;
         public bool DisplayNotifications = false;
         public bool DisableInCutscene = true;
         public bool EnableTimeControl = true;
