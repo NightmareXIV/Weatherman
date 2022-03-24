@@ -18,7 +18,7 @@ namespace Weatherman
         internal Gui ConfigGui;
         internal byte WeatherTestActive = 255;
         internal Dictionary<ushort, TerritoryType> zones;
-        internal HashSet<ushort> worldZones = new()
+        internal HashSet<ushort> weatherAllowedZones = new()
         {
             128, 129, //limsa lominsa
             132, 133, //gridania
@@ -29,6 +29,13 @@ namespace Weatherman
             820, //eulmore
             962, //sharla
             963, //dragoncity
+        };
+        internal HashSet<ushort> timeAllowedZones = new()
+        {
+            163, 367, //qarn
+            158, 362, //brayfox
+            623, //bardam
+
         };
         internal Dictionary<byte, string> weathers;
         internal ExcelSheet<WeatherRate> weatherRates;
@@ -69,7 +76,9 @@ namespace Weatherman
                 orchestrionController = new(this);
                 memoryManager = new(this);
                 zones = Svc.Data.GetExcelSheet<TerritoryType>().ToDictionary(row => (ushort)row.RowId, row => row);
-                worldZones.UnionWith(Svc.Data.GetExcelSheet<TerritoryType>().Where(x => x.Mount).Select(x => (ushort)x.RowId));
+                weatherAllowedZones.UnionWith(Svc.Data.GetExcelSheet<TerritoryType>().Where(x => x.Mount).Select(x => (ushort)x.RowId));
+                timeAllowedZones.UnionWith(weatherAllowedZones);
+                timeAllowedZones.UnionWith(Svc.Data.GetExcelSheet<TerritoryType>().Where(x => x.QuestBattle.Value.RowId != 0).Select(x => (ushort)x.RowId));
                 weathers = Svc.Data.GetExcelSheet<Weather>().ToDictionary(row => (byte)row.RowId, row => row.Name.ToString());
                 weatherRates = Svc.Data.GetExcelSheet<WeatherRate>();
                 ZoneSettings = new();
@@ -126,15 +135,9 @@ namespace Weatherman
             }, Svc.Framework);
         }
 
-        public bool IsWorldTerritory(ushort territory)
-        {
-            if (!ZoneSettings.ContainsKey(territory)) return false;
-            return worldZones.Contains(ZoneSettings[territory].ZoneId);
-        }
-
         private void HandleZoneChange(object s, ushort u)
         {
-            PluginLog.Debug("Zone changed to " + u + "; is world = " + IsWorldTerritory(u));
+            PluginLog.Debug("Zone changed to " + u + "; time mod allowed="+CanModifyTime() + ", weather mod allowed="+CanModifyWeather());
             ApplyWeatherChanges(u);
         }
 
@@ -239,11 +242,10 @@ namespace Weatherman
                     }
                 }
                 if (Svc.ClientState.LocalPlayer != null
-                    && IsWorldTerritory(Svc.ClientState.TerritoryType)
                     && !PausePlugin
                     && !(configuration.DisableInCutscene && InCutscene))
                 {
-                    if (configuration.EnableTimeControl)
+                    if (CanModifyTime())
                     {
                         SetTimeBySetting(GetZoneTimeFlowSetting(Svc.ClientState.TerritoryType));
                     }
@@ -251,7 +253,7 @@ namespace Weatherman
                     {
                         memoryManager.DisableCustomTime();
                     }
-                    if (configuration.EnableWeatherControl)
+                    if (CanModifyWeather())
                     {
                         if (SelectedWeather != 255)
                         {
@@ -315,6 +317,16 @@ namespace Weatherman
             {
                 PluginLog.Error($"{e.Message}\n{e.StackTrace ?? ""}");
             }
+        }
+
+        internal bool CanModifyTime()
+        {
+            return configuration.EnableTimeControl && timeAllowedZones.Contains(Svc.ClientState.TerritoryType);
+        }
+
+        internal bool CanModifyWeather()
+        {
+            return configuration.EnableWeatherControl && weatherAllowedZones.Contains(Svc.ClientState.TerritoryType);
         }
 
         void SetTimeBySetting(int setting)

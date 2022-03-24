@@ -18,16 +18,11 @@ namespace Weatherman
             ImGui.SameLine();
             ImGui.Checkbox("Only modified", ref p.configuration.ShowOnlyModified);
             ImGui.SameLine();
-            ImGui.Checkbox("Only world zones", ref p.configuration.ShowOnlyWorldZones);
+            ImGui.Checkbox("Only fully customizable zones", ref p.configuration.ShowOnlyWorldZones);
             ImGui.SameLine();
             ImGui.Checkbox("Current zone on top", ref p.configuration.ShowCurrentZoneOnTop);
             ImGui.SameLine();
             ImGui.Checkbox("Show unnamed zones", ref p.configuration.ShowUnnamedZones);
-            if (!p.configuration.ShowOnlyWorldZones)
-            {
-                ImGui.TextColored(new Vector4(1, 0, 0, 1),
-                    "Warning: non-world zones only support music changes.");
-            }
             if (ImGui.Button("Apply weather changes"))
             {
                 p.ApplyWeatherChanges(Svc.ClientState.TerritoryType);
@@ -78,6 +73,8 @@ namespace Weatherman
 
         void PrintZoneRow(ZoneSettings z, bool filtering = true)
         {
+            var modAllowed = p.weatherAllowedZones.Contains(z.ZoneId) || p.timeAllowedZones.Contains(z.ZoneId);
+            var bothModAllowed = p.weatherAllowedZones.Contains(z.ZoneId) && p.timeAllowedZones.Contains(z.ZoneId);
             var grayed = false;
             if (filtering)
             {
@@ -96,8 +93,8 @@ namespace Weatherman
                     if (z.IsUntouched()) return;
                 }
                 if (!p.configuration.ShowUnnamedZones && z.ZoneName.Length == 0) return;
-                if (p.configuration.ShowOnlyWorldZones && !p.IsWorldTerritory(z.ZoneId)) return;
-                if (!p.IsWorldTerritory(z.ZoneId))
+                if (p.configuration.ShowOnlyWorldZones && !bothModAllowed) return;
+                if (!modAllowed)
                 {
                     grayed = true;
                     ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.7f, 0.7f, 0.7f, 1));
@@ -109,7 +106,7 @@ namespace Weatherman
             ImGui.NextColumn();
             ImGui.TextUnformatted(z.ZoneName);
             ImGui.NextColumn();
-            if (p.IsWorldTerritory(z.ZoneId))
+            if (p.timeAllowedZones.Contains(z.ZoneId))
             {
                 ImGui.PushItemWidth(120f);
                 ImGui.Combo("##timecombo" + ++uid, ref z.TimeFlow, timeflowcombo, timeflowcombo.Length);
@@ -129,7 +126,7 @@ namespace Weatherman
                 ImGui.TextUnformatted("Unsupported");
             }
             ImGui.NextColumn();
-            if (p.IsWorldTerritory(z.ZoneId))
+            if (p.weatherAllowedZones.Contains(z.ZoneId))
             {
                 if (z.WeatherControl)
                 {

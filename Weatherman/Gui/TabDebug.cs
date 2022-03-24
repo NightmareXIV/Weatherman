@@ -1,5 +1,6 @@
 ﻿using Dalamud;
 using Dalamud.Interface.Colors;
+using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -97,7 +98,7 @@ namespace Weatherman
                         ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1, 0, 0, 1));
                         colored = true;
                     }
-                    if (p.IsWorldTerritory(Svc.ClientState.TerritoryType))
+                    if (p.weatherAllowedZones.Contains(Svc.ClientState.TerritoryType))
                     {
                         if (ImGui.SmallButton(i + " / " + p.weathers[i]))
                         {
@@ -113,6 +114,20 @@ namespace Weatherman
                     {
                         ImGui.SameLine();
                         ImGui.TextColored(new Vector4(0, 1, 0, 1), "Occurs normally");
+                    }
+                }
+                if (ImGui.CollapsingHeader("Weather allowed zones"))
+                {
+                    foreach (var a in p.weatherAllowedZones)
+                    {
+                        ImGui.TextUnformatted($"{a} / {p.zones[a].PlaceName.Value.Name} ({p.zones[a].ContentFinderCondition.Value.Name} | {Svc.Data.GetExcelSheet<Quest>().GetRow((uint)p.zones[a].QuestBattle?.Value?.Quest)?.Name})");
+                    }
+                }
+                if (ImGui.CollapsingHeader("Time allowed zones"))
+                {
+                    foreach (var a in p.timeAllowedZones)
+                    {
+                        ImGui.TextUnformatted($"{a} / {p.zones[a].PlaceName.Value.Name} ({p.zones[a].ContentFinderCondition.Value.Name} | {Svc.Data.GetExcelSheet<Quest>().GetRow((uint)p.zones[a].QuestBattle?.Value?.Quest)?.Name})");
                     }
                 }
                 ImGui.EndChild();
