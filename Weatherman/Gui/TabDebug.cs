@@ -11,6 +11,7 @@ namespace Weatherman
 {
     internal unsafe partial class Gui
     {
+        float newMult = (float)Weatherman.ETMult;
         void DrawTabDebug()
         {
             try
@@ -53,6 +54,18 @@ namespace Weatherman
                     ImGui.TextUnformatted("[custom]");
                 }
                 ImGui.TextUnformatted($"Mult: {Weatherman.ETMult}");
+                ImGui.SetNextItemWidth(100f);
+                ImGui.DragFloat("New mult", ref newMult, float.Epsilon);
+                ImGui.SameLine();
+                if (ImGui.Button("Set##mult"))
+                {
+                    Weatherman.ETMult = newMult;
+                }
+                ImGui.SameLine();
+                if (ImGui.Button("Reset##mult"))
+                {
+                    Weatherman.ETMult = 144D/7D;
+                }
                 ImGui.TextUnformatted("True weather: " + *p.memoryManager.TrueWeather + " / " + p.weathers[*p.memoryManager.TrueWeather]);
                 ImGui.TextUnformatted("Displayed weather: " + p.memoryManager.GetDisplayedWeather() + " / " + p.weathers[p.memoryManager.GetDisplayedWeather()]);
                 ImGui.TextUnformatted("True time: " + *p.memoryManager.TrueTime + " / " + DateTimeOffset.FromUnixTimeSeconds(*p.memoryManager.TrueTime).ToString());

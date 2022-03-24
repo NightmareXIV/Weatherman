@@ -9,3 +9,4 @@ global using Dalamud.Logging;
 global using Dalamud.Game.ClientState.Conditions;
 global using Dalamud.Interface.Internal.Notifications;
 global using System.Diagnostics;
+global using static Weatherman.Static;

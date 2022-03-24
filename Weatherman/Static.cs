@@ -36,9 +36,15 @@ namespace Weatherman
 			return b.ToString().ToUpper() ;
         }
 
-		public static DateTimeOffset AlreadyLocal(this DateTimeOffset d)
+		internal static DateTimeOffset AlreadyLocal(this DateTimeOffset d)
         {
 			return d.Subtract(d.Offset);
         }
-    }
+
+		internal static void ValidateRange(ref int source, int a, int b)
+		{
+			if (source < a) source = a;
+			if (source > b) source = b;
+		}
+	}
 }

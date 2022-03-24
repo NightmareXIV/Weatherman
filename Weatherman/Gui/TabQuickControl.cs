@@ -32,11 +32,51 @@ namespace Weatherman
                         ImGui.SameLine();
                         ImGui.SetNextItemWidth(150f);
                         var span = TimeSpan.FromSeconds(p.TimeOverrideValue);
-                        if (ImGui.SliderInt("##customTime", ref p.TimeOverrideValue, 0, Weatherman.SecondsInDay - 1, ImGui.GetIO().KeyCtrl ? $"{p.TimeOverrideValue}" : $"{span.Hours:D2}:{span.Minutes:D2}:{span.Seconds:D2}"))
+                        var position = (int)MathF.Ceiling((float)p.TimeOverrideValue / 3600f);
+                        if (ImGui.GetIO().KeyCtrl)
                         {
-                            p.TimeOverride = true;
+                            ImGui.Text("Right click me instead!");
                         }
-                        if (p.TimeOverrideValue < 0 || p.TimeOverrideValue > Weatherman.SecondsInDay) p.TimeOverrideValue = 0;
+                        else
+                        {
+                            if (ImGui.SliderInt("##customTime", ref position, 0, 24, $"{span.Hours:D2}:{span.Minutes:D2}:{span.Seconds:D2}"))
+                            {
+                                p.TimeOverrideValue = position * 3600;
+                                if (p.TimeOverrideValue == Weatherman.SecondsInDay) p.TimeOverrideValue -= 1;
+                                p.TimeOverride = true;
+                            }
+                            if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
+                            {
+                                p.TimeOverride = true;
+                                ImGui.OpenPopup("#PreciseTimeSet");
+                            }
+                        }
+                        if (ImGui.BeginPopup("#PreciseTimeSet"))
+                        {
+                            var oSpan = TimeSpan.FromSeconds(p.TimeOverrideValue);
+                            var s = oSpan.Seconds;
+                            var m = oSpan.Minutes;
+                            var h = oSpan.Hours;
+                            ImGui.Text("Precise editing");
+                            ImGui.Text("Hours:");
+                            ImGui.SameLine(75f);
+                            ImGui.SetNextItemWidth(100f);
+                            ImGui.InputInt("##preciseH", ref h);
+                            ValidateRange(ref h, 0, 23);
+                            ImGui.Text("Minutes:");
+                            ImGui.SameLine(75f);
+                            ImGui.SetNextItemWidth(100f);
+                            ImGui.InputInt("##precisem", ref m);
+                            ValidateRange(ref m, 0, 59);
+                            ImGui.Text("Seconds:");
+                            ImGui.SameLine(75f);
+                            ImGui.SetNextItemWidth(100f);
+                            ImGui.InputInt("##precises", ref s);
+                            ValidateRange(ref s, 0, 59);
+                            p.TimeOverrideValue = h * 60 * 60 + m * 60 + s;
+                            ImGui.EndPopup();
+                        }
+                        ValidateRange(ref p.TimeOverrideValue, 0, Weatherman.SecondsInDay);
                     }
                     if (canModWeather)
                     {
