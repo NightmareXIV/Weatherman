@@ -39,9 +39,15 @@ namespace Weatherman
 		internal static DateTimeOffset AlreadyLocal(this DateTimeOffset d)
         {
 			return d.Subtract(d.Offset);
-        }
+		}
 
 		internal static void ValidateRange(ref int source, int a, int b)
+		{
+			if (source < a) source = a;
+			if (source > b) source = b;
+		}
+
+		internal static void ValidateRange(ref float source, float a, float b)
 		{
 			if (source < a) source = a;
 			if (source > b) source = b;

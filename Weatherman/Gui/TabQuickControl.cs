@@ -67,16 +67,16 @@ namespace Weatherman
                             ImGui.SameLine(75f);
                             ImGui.SetNextItemWidth(100f);
                             ImGui.InputInt("##precisem", ref m);
-                            ValidateRange(ref m, 0, 59);
+                            ValidateRange(ref m, -1, 60);
                             ImGui.Text("Seconds:");
                             ImGui.SameLine(75f);
                             ImGui.SetNextItemWidth(100f);
                             ImGui.InputInt("##precises", ref s);
-                            ValidateRange(ref s, 0, 59);
+                            ValidateRange(ref s, -1, 60);
                             p.TimeOverrideValue = h * 60 * 60 + m * 60 + s;
                             ImGui.EndPopup();
                         }
-                        ValidateRange(ref p.TimeOverrideValue, 0, Weatherman.SecondsInDay);
+                        ValidateRange(ref p.TimeOverrideValue, 0, Weatherman.SecondsInDay-1);
                     }
                     if (canModWeather)
                     {

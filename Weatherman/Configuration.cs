@@ -22,6 +22,8 @@ namespace Weatherman
         public bool EnableTimeControl = true;
         public bool EnableWeatherControl = true;
         public bool NoClockNag = false;
+        public bool ChangeTimeFlowSpeed = false;
+        public float TimeFlowSpeed = 1.0f;
 
         [NonSerialized]
         private Weatherman plugin;

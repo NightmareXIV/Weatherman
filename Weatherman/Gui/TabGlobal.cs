@@ -31,6 +31,13 @@
             ImGui.Checkbox("Enable time control", ref p.configuration.EnableTimeControl);
             ImGui.Checkbox("Enable weather control", ref p.configuration.EnableWeatherControl);
             ImGui.Checkbox("Disable clock out of sync check", ref p.configuration.NoClockNag);
+            ImGui.Checkbox("Change time flow speed", ref p.configuration.ChangeTimeFlowSpeed);
+            if (p.configuration.ChangeTimeFlowSpeed)
+            {
+                ImGui.SetNextItemWidth(100f);
+                ImGui.DragFloat("Time flow speed multiplier", ref p.configuration.TimeFlowSpeed, 0.01f, 0f, 100f);
+                ValidateRange(ref p.configuration.TimeFlowSpeed, 0f, 1000f);
+            }
         }
     }
 }
