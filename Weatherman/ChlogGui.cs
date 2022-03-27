@@ -1,8 +1,8 @@
-﻿namespace Weatherman
+﻿/*namespace Weatherman
 {
     class ChlogGui
     {
-        public const int ChlogVersion = 8;
+        public const int ChlogVersion = 9;
         readonly Weatherman p;
         bool open = true;
         public ChlogGui(Weatherman p)
@@ -21,8 +21,7 @@
             if (!open) return;
             if (!Svc.ClientState.IsLoggedIn) return;
             ImGui.Begin("Weatherman has been updated", ref open, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize);
-            ImGui.TextUnformatted("This update is mainly code cleanup and optimizations.\n" +
-                "It also brings Quick control tab, which allows you to temporarily change time and weather without need to change global or zone settings.");
+            ImGui.TextUnformatted("This update contains more code optimizations as well as new feature - adjustable time flow rate.\nIt also enables time change in solo duties and certain instances which have changeable time.");
             if (ImGui.Button("Close this window"))
             {
                 open = false;
@@ -39,3 +38,4 @@
         }
     }
 }
+*/

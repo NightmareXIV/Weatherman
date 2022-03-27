@@ -1,6 +1,4 @@
-﻿using Dalamud;
-
-namespace Weatherman
+﻿namespace Weatherman
 {
     unsafe partial class Gui
     {

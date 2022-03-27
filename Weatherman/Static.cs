@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Globalization;
+using System.Runtime.InteropServices;
 
 namespace Weatherman
 {
@@ -52,5 +53,31 @@ namespace Weatherman
 			if (source < a) source = a;
 			if (source > b) source = b;
 		}
+
+		internal static bool TryFindBytes(this byte[] haystack, byte[] needle, out int pos)
+		{
+			var len = needle.Length;
+			var limit = haystack.Length - len;
+			for (var i = 0; i <= limit; i++)
+			{
+				var k = 0;
+				for (; k < len; k++)
+				{
+					if (needle[k] != haystack[i + k]) break;
+				}
+				if (k == len)
+                {
+					pos = i;
+					return true;
+                }
+			}
+			pos = default;
+			return false;
+		}
+
+		internal static bool TryFindBytes(this byte[] haystack, string needle, out int pos)
+        {
+			return TryFindBytes(haystack, needle.Split(" ").Select(x => byte.Parse(x, NumberStyles.HexNumber)).ToArray(), out pos);
+        }
 	}
 }

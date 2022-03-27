@@ -2,9 +2,10 @@
 
 namespace Weatherman
 {
-    public class LvbFile : FileResource //from titleedit https://github.com/lmcintyre/TitleEditPlugin
+    unsafe public class LvbFile : FileResource //from titleedit https://github.com/lmcintyre/TitleEditPlugin
     {
         public ushort[] weatherIds;
+        public string envbFile;
 
         public override void LoadFile()
         {
@@ -21,6 +22,16 @@ namespace Weatherman
             pos = weatherTableStart;
             for (int i = 0; i < 32; i++)
                 weatherIds[i] = BitConverter.ToUInt16(Data, pos + i * 2);
+
+            if(Data.TryFindBytes("2E 65 6E 76 62 00", out pos))
+            {
+                var end = pos + 5;
+                while (Data[pos-1] != 0 && pos > 0)
+                {
+                    pos--;
+                }
+                envbFile = Encoding.UTF8.GetString(Data.Skip(pos).Take(end - pos).ToArray());
+            }
         }
     }
 }

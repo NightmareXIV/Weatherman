@@ -1,11 +1,7 @@
 ﻿using Dalamud;
 using Dalamud.Interface.Colors;
 using Lumina.Excel.GeneratedSheets;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace Weatherman
 {
@@ -19,7 +15,7 @@ namespace Weatherman
                 ImGui.BeginChild("##debugscreen");
                 if (ImGui.Button("Print configuration string"))
                 {
-                    PluginLog.Verbose(p.configuration.GetConfigurationString());
+                    PluginLog.Information(p.configuration.GetConfigurationString());
                 }
                 ImGui.Checkbox("Pause plugin execution", ref p.PausePlugin);
                 ImGui.Checkbox("Profiling", ref p.profiling);
@@ -72,7 +68,7 @@ namespace Weatherman
                 var et = p.GetET();
                 ImGui.TextUnformatted("Calculated time: " + et + " / " + DateTimeOffset.FromUnixTimeSeconds(et).ToString());
                 var diff = Math.Abs(*p.memoryManager.TrueTime - et);
-                ImGui.TextColored(diff < 20?ImGuiColors.HealerGreen:(diff<100?ImGuiColors.DalamudOrange:ImGuiColors.DalamudRed), $"Difference: {diff}");
+                ImGui.TextColored(diff < 50?ImGuiColors.HealerGreen:(diff<200?ImGuiColors.DalamudOrange:ImGuiColors.DalamudRed), $"Difference: {diff}");
                 if (p.memoryManager.IsTimeCustom()) ImGui.TextUnformatted("Time from asm: " + p.memoryManager.GetTime() + " / " +
                     DateTimeOffset.FromUnixTimeSeconds(p.memoryManager.GetTime()).ToLocalTime().AlreadyLocal().ToString());
                 ImGui.TextUnformatted("Current zone: " + Svc.ClientState.TerritoryType + " / " +
@@ -141,6 +137,45 @@ namespace Weatherman
                     foreach (var a in p.timeAllowedZones)
                     {
                         ImGui.TextUnformatted($"{a} / {p.zones[a].PlaceName.Value.Name} ({p.zones[a].ContentFinderCondition.Value.Name} | {Svc.Data.GetExcelSheet<Quest>().GetRow((uint)p.zones[a].QuestBattle?.Value?.Quest)?.Name})");
+                    }
+                }
+                if(ImGui.CollapsingHeader("envb files"))
+                {
+                    foreach(var a in p.weatherList)
+                    {
+                        if(ImGui.Selectable($"{a.Key}: {a.Value.EnvbFile}"))
+                        {
+                            ImGui.SetClipboardText(a.Value.EnvbFile);
+                            Svc.PluginInterface.UiBuilder.AddNotification("Copied to clipboard", p.Name, NotificationType.Success);
+                        }
+                    }
+                    if(ImGui.Button("Dump all"))
+                    {
+                        foreach (var a in p.weatherList)
+                        {
+                            if (a.Value.EnvbFile != null)
+                            {
+                                try
+                                {
+                                    var path = Path.Combine(Svc.PluginInterface.GetPluginConfigDirectory(), "envbdump");
+                                    foreach (var s in a.Value.EnvbFile.Split("/"))
+                                    {
+                                        if (s.EndsWith(".envb"))
+                                        {
+                                            Directory.CreateDirectory(path);
+                                            Svc.Data.GetFile(a.Value.EnvbFile).SaveFile(Path.Combine(path, s));
+                                            File.Create(Path.Combine(path, $"{s}.Terr.{a.Key}.{p.zones[a.Key].PlaceName.Value.Name}")).Close();
+                                            break;
+                                        }
+                                        path = Path.Combine(path, s);
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                    PluginLog.Error($"{e.Message}\n{e.StackTrace}");
+                                }
+                            }
+                        }
                     }
                 }
                 ImGui.EndChild();

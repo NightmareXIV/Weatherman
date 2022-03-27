@@ -16,7 +16,7 @@ namespace Weatherman
         public bool ShowOnlyModified = false;
         public bool ShowOnlyWorldZones = true;
         public bool ShowCurrentZoneOnTop = true;
-        public int ChlogReadVer = ChlogGui.ChlogVersion;
+        //public int ChlogReadVer = ChlogGui.ChlogVersion;
         public bool DisplayNotifications = false;
         public bool DisableInCutscene = true;
         public bool EnableTimeControl = true;
@@ -24,6 +24,7 @@ namespace Weatherman
         public bool NoClockNag = false;
         public bool ChangeTimeFlowSpeed = false;
         public float TimeFlowSpeed = 1.0f;
+        public bool DisplayInGpose = false;
 
         [NonSerialized]
         private Weatherman plugin;
@@ -39,8 +40,6 @@ namespace Weatherman
             ConfigurationString = GetConfigurationString();
             Svc.PluginInterface.SavePluginConfig(this);
         }
-
-
 
         public string GetConfigurationString()
         {

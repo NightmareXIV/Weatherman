@@ -38,6 +38,10 @@
                 ImGui.DragFloat("Time flow speed multiplier", ref p.configuration.TimeFlowSpeed, 0.01f, 0f, 100f);
                 ValidateRange(ref p.configuration.TimeFlowSpeed, 0f, 1000f);
             }
+            if(ImGui.Checkbox("Always show plugin interface in gpose", ref p.configuration.DisplayInGpose))
+            {
+                Svc.PluginInterface.UiBuilder.DisableGposeUiHide = p.configuration.DisplayInGpose;
+            }
         }
     }
 }
