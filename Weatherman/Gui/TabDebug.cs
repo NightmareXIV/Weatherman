@@ -2,6 +2,7 @@
 using Dalamud.Interface.Colors;
 using Lumina.Excel.GeneratedSheets;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace Weatherman
 {
@@ -151,6 +152,7 @@ namespace Weatherman
                     }
                     if(ImGui.Button("Dump all"))
                     {
+                        var rgx = new Regex("[^a-zA-Z0-9 -]");
                         foreach (var a in p.weatherList)
                         {
                             if (a.Value.EnvbFile != null)
@@ -164,7 +166,7 @@ namespace Weatherman
                                         {
                                             Directory.CreateDirectory(path);
                                             Svc.Data.GetFile(a.Value.EnvbFile).SaveFile(Path.Combine(path, s));
-                                            File.Create(Path.Combine(path, $"{s}.Terr.{a.Key}.{p.zones[a.Key].PlaceName.Value.Name}")).Close();
+                                            File.Create(Path.Combine(path, $"{s}.Terr.{a.Key}.{rgx.Replace(p.zones[a.Key].PlaceName.Value.Name.ToString(), "")}")).Close();
                                             break;
                                         }
                                         path = Path.Combine(path, s);
