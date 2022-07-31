@@ -63,9 +63,9 @@ namespace Weatherman
                 orchestrionController = new(this);
                 memoryManager = new(this);
                 zones = Svc.Data.GetExcelSheet<TerritoryType>().ToDictionary(row => (ushort)row.RowId, row => row);
-                weatherAllowedZones.UnionWith(Svc.Data.GetExcelSheet<TerritoryType>().Where(x => x.Mount).Select(x => (ushort)x.RowId));
+                weatherAllowedZones.UnionWith(Svc.Data.GetExcelSheet<TerritoryType>().Where(x => x.Mount && !x.IsPvpZone).Select(x => (ushort)x.RowId));
                 timeAllowedZones.UnionWith(weatherAllowedZones);
-                timeAllowedZones.UnionWith(Svc.Data.GetExcelSheet<TerritoryType>().Where(x => x.QuestBattle.Value.RowId != 0).Select(x => (ushort)x.RowId));
+                timeAllowedZones.UnionWith(Svc.Data.GetExcelSheet<TerritoryType>().Where(x => x.QuestBattle.Value.RowId != 0 && !x.IsPvpZone).Select(x => (ushort)x.RowId));
                 weathers = Svc.Data.GetExcelSheet<Weather>().ToDictionary(row => (byte)row.RowId, row => row.Name.ToString());
                 weatherRates = Svc.Data.GetExcelSheet<WeatherRate>();
                 ZoneSettings = new();

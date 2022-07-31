@@ -1,4 +1,5 @@
 ﻿using Dalamud;
+using Dalamud.Hooking;
 
 namespace Weatherman
 {
@@ -18,6 +19,9 @@ namespace Weatherman
         private byte* FirstByteWeatherAsm;
         private byte* Weather;
         internal byte* TrueWeather;
+
+        delegate IntPtr PlayWeatherSound(IntPtr a1, byte weatherId, float a3);
+        Hook<PlayWeatherSound> PlayWeatherSoundHook;
 
         internal bool SetWeather(byte newValue)
         {
@@ -89,9 +93,31 @@ namespace Weatherman
             return *FirstByteTimeAsm == NewTimeAsm[0];
         }
 
+        internal IntPtr PlayWeatherSoundDetour(IntPtr a1, byte weatherId, float a3)
+        {
+            //PluginLog.Debug($"Called PlayWeatherSoundDetour {weatherId}, {a3}");
+            if (IsWeatherCustom())
+            {
+                weatherId = GetDisplayedWeather();
+                //PluginLog.Debug($"Weather ID was replaced to {weatherId}");
+            }
+            return PlayWeatherSoundHook.Original(a1, weatherId, a3);
+        }
+
         public MemoryManager(Weatherman p)
         {
             this.p = p;
+
+            if(Svc.SigScanner.TryScanText("48 89 5C 24 ?? 56 57 41 57 48 83 EC 40 45 33 FF", out var ptr))
+            {
+                PluginLog.Information($"PlayWeatherSound ptr: {ptr:X16}");
+                PlayWeatherSoundHook = Hook<PlayWeatherSound>.FromAddress(ptr, PlayWeatherSoundDetour);
+                PlayWeatherSoundHook.Enable();
+            }
+            else
+            {
+                PluginLog.Warning("PlayWeatherSound function was not found, sound changing will be disabled");
+            }
 
             //setup time
             TrueTime = (long*)(Svc.Framework.Address.BaseAddress + 0x1770);
@@ -148,6 +174,8 @@ namespace Weatherman
         {
             SafeMemory.WriteBytes(TimeAsmPtr, OldTimeAsm);
             SafeMemory.WriteBytes(WeatherAsmPtr, OldWeatherAsm);
+            PlayWeatherSoundHook?.Disable();
+            PlayWeatherSoundHook?.Dispose();
         }
     }
 }
