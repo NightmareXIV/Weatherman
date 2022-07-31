@@ -110,10 +110,10 @@ namespace Weatherman
                 Svc.Framework.Update += HandleFrameworkUpdate;
                 ConfigGui = new(this);
                 Svc.PluginInterface.UiBuilder.Draw += ConfigGui.Draw;
-                Svc.PluginInterface.UiBuilder.OpenConfigUi += delegate { ConfigGui.configOpen = true; };
+                Svc.PluginInterface.UiBuilder.OpenConfigUi += delegate { ConfigGui.configOpen = !ConfigGui.configOpen ? true : false; };
                 Svc.ClientState.TerritoryChanged += HandleZoneChange;
                 ApplyWeatherChanges(Svc.ClientState.TerritoryType);
-                Svc.Commands.AddHandler("/weatherman", new CommandInfo(delegate { ConfigGui.configOpen = true; }) { HelpMessage = "Open plugin settings" });
+                Svc.Commands.AddHandler("/weatherman", new CommandInfo(delegate { ConfigGui.configOpen = !ConfigGui.configOpen ? true : false; }) { HelpMessage = "Toggle plugin settings" });
                 /*if (ChlogGui.ChlogVersion > configuration.ChlogReadVer)
                 {
                     new ChlogGui(this);
