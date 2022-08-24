@@ -2,11 +2,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<Authors>Eternita</Authors>
-		<Version>2.4.0.4</Version>
+		<Version>2.4.0.5</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<TargetFramework>net5.0-windows</TargetFramework>
+		<TargetFramework>net6.0-windows</TargetFramework>
 		<Platforms>x64</Platforms>
 		<LangVersion>latest</LangVersion>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -15,6 +15,7 @@
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<OutputPath>bin\$(Configuration)\</OutputPath>
 		<NoWarn>CS1591</NoWarn>
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 	</PropertyGroup>
 
 	<PropertyGroup Label="Documentation">
@@ -35,7 +36,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="DalamudPackager" Version="2.1.6" />
+		<PackageReference Include="DalamudPackager" Version="2.1.8" />
 		<Reference Include="Newtonsoft.Json">
 			<HintPath>$(DalamudLibPath)Newtonsoft.Json.dll</HintPath>
 			<Private>False</Private>
