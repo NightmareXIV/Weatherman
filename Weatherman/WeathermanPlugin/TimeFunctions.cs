@@ -84,7 +84,12 @@
                 {
                     memoryManager.EnableCustomTime();
                     var now = DateTimeOffset.Now;
-                    var et = (now + now.Offset).ToUnixTimeSeconds();
+                    var offset = configuration.UseGMTForRealTime ? TimeSpan.Zero : now.Offset;
+                    if(configuration.Offset != 0)
+                    {
+                        offset += TimeSpan.FromHours(configuration.Offset);
+                    }
+                    var et = (now + offset).ToUnixTimeSeconds();
                     memoryManager.SetTime((uint)(et % SecondsInDay));
                 }
             }

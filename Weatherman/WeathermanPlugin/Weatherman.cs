@@ -59,16 +59,26 @@ namespace Weatherman
             pluginInterface.Create<Svc>();
             new TickScheduler(delegate
             {
+                PluginLog.Verbose($"Weatherman boot begins");
                 stopwatch = new();
+                PluginLog.Verbose($"Registering orchestrion controller");
                 orchestrionController = new(this);
+                PluginLog.Verbose($"Registering memory manager");
                 memoryManager = new(this);
+                PluginLog.Verbose($"Populating zones");
                 zones = Svc.Data.GetExcelSheet<TerritoryType>().ToDictionary(row => (ushort)row.RowId, row => row);
                 weatherAllowedZones.UnionWith(Svc.Data.GetExcelSheet<TerritoryType>().Where(x => x.Mount && !x.IsPvpZone).Select(x => (ushort)x.RowId));
+                weatherAllowedZones.UnionWith(Svc.Data.GetExcelSheet<TerritoryType>().Where(x => x.TerritoryIntendedUse == 14).Select(x => (ushort)x.RowId));
+                PluginLog.Verbose($"Populating zones 2");
                 timeAllowedZones.UnionWith(weatherAllowedZones);
+                PluginLog.Verbose($"Populating zones 3");
                 timeAllowedZones.UnionWith(Svc.Data.GetExcelSheet<TerritoryType>().Where(x => x.QuestBattle.Value.RowId != 0 && !x.IsPvpZone).Select(x => (ushort)x.RowId));
+                PluginLog.Verbose($"Populating weathers");
                 weathers = Svc.Data.GetExcelSheet<Weather>().ToDictionary(row => (byte)row.RowId, row => row.Name.ToString());
+                PluginLog.Verbose($"Populating weathers 2");
                 weatherRates = Svc.Data.GetExcelSheet<WeatherRate>();
                 ZoneSettings = new();
+                PluginLog.Verbose($"Populating zone settings");
                 foreach (var z in zones)
                 {
                     var v = ParseLvb(z.Key);
@@ -82,9 +92,11 @@ namespace Weatherman
                     s.Init(this);
                     ZoneSettings.Add(s.ZoneId, s);
                 }
+                PluginLog.Verbose($"Loading configuration");
                 configuration = pluginInterface.GetPluginConfig() as Configuration ?? new();
                 configuration.Initialize(this);
                 var normalweathers = new HashSet<byte>();
+                PluginLog.Verbose($"Loading normal weathers");
                 foreach (var z in ZoneSettings)
                 {
                     foreach (var a in z.Value.SupportedWeathers)
@@ -95,6 +107,7 @@ namespace Weatherman
                         }
                     }
                 }
+                PluginLog.Verbose($"Loading blacklisted weathers");
                 var tempdict = new Dictionary<byte, bool>(configuration.BlacklistedWeathers);
                 foreach (var i in tempdict)
                 {
@@ -107,11 +120,13 @@ namespace Weatherman
                 {
                     if (!configuration.BlacklistedWeathers.ContainsKey(i)) configuration.BlacklistedWeathers.Add(i, false);
                 }
+                PluginLog.Verbose($"Registering events");
                 Svc.Framework.Update += HandleFrameworkUpdate;
                 ConfigGui = new(this);
                 Svc.PluginInterface.UiBuilder.Draw += ConfigGui.Draw;
                 Svc.PluginInterface.UiBuilder.OpenConfigUi += delegate { ConfigGui.configOpen = !ConfigGui.configOpen ? true : false; };
                 Svc.ClientState.TerritoryChanged += HandleZoneChange;
+                PluginLog.Verbose($"Applying weather changes");
                 ApplyWeatherChanges(Svc.ClientState.TerritoryType);
                 Svc.Commands.AddHandler("/weatherman", new CommandInfo(delegate { ConfigGui.configOpen = !ConfigGui.configOpen ? true : false; }) { HelpMessage = "Toggle plugin settings" });
                 /*if (ChlogGui.ChlogVersion > configuration.ChlogReadVer)
@@ -119,9 +134,11 @@ namespace Weatherman
                     new ChlogGui(this);
                 }*/
                 Svc.ClientState.Logout += StopSongIfModified;
+                PluginLog.Verbose($"Checking clock");
                 clockOffNag = new(this);
                 Svc.PluginInterface.UiBuilder.DisableGposeUiHide = configuration.DisplayInGpose;
                 Init = true;
+                PluginLog.Verbose($"Weatherman boot ends");
             }, Svc.Framework);
         }
 

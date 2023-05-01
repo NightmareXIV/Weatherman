@@ -25,6 +25,8 @@ namespace Weatherman
         public bool ChangeTimeFlowSpeed = false;
         public float TimeFlowSpeed = 1.0f;
         public bool DisplayInGpose = false;
+        public bool UseGMTForRealTime = false;
+        public int Offset = 0;
 
         [NonSerialized]
         private Weatherman plugin;

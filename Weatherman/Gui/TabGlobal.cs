@@ -25,6 +25,15 @@
                 ImGui.SameLine();
                 ImGui.TextUnformatted(DateTimeOffset.FromUnixTimeSeconds(p.configuration.GlobalFixedTime).ToString("HH:mm:ss"));
             }
+            if(p.configuration.GlobalTimeFlowControl == 7)
+            {
+                if (ImGui.RadioButton("Use local PC time", !p.configuration.UseGMTForRealTime)) p.configuration.UseGMTForRealTime = false;
+                if (ImGui.RadioButton("Use server time (GMT time)", p.configuration.UseGMTForRealTime)) p.configuration.UseGMTForRealTime = true;
+                ImGui.SetNextItemWidth(150);
+                ImGui.InputInt("Additional offset, hours: ", ref p.configuration.Offset);
+                if (p.configuration.Offset < -12) p.configuration.Offset = -12;
+                if (p.configuration.Offset > 12) p.configuration.Offset = 12;
+            }
             ImGui.Checkbox("Enable music control", ref p.configuration.MusicEnabled);
             ImGui.TextUnformatted("Requires Orchestrion plugin installed and enabled.");
             ImGui.Checkbox("Disable plugin in cutscenes", ref p.configuration.DisableInCutscene);
