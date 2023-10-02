@@ -80,7 +80,7 @@
             }
             catch (Exception e)
             {
-                PluginLog.Error("Failed to retrieve song list:" + e.Message + "\n" + e.StackTrace ?? "");
+                //PluginLog.Error("Failed to retrieve song list:" + e.Message + "\n" + e.StackTrace ?? "");
             }
             return SongList;
         }

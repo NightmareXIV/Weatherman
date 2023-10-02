@@ -95,6 +95,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="DalamudPackager" Version="2.1.12" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <ProjectReference Include="..\..\ECommons\ECommons\ECommons.csproj" />
 	</ItemGroup>
 </Project>

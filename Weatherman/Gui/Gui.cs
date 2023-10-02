@@ -1,4 +1,6 @@
-﻿namespace Weatherman
+﻿using ECommons.ImGuiMethods;
+
+namespace Weatherman
 {
     unsafe partial class Gui
     {
@@ -41,6 +43,7 @@
                 ImGui.PushStyleVar(ImGuiStyleVar.WindowMinSize, new Vector2(900, 350));
                 if (ImGui.Begin("Weatherman 2.0", ref configOpen))
                 {
+                    KoFiButton.DrawRight();
                     ImGui.BeginTabBar("weatherman_settings");
                     if (ImGui.BeginTabItem("Quick control"))
                     {

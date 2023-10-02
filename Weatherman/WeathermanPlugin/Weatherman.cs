@@ -1,6 +1,7 @@
 ﻿using Dalamud.Game.Command;
 using Dalamud.Plugin;
 using ECommons;
+using ECommons.ImGuiMethods;
 using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
 
@@ -58,6 +59,7 @@ namespace Weatherman
         public Weatherman(DalamudPluginInterface pluginInterface)
         {
             ECommonsMain.Init(pluginInterface, this);
+            KoFiButton.IsOfficialPlugin = true;
             new TickScheduler(delegate
             {
                 PluginLog.Verbose($"Weatherman boot begins");
@@ -179,6 +181,7 @@ namespace Weatherman
 
         public bool IsWeatherNormal(byte id, ushort terr)
         {
+            if (!zones.ContainsKey(terr)) return false;
             foreach (var u in weatherRates.GetRow(zones[terr].WeatherRate).UnkData0)
             {
                 if (u.Weather != 0 && u.Weather == id) return true;
