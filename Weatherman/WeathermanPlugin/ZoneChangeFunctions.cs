@@ -2,7 +2,7 @@
 {
     internal partial class Weatherman
     {
-        private void HandleZoneChange(object s, ushort u)
+        private void HandleZoneChange(ushort u)
         {
             PluginLog.Debug("Zone changed to " + u + "; time mod allowed=" + CanModifyTime() + ", weather mod allowed=" + CanModifyWeather());
             ApplyWeatherChanges(u);

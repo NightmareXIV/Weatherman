@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game;
+using Dalamud.Plugin.Services;
 
 namespace Weatherman
 {
@@ -6,10 +7,10 @@ namespace Weatherman
     {
         long executeAt;
         Action function;
-        Framework framework;
+        IFramework framework;
         bool disposed = false;
 
-        public TickScheduler(Action function, Framework framework, long delayMS = 0)
+        public TickScheduler(Action function, IFramework framework, long delayMS = 0)
         {
             this.executeAt = Environment.TickCount64 + delayMS;
             this.function = function;

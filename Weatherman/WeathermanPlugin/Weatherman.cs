@@ -1,5 +1,6 @@
 ﻿using Dalamud.Game.Command;
 using Dalamud.Plugin;
+using ECommons;
 using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
 
@@ -56,7 +57,7 @@ namespace Weatherman
 
         public Weatherman(DalamudPluginInterface pluginInterface)
         {
-            pluginInterface.Create<Svc>();
+            ECommonsMain.Init(pluginInterface, this);
             new TickScheduler(delegate
             {
                 PluginLog.Verbose($"Weatherman boot begins");
@@ -154,9 +155,10 @@ namespace Weatherman
             clockOffNag.Dispose();
             StopSongIfModified();
             orchestrionController.Dispose();
+            ECommonsMain.Dispose();
         }
 
-        void StopSongIfModified(object _ = null, object __ = null)
+        void StopSongIfModified()
         {
             if (orchestrionController.BGMModified)
             {
@@ -206,7 +208,7 @@ namespace Weatherman
             }
             catch (Exception e)
             {
-                PluginLog.Error(e, $"Failed to load lvb for {territoryType}");
+                PluginLog.Error($"Failed to load lvb for {territoryType}\n{e}");
             }
             return (null, null);
         }

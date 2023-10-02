@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game;
+using Dalamud.Plugin.Services;
 
 namespace Weatherman
 {
@@ -13,7 +14,7 @@ namespace Weatherman
             Svc.Framework.Update += ClockCheck;
         }
 
-        private void ClockCheck(Framework framework)
+        private void ClockCheck(IFramework framework)
         {
             if(Svc.ClientState.LocalPlayer != null)
             {

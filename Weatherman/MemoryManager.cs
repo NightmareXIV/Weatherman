@@ -111,7 +111,7 @@ namespace Weatherman
             if(Svc.SigScanner.TryScanText("48 89 5C 24 ?? 56 57 41 57 48 83 EC 40 45 33 FF", out var ptr))
             {
                 PluginLog.Information($"PlayWeatherSound ptr: {ptr:X16}");
-                PlayWeatherSoundHook = Hook<PlayWeatherSound>.FromAddress(ptr, PlayWeatherSoundDetour);
+                PlayWeatherSoundHook = Svc.Hook.HookFromAddress<PlayWeatherSound>(ptr, PlayWeatherSoundDetour);
                 PlayWeatherSoundHook.Enable();
             }
             else
@@ -120,7 +120,7 @@ namespace Weatherman
             }
 
             //setup time
-            TrueTime = (long*)(Svc.Framework.Address.BaseAddress + 0x1770);
+            TrueTime = &FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->EorzeaTime;
             TimeAsmPtr = Svc.SigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC 30 4C 8B 15") + 0x19;
             if (Static.VirtualProtect(
                 (UIntPtr)(TimeAsmPtr + 0x3).ToPointer(), (IntPtr)0x4,
