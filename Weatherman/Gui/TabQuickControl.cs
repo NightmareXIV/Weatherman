@@ -77,6 +77,7 @@ namespace Weatherman
                     {
                         foreach (byte i in p.GetWeathers(Svc.ClientState.TerritoryType))
                         {
+                            ImGui.PushID(i.ToString());
                             var colored = false;
                             if (p.IsWeatherNormal(i, Svc.ClientState.TerritoryType))
                             {
@@ -88,6 +89,7 @@ namespace Weatherman
                                 p.SelectedWeather = i;
                             }
                             if (colored) ImGui.PopStyleColor(1);
+                            ImGui.PopID();
                         }
                         if (p.SelectedWeather != 255 && ImGui.Button("Reset weather##weather"))
                         {
