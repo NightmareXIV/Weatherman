@@ -1,5 +1,7 @@
 ﻿using Dalamud.Game;
+using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Plugin.Services;
+using ECommons.DalamudServices.Legacy;
 
 namespace Weatherman
 {
@@ -18,7 +20,7 @@ namespace Weatherman
         {
             if(Svc.ClientState.LocalPlayer != null)
             {
-                var tt = *p.memoryManager.TrueTime;
+                var tt = p.memoryManager.TrueTime;
                 var et = p.GetET();
                 if (Math.Abs(tt - et) > 500 && !p.configuration.NoClockNag)
                 {

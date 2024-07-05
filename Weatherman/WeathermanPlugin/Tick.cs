@@ -1,4 +1,6 @@
-﻿namespace Weatherman
+﻿using Dalamud.Interface.ImGuiNotification;
+
+namespace Weatherman
 {
     internal unsafe partial class Weatherman
     {

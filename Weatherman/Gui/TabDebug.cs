@@ -3,6 +3,8 @@ using Dalamud.Interface.Colors;
 using Lumina.Excel.GeneratedSheets;
 using System.IO;
 using System.Text.RegularExpressions;
+using ECommons.DalamudServices.Legacy;
+using Dalamud.Interface.ImGuiNotification;
 
 namespace Weatherman
 {
@@ -65,10 +67,10 @@ namespace Weatherman
                 }
                 ImGui.TextUnformatted("True weather: " + *p.memoryManager.TrueWeather + " / " + p.weathers[*p.memoryManager.TrueWeather]);
                 ImGui.TextUnformatted("Displayed weather: " + p.memoryManager.GetDisplayedWeather() + " / " + p.weathers[p.memoryManager.GetDisplayedWeather()]);
-                ImGui.TextUnformatted("True time: " + *p.memoryManager.TrueTime + " / " + DateTimeOffset.FromUnixTimeSeconds(*p.memoryManager.TrueTime).ToString());
+                ImGui.TextUnformatted("True time: " + p.memoryManager.TrueTime + " / " + DateTimeOffset.FromUnixTimeSeconds(p.memoryManager.TrueTime).ToString());
                 var et = p.GetET();
                 ImGui.TextUnformatted("Calculated time: " + et + " / " + DateTimeOffset.FromUnixTimeSeconds(et).ToString());
-                var diff = Math.Abs(*p.memoryManager.TrueTime - et);
+                var diff = Math.Abs(p.memoryManager.TrueTime - et);
                 ImGui.TextColored(diff < 50?ImGuiColors.HealerGreen:(diff<200?ImGuiColors.DalamudOrange:ImGuiColors.DalamudRed), $"Difference: {diff}");
                 if (p.memoryManager.IsTimeCustom()) ImGui.TextUnformatted("Time from asm: " + p.memoryManager.GetTime() + " / " +
                     DateTimeOffset.FromUnixTimeSeconds(p.memoryManager.GetTime()).ToLocalTime().AlreadyLocal().ToString());

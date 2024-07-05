@@ -1,4 +1,5 @@
-﻿using ECommons.ImGuiMethods;
+﻿using ECommons.Funding;
+using ECommons.ImGuiMethods;
 
 namespace Weatherman
 {
@@ -8,7 +9,7 @@ namespace Weatherman
         private int curW = 0;
         private Vector4 colorGreen = new(0,1,0,1);
         internal bool configOpen = false;
-        static string[] timeflowcombo = new string[] { "No override", "Normal", "Fixed", "InfiniDay", "InfiniDay reversed", "InfiniNight", "InfiniNight reversed", "Real world time" };
+        static string[] timeflowcombo = ["No override", "Normal", "Fixed", "InfiniDay", "InfiniDay reversed", "InfiniNight", "InfiniNight reversed", "Real world time"];
         bool configWasOpen = false;
         int uid = 0;
         string filter = "";
@@ -40,10 +41,10 @@ namespace Weatherman
                     p.configuration.Save();
                     PluginLog.Debug("Configuration saved");
                 }
-                ImGui.PushStyleVar(ImGuiStyleVar.WindowMinSize, new Vector2(900, 350));
+                ImGui.PushStyleVar(ImGuiStyleVar.WindowMinSize, new Vector2(100, 100));
                 if (ImGui.Begin("Weatherman 2.0", ref configOpen))
                 {
-                    KoFiButton.DrawRight();
+                    PatreonBanner.DrawRight();
                     ImGui.BeginTabBar("weatherman_settings");
                     if (ImGui.BeginTabItem("Quick control"))
                     {
@@ -70,6 +71,7 @@ namespace Weatherman
                         DrawTabDebug();
                         ImGui.EndTabItem();
                     }
+                    PatreonBanner.RightTransparentTab();
                     ImGui.EndTabBar();
                 }
                 ImGui.PopStyleVar();

@@ -7,7 +7,7 @@ global using ImGuiNET;
 global using System.Numerics;
 global using ECommons.Logging;
 global using Dalamud.Game.ClientState.Conditions;
-global using Dalamud.Interface.Internal.Notifications;
+global using ECommons.DalamudServices.Legacy;
 global using System.Diagnostics;
 global using static Weatherman.Static;
 global using ECommons.DalamudServices;

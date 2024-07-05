@@ -6,15 +6,15 @@ namespace Weatherman
     unsafe class MemoryManager:IDisposable
     {
         Weatherman p;
-        internal byte[] NewTimeAsm = new byte[] { 0x49, 0xC7, 0xC1, 0x00, 0x00, 0x00, 0x00 };
-        private byte[] OldTimeAsm = new byte[] { 0x4D, 0x8B, 0x8A, 0x70, 0x17, 0x00, 0x00 };
+        internal byte[] NewTimeAsm = [0x49, 0xC7, 0xC1, 0x00, 0x00, 0x00, 0x00];
+        private byte[] OldTimeAsm = [0x4D, 0x8B, 0x8A, 0x78, 0x17, 0x00, 0x00];
         internal IntPtr TimeAsmPtr;
         private byte* FirstByteTimeAsm;
         private uint* Time;
-        internal long* TrueTime;
+        internal long TrueTime => FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->ClientTime.EorzeaTime;
 
-        internal byte[] NewWeatherAsm = new byte[] { 0xB2, 0x00, 0x90, 0x90 };
-        private byte[] OldWeatherAsm = new byte[] { 0x0F, 0xB6, 0x50, 0x26 };
+        internal byte[] NewWeatherAsm = [0xB2, 0x00, 0x90, 0x90];
+        private byte[] OldWeatherAsm = [0x0F, 0xB6, 0x50, 0x26];
         internal IntPtr WeatherAsmPtr;
         private byte* FirstByteWeatherAsm;
         private byte* Weather;
@@ -120,7 +120,6 @@ namespace Weatherman
             }
 
             //setup time
-            TrueTime = &FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->EorzeaTime;
             TimeAsmPtr = Svc.SigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC 30 4C 8B 15") + 0x19;
             if (Static.VirtualProtect(
                 (UIntPtr)(TimeAsmPtr + 0x3).ToPointer(), (IntPtr)0x4,

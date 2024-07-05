@@ -2,13 +2,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<Authors>NightmareXIV</Authors>
-		<Version>2.4.0.9</Version>
+		<Version>2.4.1.0</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<TargetFramework>net7.0-windows</TargetFramework>
+		<TargetFramework>net8.0-windows7.0</TargetFramework>
 		<Platforms>x64</Platforms>
-		<LangVersion>latest</LangVersion>
+		<LangVersion>preview</LangVersion>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
@@ -16,7 +16,6 @@
 		<OutputPath>bin\$(Configuration)\</OutputPath>
 		<NoWarn>CS1591</NoWarn>
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-      <EnableWindowsTargeting>true</EnableWindowsTargeting>
 	</PropertyGroup>
 
 	<PropertyGroup Label="Documentation">
@@ -25,11 +24,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <None Remove="res\icon.png" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<Content Include="res\icon.png" Link="images\icon.png" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+	  <Compile Remove="res\**" />
+	  <EmbeddedResource Remove="res\**" />
+	  <None Remove="res\**" />
 	</ItemGroup>
 
 	<PropertyGroup>
@@ -92,11 +89,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="res\" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <PackageReference Include="DalamudPackager" Version="2.1.12" />
+	  <PackageReference Include="DalamudPackager" Version="2.1.13" />
 	</ItemGroup>
 
 	<ItemGroup>
