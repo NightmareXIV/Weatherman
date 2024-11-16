@@ -5,7 +5,7 @@ using ECommons.ExcelServices;
 using ECommons.Funding;
 using ECommons.ImGuiMethods;
 using Lumina.Excel;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace Weatherman
 {
@@ -65,7 +65,7 @@ namespace Weatherman
                     PluginLog.Verbose($"Populating zones");
                     zones = Svc.Data.GetExcelSheet<TerritoryType>().ToDictionary(row => (ushort)row.RowId, row => row);
                     weatherAllowedZones.UnionWith(Svc.Data.GetExcelSheet<TerritoryType>().Where(x => x.Mount && !x.IsPvpZone).Select(x => (ushort)x.RowId));
-                    weatherAllowedZones.UnionWith(Svc.Data.GetExcelSheet<TerritoryType>().Where(x => x.TerritoryIntendedUse == 14).Select(x => (ushort)x.RowId));
+                    weatherAllowedZones.UnionWith(Svc.Data.GetExcelSheet<TerritoryType>().Where(x => x.TerritoryIntendedUse.RowId == 14).Select(x => (ushort)x.RowId));
                     PluginLog.Verbose($"Populating zones 2");
                     timeAllowedZones.UnionWith(weatherAllowedZones);
                     PluginLog.Verbose($"Populating zones 3");
@@ -83,7 +83,7 @@ namespace Weatherman
                         var s = new ZoneSettings
                         {
                             ZoneId = z.Key,
-                            ZoneName = z.Value.PlaceName.Value.Name,
+                            ZoneName = z.Value.PlaceName.Value.Name.ToString(),
                             terr = z.Value
                         };
                         s.Init(this);
@@ -149,12 +149,12 @@ namespace Weatherman
             Svc.Commands.RemoveHandler("/weatherman");
             memoryManager.Dispose();
             clockOffNag.Dispose();
-            StopSongIfModified();
+            StopSongIfModified(0,0);
             orchestrionController.Dispose();
             ECommonsMain.Dispose();
         }
 
-        private void StopSongIfModified()
+        private void StopSongIfModified(int a, int b)
         {
             if (orchestrionController.BGMModified)
             {
@@ -176,9 +176,9 @@ namespace Weatherman
         public bool IsWeatherNormal(byte id, ushort terr)
         {
             if (!zones.ContainsKey(terr)) return false;
-            foreach (var u in weatherRates.GetRow(zones[terr].WeatherRate).UnkData0)
+            foreach (var u in weatherRates.GetRow(zones[terr].WeatherRate).Weather)
             {
-                if (u.Weather != 0 && u.Weather == id) return true;
+                if (u.RowId != 0 && u.RowId == id) return true;
             }
             return false;
         }

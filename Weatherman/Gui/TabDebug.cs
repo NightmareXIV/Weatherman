@@ -1,6 +1,6 @@
 ﻿using Dalamud;
 using Dalamud.Interface.Colors;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using System.IO;
 using System.Text.RegularExpressions;
 using ECommons.DalamudServices.Legacy;
@@ -75,7 +75,7 @@ namespace Weatherman
                 if (p.memoryManager.IsTimeCustom()) ImGui.TextUnformatted("Time from asm: " + p.memoryManager.GetTime() + " / " +
                     DateTimeOffset.FromUnixTimeSeconds(p.memoryManager.GetTime()).ToLocalTime().AlreadyLocal().ToString());
                 ImGui.TextUnformatted("Current zone: " + Svc.ClientState.TerritoryType + " / " +
-                    p.zones[Svc.ClientState.TerritoryType].PlaceName.Value.Name);
+                    p.zones[Svc.ClientState.TerritoryType].PlaceName.ValueNullable?.Name.ToString());
                 ImGui.TextUnformatted("Unblacklisted weather: " + p.UnblacklistedWeather);
                 List<string> wGui = new();
                 foreach (var w in p.weathers)
@@ -132,14 +132,14 @@ namespace Weatherman
                 {
                     foreach (var a in p.weatherAllowedZones)
                     {
-                        ImGui.TextUnformatted($"{a} / {p.zones[a].PlaceName.Value.Name} ({p.zones[a].ContentFinderCondition.Value.Name} | {Svc.Data.GetExcelSheet<Quest>().GetRow((uint)p.zones[a].QuestBattle?.Value?.Quest)?.Name})");
+                        ImGui.TextUnformatted($"{a} / {p.zones[a].PlaceName.Value.Name} ({p.zones[a].ContentFinderCondition.Value.Name} | {Svc.Data.GetExcelSheet<Quest>().GetRowOrDefault((uint)p.zones[a].QuestBattle.ValueNullable?.Quest.RowId)?.Name})");
                     }
                 }
                 if (ImGui.CollapsingHeader("Time allowed zones"))
                 {
                     foreach (var a in p.timeAllowedZones)
                     {
-                        ImGui.TextUnformatted($"{a} / {p.zones[a].PlaceName.Value.Name} ({p.zones[a].ContentFinderCondition.Value.Name} | {Svc.Data.GetExcelSheet<Quest>().GetRow((uint)p.zones[a].QuestBattle?.Value?.Quest)?.Name})");
+                        ImGui.TextUnformatted($"{a} / {p.zones[a].PlaceName.Value.Name} ({p.zones[a].ContentFinderCondition.Value.Name} | {Svc.Data.GetExcelSheet<Quest>().GetRowOrDefault((uint)p.zones[a].QuestBattle.ValueNullable?.Quest.RowId)?.Name})");
                     }
                 }
                 if(ImGui.CollapsingHeader("envb files"))

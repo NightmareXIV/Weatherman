@@ -1,6 +1,6 @@
 ﻿using ECommons;
 using ECommons.ExcelServices;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Weatherman;
 public static class Utils
 {
-    public static ushort[] WhitelistedTypes => [..Svc.Data.GetExcelSheet<TerritoryType>().Where(x => ((TerritoryIntendedUseEnum)x.TerritoryIntendedUse).EqualsAny([
+    public static ushort[] WhitelistedTypes => [..Svc.Data.GetExcelSheet<TerritoryType>().Where(x => ((TerritoryIntendedUseEnum)x.TerritoryIntendedUse.RowId).EqualsAny([
                 TerritoryIntendedUseEnum.Open_World,
                 TerritoryIntendedUseEnum.City_Area,
                 TerritoryIntendedUseEnum.Bozja,

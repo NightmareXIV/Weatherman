@@ -1,5 +1,6 @@
 ﻿using Dalamud;
 using Dalamud.Hooking;
+using PInvoke;
 
 namespace Weatherman
 {
@@ -80,12 +81,22 @@ namespace Weatherman
         }
         internal void EnableCustomTime()
         {
-            if(!IsTimeCustom()) SafeMemory.WriteBytes(TimeAsmPtr, NewTimeAsm);
+            if(!IsTimeCustom())
+            {
+                SafeMemory.WriteBytes(TimeAsmPtr, NewTimeAsm);
+                var result = Kernel32.GetLastError();
+                PluginLog.Debug($"EnableCustomTime result: {result}");
+            }
         }
 
         internal void DisableCustomTime()
         {
-            if(IsTimeCustom()) SafeMemory.WriteBytes(TimeAsmPtr, OldTimeAsm);
+            if(IsTimeCustom())
+            {
+                SafeMemory.WriteBytes(TimeAsmPtr, OldTimeAsm);
+                var result = Kernel32.GetLastError();
+                PluginLog.Debug($"DisableCustomTime result: {result}");
+            }
         }
 
         internal bool IsTimeCustom()

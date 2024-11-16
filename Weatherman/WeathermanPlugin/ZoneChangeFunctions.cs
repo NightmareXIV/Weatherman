@@ -16,7 +16,7 @@
                 TimeOverride = false;
                 SelectedWeather = 255;
                 UnblacklistedWeather = 0;
-                StopSongIfModified();
+                StopSongIfModified(0,0);
                 if (ZoneSettings.ContainsKey(u))
                 {
                     var z = ZoneSettings[u];

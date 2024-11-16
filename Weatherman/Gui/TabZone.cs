@@ -96,7 +96,7 @@
             }
             ImGui.TextUnformatted(z.ZoneId.ToString());
             ImGui.NextColumn();
-            ImGui.TextUnformatted(z.terr.PlaceNameZone.Value.Name);
+            ImGui.TextUnformatted(z.terr.PlaceNameZone.Value.Name.ToString());
             ImGui.NextColumn();
             ImGui.TextUnformatted(z.ZoneName);
             ImGui.NextColumn();

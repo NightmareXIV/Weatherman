@@ -21,7 +21,7 @@ namespace Weatherman
                         InCutscene = true;
                         if (configuration.DisableInCutscene)
                         {
-                            StopSongIfModified();
+                            StopSongIfModified(0,0);
                         }
                     }
                 }
