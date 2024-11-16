@@ -156,7 +156,7 @@
                 ImGui.TextUnformatted("Unsupported");
             }
             ImGui.NextColumn();
-            if (p.configuration.MusicEnabled)
+            if (p.configuration.MusicEnabled && Svc.PluginInterface.InstalledPlugins.Any(x => x.InternalName == "OrchestrionPlugin" && x.IsLoaded))
             {
                 var songs = p.orchestrionController.GetSongList();
                 if (songs != null)
