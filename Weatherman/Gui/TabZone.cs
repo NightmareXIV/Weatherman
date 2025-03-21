@@ -1,4 +1,7 @@
-﻿namespace Weatherman
+﻿using ECommons;
+using ECommons.ImGuiMethods;
+
+namespace Weatherman
 {
     internal partial class Gui
     {
@@ -156,22 +159,28 @@
                 ImGui.TextUnformatted("Unsupported");
             }
             ImGui.NextColumn();
-            if (p.configuration.MusicEnabled && Svc.PluginInterface.InstalledPlugins.Any(x => x.InternalName == "OrchestrionPlugin" && x.IsLoaded))
+            if (p.configuration.MusicEnabled && Svc.PluginInterface.InstalledPlugins.Any(x => x.InternalName == "orchestrion" && x.IsLoaded))
             {
                 var songs = p.orchestrionController.GetSongList();
                 if (songs != null)
                 {
                     ImGui.PushItemWidth(130f);
-                    if (ImGui.BeginCombo("##SelectSong" + ++uid, p.orchestrionController.GetSongById(z.Music).ToString()))
+                    if(ImGui.BeginCombo("##SelectSong" + ++uid, p.orchestrionController.GetSongById(z.Music).ToString(), ImGuiComboFlags.HeightLarge))
                     {
                         ImGui.TextUnformatted("Filter:");
                         ImGui.SameLine();
                         ImGui.InputText("##musicfilter" + ++uid, ref musicFilter, 100);
-                        foreach (var s in p.orchestrionController.GetSongList())
-                            if ((s.Id.ToString() + s.Name).Contains(musicFilter, StringComparison.OrdinalIgnoreCase) && ImGui.Selectable(s.Name))
+                        foreach(var s in p.orchestrionController.GetSongList())
+                        {
+                            if((s.Id.ToString() + s.Name).Contains(musicFilter, StringComparison.OrdinalIgnoreCase))
                             {
-                                z.Music = s.Id;
+                                if(ImGui.Selectable($"{s.Name.Cut(40)}##{s.Id}"))
+                                {
+                                    z.Music = s.Id;
+                                }
+                                if(s.Name.Length > 40) ImGuiEx.Tooltip(s.Name);
                             }
+                        }
                         ImGui.EndCombo();
                     }
                     ImGui.PopItemWidth();
