@@ -27,6 +27,7 @@ namespace Weatherman
         public bool DisplayInGpose = false;
         public bool UseGMTForRealTime = false;
         public int Offset = 0;
+        public bool? BlacklistCS = null;
 
         [NonSerialized]
         private Weatherman plugin;

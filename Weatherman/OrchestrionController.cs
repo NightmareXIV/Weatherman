@@ -76,7 +76,7 @@
             if (SongList.Count > 1) return SongList;
             try
             {
-                SongList.AddRange(Svc.PluginInterface.GetIpcSubscriber<List<Song>>("Orch.AllSongInfo").InvokeFunc());
+                SongList.AddRange(Svc.PluginInterface.GetIpcSubscriber<List<Song>>("Orch.AllSongInfo").InvokeFunc().Where(x => x.Id != 0));
             }
             catch (Exception e)
             {

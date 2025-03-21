@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 namespace Weatherman;
 public static class Utils
 {
+    public static bool IsPlayerWatchingCutscene() => Svc.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Svc.Condition[ConditionFlag.WatchingCutscene78];
+
     public static ushort[] WhitelistedTypes => [..Svc.Data.GetExcelSheet<TerritoryType>().Where(x => ((TerritoryIntendedUseEnum)x.TerritoryIntendedUse.RowId).EqualsAny([
                 TerritoryIntendedUseEnum.Open_World,
                 TerritoryIntendedUseEnum.City_Area,

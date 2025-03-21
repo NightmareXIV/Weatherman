@@ -1,4 +1,5 @@
 ﻿using Dalamud.Interface.ImGuiNotification;
+using ECommons;
 
 namespace Weatherman
 {
@@ -13,7 +14,7 @@ namespace Weatherman
                     totalTicks++;
                     stopwatch.Restart();
                 }
-                if (Svc.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Svc.Condition[ConditionFlag.WatchingCutscene78])
+                if (Utils.IsPlayerWatchingCutscene())
                 {
                     if (!InCutscene)
                     {
@@ -64,8 +65,8 @@ namespace Weatherman
                         {
                             var suggesterWeather = *memoryManager.TrueWeather;
                             if (UnblacklistedWeather != 0 && suggesterWeather != UnblacklistedWeather
-                            && configuration.BlacklistedWeathers.ContainsKey(suggesterWeather)
-                            && configuration.BlacklistedWeathers[suggesterWeather])
+                            && configuration.BlacklistedWeathers.TryGetValue(suggesterWeather, out var value)
+                            && value && configuration.BlacklistCS.EqualsAny(null, Utils.IsPlayerWatchingCutscene()))
                             {
                                 suggesterWeather = UnblacklistedWeather;
                             }

@@ -1,4 +1,6 @@
-﻿namespace Weatherman
+﻿using ECommons.ImGuiMethods;
+
+namespace Weatherman
 {
     internal unsafe partial class Gui
     {
@@ -16,6 +18,23 @@
             ImGui.TextColored(new Vector4(1, 1, 0, 1), "Current weather is yellow (normal)");
             ImGui.SameLine();
             ImGui.TextColored(new Vector4(1, 0, 0, 1), "or red (abnormal).");
+            ImGui.Separator();
+            ImGuiEx.TextV($"Weather blacklist effective:");
+            ImGui.Indent();
+            if(ImGui.RadioButton("Everywhere", p.configuration.BlacklistCS == null))
+            {
+                p.configuration.BlacklistCS = null;
+            }
+            if(ImGui.RadioButton("Cutscenes only", p.configuration.BlacklistCS == null))
+            {
+                p.configuration.BlacklistCS = true;
+            }
+            if(ImGui.RadioButton("Everywhere except cutscenes", p.configuration.BlacklistCS == null))
+            {
+                p.configuration.BlacklistCS = null;
+            }
+            ImGui.Unindent();
+
             ImGui.Separator();
             if (ImGui.Button("Apply weather changes"))
             {
