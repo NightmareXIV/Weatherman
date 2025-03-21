@@ -4,8 +4,10 @@ using ECommons;
 using ECommons.ExcelServices;
 using ECommons.Funding;
 using ECommons.ImGuiMethods;
+using ECommons.Singletons;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
+using Weatherman.Services;
 
 namespace Weatherman;
 
@@ -14,8 +16,10 @@ internal unsafe partial class Weatherman : IDalamudPlugin
     internal const int SecondsInDay = 60 * 60 * 24;
     internal static double ETMult = 144D / 7D;
     internal static bool Init = false;
+    public static Configuration C => P.Config;
 
     public string Name => "Weatherman";
+    public static Weatherman P;
     internal MemoryManager memoryManager;
     internal OrchestrionController orchestrionController;
     internal Gui ConfigGui;
@@ -28,7 +32,7 @@ internal unsafe partial class Weatherman : IDalamudPlugin
     internal ExcelSheet<WeatherRate> weatherRates;
     internal Dictionary<ushort, ZoneSettings> ZoneSettings;
     internal ClockOffNag clockOffNag;
-    internal Configuration configuration;
+    internal Configuration Config;
     internal byte SelectedWeather = 255;
     internal byte UnblacklistedWeather = 0;
     internal bool PausePlugin = false;
@@ -43,6 +47,7 @@ internal unsafe partial class Weatherman : IDalamudPlugin
 
     public Weatherman(IDalamudPluginInterface pluginInterface)
     {
+        P = this;
         ECommonsMain.Init(pluginInterface, this);
         PatreonBanner.IsOfficialPlugin = () => true;
         weatherAllowedZones = [
@@ -90,8 +95,8 @@ internal unsafe partial class Weatherman : IDalamudPlugin
                     ZoneSettings.Add(s.ZoneId, s);
                 }
                 PluginLog.Verbose($"Loading configuration");
-                configuration = pluginInterface.GetPluginConfig() as Configuration ?? new();
-                configuration.Initialize(this);
+                Config = pluginInterface.GetPluginConfig() as Configuration ?? new();
+                Config.Initialize();
                 var normalweathers = new HashSet<byte>();
                 PluginLog.Verbose($"Loading normal weathers");
                 foreach(var z in ZoneSettings)
@@ -105,17 +110,17 @@ internal unsafe partial class Weatherman : IDalamudPlugin
                     }
                 }
                 PluginLog.Verbose($"Loading blacklisted weathers");
-                var tempdict = new Dictionary<byte, bool>(configuration.BlacklistedWeathers);
+                var tempdict = new Dictionary<byte, bool>(Config.BlacklistedWeathers);
                 foreach(var i in tempdict)
                 {
                     if(!normalweathers.Contains(i.Key))
                     {
-                        configuration.BlacklistedWeathers.Remove(i.Key);
+                        Config.BlacklistedWeathers.Remove(i.Key);
                     }
                 }
                 foreach(var i in normalweathers)
                 {
-                    if(!configuration.BlacklistedWeathers.ContainsKey(i)) configuration.BlacklistedWeathers.Add(i, false);
+                    if(!Config.BlacklistedWeathers.ContainsKey(i)) Config.BlacklistedWeathers.Add(i, false);
                 }
                 PluginLog.Verbose($"Registering events");
                 Svc.Framework.Update += HandleFrameworkUpdate;
@@ -133,15 +138,16 @@ internal unsafe partial class Weatherman : IDalamudPlugin
                 Svc.ClientState.Logout += StopSongIfModified;
                 PluginLog.Verbose($"Checking clock");
                 clockOffNag = new(this);
-                Svc.PluginInterface.UiBuilder.DisableGposeUiHide = configuration.DisplayInGpose;
+                Svc.PluginInterface.UiBuilder.DisableGposeUiHide = Config.DisplayInGpose;
                 Init = true;
                 PluginLog.Verbose($"Weatherman boot ends");
+                SingletonServiceManager.Initialize(typeof(S));
             }, Svc.Framework);
     }
 
     public void Dispose()
     {
-        configuration.Save();
+        Config.Save();
         Svc.Framework.Update -= HandleFrameworkUpdate;
         Svc.ClientState.Logout -= StopSongIfModified;
         Svc.PluginInterface.UiBuilder.Draw -= ConfigGui.Draw;
@@ -152,6 +158,7 @@ internal unsafe partial class Weatherman : IDalamudPlugin
         StopSongIfModified(0, 0);
         orchestrionController.Dispose();
         ECommonsMain.Dispose();
+        P = null;
     }
 
     private void StopSongIfModified(int a, int b)
@@ -165,12 +172,12 @@ internal unsafe partial class Weatherman : IDalamudPlugin
 
     internal bool CanModifyTime()
     {
-        return configuration.EnableTimeControl && timeAllowedZones.Contains(Svc.ClientState.TerritoryType);
+        return Config.EnableTimeControl && timeAllowedZones.Contains(Svc.ClientState.TerritoryType);
     }
 
     internal bool CanModifyWeather()
     {
-        return configuration.EnableWeatherControl && weatherAllowedZones.Contains(Svc.ClientState.TerritoryType);
+        return Config.EnableWeatherControl && weatherAllowedZones.Contains(Svc.ClientState.TerritoryType);
     }
 
     public bool IsWeatherNormal(byte id, ushort terr)

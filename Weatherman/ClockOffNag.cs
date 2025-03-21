@@ -22,7 +22,7 @@ internal unsafe class ClockOffNag : IDisposable
         {
             var tt = p.memoryManager.TrueTime;
             var et = p.GetET();
-            if(Math.Abs(tt - et) > 500 && !p.configuration.NoClockNag)
+            if(Math.Abs(tt - et) > 500 && !p.Config.NoClockNag)
             {
                 Svc.PluginInterface.UiBuilder.AddNotification("Your clock appears to be out of sync. \nPlease synchronize your time for correct plugin's functioning. \n\nYou can disable this check in settings.", "Weatherman", NotificationType.Warning, 20000);
                 PluginLog.Warning($"Clock out of sync: local: {tt}, calculated: {et}, diff: {tt - et}");

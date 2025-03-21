@@ -29,12 +29,12 @@ internal class Configuration : IPluginConfiguration
     public int Offset = 0;
     public bool? BlacklistCS = null;
 
-    [NonSerialized]
-    private Weatherman plugin;
+    public bool DTRBarEnable = false;
+    public bool DTRBarRealAlways = false;
+    public bool DTRBarClickToggle = false;
 
-    public void Initialize(Weatherman plugin)
+    public void Initialize()
     {
-        this.plugin = plugin;
         SetConfigurationString(ConfigurationString);
     }
 
@@ -47,7 +47,7 @@ internal class Configuration : IPluginConfiguration
     public string GetConfigurationString()
     {
         var configList = new List<string>();
-        foreach(var z in plugin.ZoneSettings)
+        foreach(var z in P.ZoneSettings)
         {
             var v = z.Value.GetString();
             if(v != null) configList.Add(z.Key + "@" + v);
@@ -62,9 +62,9 @@ internal class Configuration : IPluginConfiguration
             try
             {
                 var key = ushort.Parse(z.Split('@')[0]);
-                if(plugin.ZoneSettings.ContainsKey(key))
+                if(P.ZoneSettings.ContainsKey(key))
                 {
-                    plugin.ZoneSettings[key].FromString(z.Split('@')[1]);
+                    P.ZoneSettings[key].FromString(z.Split('@')[1]);
                 }
             }
             catch(Exception)

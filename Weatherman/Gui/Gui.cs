@@ -28,7 +28,7 @@ internal unsafe partial class Gui
             {
                 if(configWasOpen)
                 {
-                    p.configuration.Save();
+                    p.Config.Save();
                     PluginLog.Debug("Configuration saved");
                 }
                 configWasOpen = false;
@@ -36,9 +36,9 @@ internal unsafe partial class Gui
             }
             uid = 0;
             configWasOpen = true;
-            if(!p.configuration.ConfigurationString.Equals(p.configuration.GetConfigurationString()))
+            if(!p.Config.ConfigurationString.Equals(p.Config.GetConfigurationString()))
             {
-                p.configuration.Save();
+                p.Config.Save();
                 PluginLog.Debug("Configuration saved");
             }
             ImGui.PushStyleVar(ImGuiStyleVar.WindowMinSize, new Vector2(100, 100));

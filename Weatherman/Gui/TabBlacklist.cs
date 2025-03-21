@@ -21,17 +21,17 @@ internal unsafe partial class Gui
         ImGui.Separator();
         ImGuiEx.TextV($"Weather blacklist effective:");
         ImGui.Indent();
-        if(ImGui.RadioButton("Everywhere", p.configuration.BlacklistCS == null))
+        if(ImGui.RadioButton("Everywhere", p.Config.BlacklistCS == null))
         {
-            p.configuration.BlacklistCS = null;
+            p.Config.BlacklistCS = null;
         }
-        if(ImGui.RadioButton("Cutscenes only", p.configuration.BlacklistCS == null))
+        if(ImGui.RadioButton("Cutscenes only", p.Config.BlacklistCS == true))
         {
-            p.configuration.BlacklistCS = true;
+            p.Config.BlacklistCS = true;
         }
-        if(ImGui.RadioButton("Everywhere except cutscenes", p.configuration.BlacklistCS == null))
+        if(ImGui.RadioButton("Everywhere except cutscenes", p.Config.BlacklistCS == false))
         {
-            p.configuration.BlacklistCS = null;
+            p.Config.BlacklistCS = false;
         }
         ImGui.Unindent();
 
@@ -44,7 +44,7 @@ internal unsafe partial class Gui
         ImGui.TextUnformatted("Either click this button or change your zone for settings to become effective.");
         ImGui.Separator();
 
-        var temparr = p.configuration.BlacklistedWeathers.ToDictionary(entry => entry.Key, entry => entry.Value);
+        var temparr = p.Config.BlacklistedWeathers.ToDictionary(entry => entry.Key, entry => entry.Value);
         foreach(var w in temparr)
         {
             var v = temparr[w.Key];
@@ -53,7 +53,7 @@ internal unsafe partial class Gui
             if(normal || current) ImGui.PushStyleColor(ImGuiCol.Text, current ? (normal ? new Vector4(1, 1, 0, 1) : new Vector4(1, 0, 0, 1)) : colorGreen);
             ImGui.Checkbox(w.Key + " / " + p.weathers[w.Key], ref v);
             if(normal || current) ImGui.PopStyleColor();
-            p.configuration.BlacklistedWeathers[w.Key] = v;
+            p.Config.BlacklistedWeathers[w.Key] = v;
         }
         ImGui.EndChild();
     }

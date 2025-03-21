@@ -13,13 +13,13 @@ internal partial class Gui
         ImGui.InputTextWithHint("##filter", "ID, partial area or zone name", ref filter, 1000);
         ImGui.PopItemWidth();
         ImGui.SameLine();
-        ImGui.Checkbox("Only modified", ref p.configuration.ShowOnlyModified);
+        ImGui.Checkbox("Only modified", ref p.Config.ShowOnlyModified);
         ImGui.SameLine();
-        ImGui.Checkbox("Only fully customizable zones", ref p.configuration.ShowOnlyWorldZones);
+        ImGui.Checkbox("Only fully customizable zones", ref p.Config.ShowOnlyWorldZones);
         ImGui.SameLine();
-        ImGui.Checkbox("Current zone on top", ref p.configuration.ShowCurrentZoneOnTop);
+        ImGui.Checkbox("Current zone on top", ref p.Config.ShowCurrentZoneOnTop);
         ImGui.SameLine();
-        ImGui.Checkbox("Show unnamed zones", ref p.configuration.ShowUnnamedZones);
+        ImGui.Checkbox("Show unnamed zones", ref p.Config.ShowUnnamedZones);
         if(ImGui.Button("Apply weather changes"))
         {
             p.ApplyWeatherChanges(Svc.ClientState.TerritoryType);
@@ -52,7 +52,7 @@ internal partial class Gui
         ImGui.Separator();
 
         //current zone
-        if(p.configuration.ShowCurrentZoneOnTop && p.ZoneSettings.ContainsKey(Svc.ClientState.TerritoryType))
+        if(p.Config.ShowCurrentZoneOnTop && p.ZoneSettings.ContainsKey(Svc.ClientState.TerritoryType))
         {
             ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 1, 1, 1));
             PrintZoneRow(p.ZoneSettings[Svc.ClientState.TerritoryType], false);
@@ -80,7 +80,7 @@ internal partial class Gui
                 && !z.terr.PlaceNameZone.Value.Name.ToString().ToLower().Contains(filter.ToLower())
                 && !z.ZoneName.ToLower().Contains(filter.ToLower())) return;
             //if (displayOnlyReal && !p.IsWorldTerritory(z.ZoneId)) return;
-            if(p.configuration.ShowOnlyModified)
+            if(p.Config.ShowOnlyModified)
             {
                 var sel = new List<string>();
                 foreach(var zz in z.SupportedWeathers)
@@ -89,8 +89,8 @@ internal partial class Gui
                 }
                 if(z.IsUntouched()) return;
             }
-            if(!p.configuration.ShowUnnamedZones && z.ZoneName.Length == 0) return;
-            if(p.configuration.ShowOnlyWorldZones && !bothModAllowed) return;
+            if(!p.Config.ShowUnnamedZones && z.ZoneName.Length == 0) return;
+            if(p.Config.ShowOnlyWorldZones && !bothModAllowed) return;
             if(!modAllowed)
             {
                 grayed = true;
@@ -159,7 +159,7 @@ internal partial class Gui
             ImGui.TextUnformatted("Unsupported");
         }
         ImGui.NextColumn();
-        if(p.configuration.MusicEnabled && Svc.PluginInterface.InstalledPlugins.Any(x => x.InternalName == "orchestrion" && x.IsLoaded))
+        if(p.Config.MusicEnabled && Svc.PluginInterface.InstalledPlugins.Any(x => x.InternalName == "orchestrion" && x.IsLoaded))
         {
             var songs = p.orchestrionController.GetSongList();
             if(songs != null)

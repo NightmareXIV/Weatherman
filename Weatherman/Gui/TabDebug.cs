@@ -18,7 +18,7 @@ internal unsafe partial class Gui
             ImGui.BeginChild("##debugscreen");
             if(ImGui.Button("Print configuration string"))
             {
-                PluginLog.Information(p.configuration.GetConfigurationString());
+                PluginLog.Information(p.Config.GetConfigurationString());
             }
             ImGui.Checkbox("Pause plugin execution", ref p.PausePlugin);
             ImGui.Checkbox("Profiling", ref p.profiling);

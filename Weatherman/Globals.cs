@@ -11,3 +11,4 @@ global using System.Numerics;
 global using System.Text;
 global using System.Threading.Tasks;
 global using static Weatherman.Static;
+global using static Weatherman.Weatherman;

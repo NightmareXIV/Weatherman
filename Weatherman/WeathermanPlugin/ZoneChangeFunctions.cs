@@ -20,7 +20,7 @@ internal partial class Weatherman
             if(ZoneSettings.ContainsKey(u))
             {
                 var z = ZoneSettings[u];
-                if(configuration.MusicEnabled && z.Music != 0 && !orchestrionController.BGMModified)
+                if(Config.MusicEnabled && z.Music != 0 && !orchestrionController.BGMModified)
                 {
                     orchestrionController.PlaySong(z.Music);
                     orchestrionController.BGMModified = true;
@@ -46,8 +46,8 @@ internal partial class Weatherman
                     var unblacklistedWeatherCandidates = new List<byte>();
                     foreach(var v in z.SupportedWeathers)
                     {
-                        if(configuration.BlacklistedWeathers.ContainsKey(v.Id)
-                            && !configuration.BlacklistedWeathers[v.Id]
+                        if(Config.BlacklistedWeathers.ContainsKey(v.Id)
+                            && !Config.BlacklistedWeathers[v.Id]
                             && IsWeatherNormal(v.Id, Svc.ClientState.TerritoryType))
                         {
                             unblacklistedWeatherCandidates.Add(v.Id);

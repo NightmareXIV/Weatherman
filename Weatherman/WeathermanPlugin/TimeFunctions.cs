@@ -19,9 +19,9 @@ internal unsafe partial class Weatherman
             {
                 memoryManager.EnableCustomTime();
                 var et = GetET();
-                if(configuration.ChangeTimeFlowSpeed)
+                if(Config.ChangeTimeFlowSpeed)
                 {
-                    et = (long)(et % SecondsInDay * configuration.TimeFlowSpeed);
+                    et = (long)(et % SecondsInDay * Config.TimeFlowSpeed);
                 }
                 memoryManager.SetTime((uint)(et % SecondsInDay));
             }
@@ -35,9 +35,9 @@ internal unsafe partial class Weatherman
             {
                 memoryManager.EnableCustomTime();
                 var et = GetET();
-                if(configuration.ChangeTimeFlowSpeed)
+                if(Config.ChangeTimeFlowSpeed)
                 {
-                    et = (long)(et % SecondsInDay * configuration.TimeFlowSpeed);
+                    et = (long)(et % SecondsInDay * Config.TimeFlowSpeed);
                 }
                 var timeOfDay = et % SecondsInDay;
                 if(timeOfDay > 18 * 60 * 60 || timeOfDay < 6 * 60 * 60) et += SecondsInDay / 2;
@@ -47,9 +47,9 @@ internal unsafe partial class Weatherman
             {
                 memoryManager.EnableCustomTime();
                 var et = GetET();
-                if(configuration.ChangeTimeFlowSpeed)
+                if(Config.ChangeTimeFlowSpeed)
                 {
-                    et = (long)(et % SecondsInDay * configuration.TimeFlowSpeed);
+                    et = (long)(et % SecondsInDay * Config.TimeFlowSpeed);
                 }
                 var timeOfDay = et % SecondsInDay;
                 if(timeOfDay > 18 * 60 * 60) et -= 2 * (timeOfDay - 18 * 60 * 60);
@@ -60,9 +60,9 @@ internal unsafe partial class Weatherman
             {
                 memoryManager.EnableCustomTime();
                 var et = GetET();
-                if(configuration.ChangeTimeFlowSpeed)
+                if(Config.ChangeTimeFlowSpeed)
                 {
-                    et = (long)(et % SecondsInDay * configuration.TimeFlowSpeed);
+                    et = (long)(et % SecondsInDay * Config.TimeFlowSpeed);
                 }
                 var timeOfDay = et % SecondsInDay;
                 if(timeOfDay < 18 * 60 * 60 && timeOfDay > 6 * 60 * 60) et += SecondsInDay / 2;
@@ -72,9 +72,9 @@ internal unsafe partial class Weatherman
             {
                 memoryManager.EnableCustomTime();
                 var et = GetET();
-                if(configuration.ChangeTimeFlowSpeed)
+                if(Config.ChangeTimeFlowSpeed)
                 {
-                    et = (long)(et % SecondsInDay * configuration.TimeFlowSpeed);
+                    et = (long)(et % SecondsInDay * Config.TimeFlowSpeed);
                 }
                 var timeOfDay = et % SecondsInDay;
                 if(timeOfDay < 18 * 60 * 60 && timeOfDay > 6 * 60 * 60) et -= 2 * (timeOfDay - 6 * 60 * 60);
@@ -84,10 +84,10 @@ internal unsafe partial class Weatherman
             {
                 memoryManager.EnableCustomTime();
                 var now = DateTimeOffset.Now;
-                var offset = configuration.UseGMTForRealTime ? TimeSpan.Zero : now.Offset;
-                if(configuration.Offset != 0)
+                var offset = Config.UseGMTForRealTime ? TimeSpan.Zero : now.Offset;
+                if(Config.Offset != 0)
                 {
-                    offset += TimeSpan.FromHours(configuration.Offset);
+                    offset += TimeSpan.FromHours(Config.Offset);
                 }
                 var et = (now + offset).ToUnixTimeSeconds();
                 memoryManager.SetTime((uint)(et % SecondsInDay));
@@ -101,7 +101,7 @@ internal unsafe partial class Weatherman
         {
             if(ZoneSettings[terr].TimeFlow > 0) return ZoneSettings[terr].TimeFlow;
         }
-        return configuration.GlobalTimeFlowControl;
+        return Config.GlobalTimeFlowControl;
     }
 
     private int GetZoneTimeFixedSetting(ushort terr)
@@ -110,6 +110,6 @@ internal unsafe partial class Weatherman
         {
             if(ZoneSettings[terr].TimeFlow == 2) return ZoneSettings[terr].FixedTime;
         }
-        return configuration.GlobalFixedTime;
+        return Config.GlobalFixedTime;
     }
 }

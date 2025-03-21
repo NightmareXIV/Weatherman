@@ -20,7 +20,7 @@ internal unsafe partial class Weatherman
                 {
                     PluginLog.Debug("Cutscene started");
                     InCutscene = true;
-                    if(configuration.DisableInCutscene)
+                    if(Config.DisableInCutscene)
                     {
                         StopSongIfModified(0, 0);
                     }
@@ -37,7 +37,7 @@ internal unsafe partial class Weatherman
             }
             if(Svc.ClientState.LocalPlayer != null
                 && !PausePlugin
-                && !(configuration.DisableInCutscene && InCutscene))
+                && !(Config.DisableInCutscene && InCutscene))
             {
                 if(CanModifyTime())
                 {
@@ -55,7 +55,7 @@ internal unsafe partial class Weatherman
                         if(memoryManager.GetWeather() != SelectedWeather)
                         {
                             memoryManager.SetWeather(SelectedWeather);
-                            if(configuration.DisplayNotifications)
+                            if(Config.DisplayNotifications)
                             {
                                 Svc.PluginInterface.UiBuilder.AddNotification($"{weathers[SelectedWeather]}\nReason: selected by user", "Weatherman: weather changed", NotificationType.Info, 5000);
                             }
@@ -65,8 +65,8 @@ internal unsafe partial class Weatherman
                     {
                         var suggesterWeather = *memoryManager.TrueWeather;
                         if(UnblacklistedWeather != 0 && suggesterWeather != UnblacklistedWeather
-                        && configuration.BlacklistedWeathers.TryGetValue(suggesterWeather, out var value)
-                        && value && configuration.BlacklistCS.EqualsAny(null, Utils.IsPlayerWatchingCutscene()))
+                        && Config.BlacklistedWeathers.TryGetValue(suggesterWeather, out var value)
+                        && value && Config.BlacklistCS.EqualsAny(null, Utils.IsPlayerWatchingCutscene()))
                         {
                             suggesterWeather = UnblacklistedWeather;
                         }
@@ -81,7 +81,7 @@ internal unsafe partial class Weatherman
                             if(memoryManager.GetWeather() != suggesterWeather)
                             {
                                 memoryManager.SetWeather(suggesterWeather);
-                                if(configuration.DisplayNotifications)
+                                if(Config.DisplayNotifications)
                                 {
                                     Svc.PluginInterface.UiBuilder.AddNotification($"{weathers[SelectedWeather]}\nReason: found blacklisted weather", "Weatherman: weather changed", NotificationType.Info, 5000);
                                 }
