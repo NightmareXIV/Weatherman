@@ -16,23 +16,23 @@
                 TimeOverride = false;
                 SelectedWeather = 255;
                 UnblacklistedWeather = 0;
-                StopSongIfModified(0,0);
-                if (ZoneSettings.ContainsKey(u))
+                StopSongIfModified(0, 0);
+                if(ZoneSettings.ContainsKey(u))
                 {
                     var z = ZoneSettings[u];
-                    if (configuration.MusicEnabled && z.Music != 0 && !orchestrionController.BGMModified)
+                    if(configuration.MusicEnabled && z.Music != 0 && !orchestrionController.BGMModified)
                     {
                         orchestrionController.PlaySong(z.Music);
                         orchestrionController.BGMModified = true;
                     }
-                    if (z.WeatherControl)
+                    if(z.WeatherControl)
                     {
                         var weathers = new List<byte>();
-                        foreach (var v in z.SupportedWeathers)
+                        foreach(var v in z.SupportedWeathers)
                         {
-                            if (v.Selected) weathers.Add(v.Id);
+                            if(v.Selected) weathers.Add(v.Id);
                         }
-                        if (weathers.Count > 0)
+                        if(weathers.Count > 0)
                         {
                             SelectedWeather = weathers[new Random().Next(0, weathers.Count)];
                         }
@@ -44,16 +44,16 @@
                     else
                     {
                         var unblacklistedWeatherCandidates = new List<byte>();
-                        foreach (var v in z.SupportedWeathers)
+                        foreach(var v in z.SupportedWeathers)
                         {
-                            if (configuration.BlacklistedWeathers.ContainsKey(v.Id)
+                            if(configuration.BlacklistedWeathers.ContainsKey(v.Id)
                                 && !configuration.BlacklistedWeathers[v.Id]
                                 && IsWeatherNormal(v.Id, Svc.ClientState.TerritoryType))
                             {
                                 unblacklistedWeatherCandidates.Add(v.Id);
                             }
                         }
-                        if (unblacklistedWeatherCandidates.Count > 0)
+                        if(unblacklistedWeatherCandidates.Count > 0)
                         {
                             UnblacklistedWeather =
                                  unblacklistedWeatherCandidates[new Random().Next(0, unblacklistedWeatherCandidates.Count)];
@@ -63,7 +63,7 @@
                 PluginLog.Debug("Selected weather:" + SelectedWeather + "; unblacklisted weather: " + UnblacklistedWeather);
 
             }
-            catch (Exception e)
+            catch(Exception e)
             {
                 PluginLog.Error($"{e.Message}\n{e.StackTrace ?? ""}");
             }

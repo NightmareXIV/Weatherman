@@ -4,9 +4,9 @@ using PInvoke;
 
 namespace Weatherman
 {
-    unsafe class MemoryManager:IDisposable
+    internal unsafe class MemoryManager : IDisposable
     {
-        Weatherman p;
+        private Weatherman p;
         internal byte[] NewTimeAsm = [0x49, 0xC7, 0xC1, 0x00, 0x00, 0x00, 0x00];
         private byte[] OldTimeAsm = [0x4D, 0x8B, 0x8A, 0x78, 0x17, 0x00, 0x00];
         internal IntPtr TimeAsmPtr;
@@ -21,8 +21,8 @@ namespace Weatherman
         private byte* Weather;
         internal byte* TrueWeather;
 
-        delegate IntPtr PlayWeatherSound(IntPtr a1, byte weatherId, float a3);
-        Hook<PlayWeatherSound> PlayWeatherSoundHook;
+        private delegate IntPtr PlayWeatherSound(IntPtr a1, byte weatherId, float a3);
+        private Hook<PlayWeatherSound> PlayWeatherSoundHook;
 
         internal bool SetWeather(byte newValue)
         {
@@ -37,9 +37,9 @@ namespace Weatherman
             }
         }
 
-        internal byte GetWeather() 
+        internal byte GetWeather()
         {
-            return *Weather; 
+            return *Weather;
         }
 
         internal byte GetDisplayedWeather()
@@ -57,9 +57,9 @@ namespace Weatherman
             if(IsWeatherCustom()) SafeMemory.WriteBytes(WeatherAsmPtr, OldWeatherAsm);
         }
 
-        internal bool IsWeatherCustom() 
+        internal bool IsWeatherCustom()
         {
-            return *FirstByteWeatherAsm == NewWeatherAsm[0]; 
+            return *FirstByteWeatherAsm == NewWeatherAsm[0];
         }
 
         internal bool SetTime(uint newValue)
@@ -75,9 +75,9 @@ namespace Weatherman
             }
         }
 
-        internal uint GetTime() 
+        internal uint GetTime()
         {
-            return *Time; 
+            return *Time;
         }
         internal void EnableCustomTime()
         {
@@ -107,7 +107,7 @@ namespace Weatherman
         internal IntPtr PlayWeatherSoundDetour(IntPtr a1, byte weatherId, float a3)
         {
             //PluginLog.Debug($"Called PlayWeatherSoundDetour {weatherId}, {a3}");
-            if (IsWeatherCustom())
+            if(IsWeatherCustom())
             {
                 weatherId = GetDisplayedWeather();
                 //PluginLog.Debug($"Weather ID was replaced to {weatherId}");
@@ -132,19 +132,19 @@ namespace Weatherman
 
             //setup time
             TimeAsmPtr = Svc.SigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC 30 4C 8B 15") + 0x19;
-            if (Static.VirtualProtect(
+            if(Static.VirtualProtect(
                 (UIntPtr)(TimeAsmPtr + 0x3).ToPointer(), (IntPtr)0x4,
                 Static.MemoryProtection.ExecuteReadWrite, out var oldProtection) == false)
             {
                 throw new Exception("VirtualProtextEx failed");
             }
-            if (!SafeMemory.ReadBytes(TimeAsmPtr, 7, out var readOldTimeAsm))
+            if(!SafeMemory.ReadBytes(TimeAsmPtr, 7, out var readOldTimeAsm))
             {
                 throw new Exception("Could not read memory");
             }
             else
             {
-                if (!readOldTimeAsm.SequenceEqual(OldTimeAsm))
+                if(!readOldTimeAsm.SequenceEqual(OldTimeAsm))
                 {
                     throw new Exception("Time memory is different from expected. If the game have just updated, " +
                         "you might have to wait for newer version of plugin.");
@@ -158,19 +158,19 @@ namespace Weatherman
             PluginLog.Information($"Weather ptr: {(IntPtr)TrueWeather:X16}");
             WeatherAsmPtr = Svc.SigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC 30 80 B9 ?? ?? ?? ?? ?? 49 8B F8 0F 29 74 24") + 0x55;
             PluginLog.Information($"Weather asm ptr: {(IntPtr)WeatherAsmPtr:X16}");
-            if (Static.VirtualProtect(
+            if(Static.VirtualProtect(
                 (UIntPtr)(WeatherAsmPtr + 0x1).ToPointer(), (IntPtr)0x1,
                 Static.MemoryProtection.ExecuteReadWrite, out var oldProtectionWeather) == false)
             {
                 throw new Exception("VirtualProtextEx failed");
             }
-            if (!SafeMemory.ReadBytes(WeatherAsmPtr, 4, out var readOldWeatherAsm))
+            if(!SafeMemory.ReadBytes(WeatherAsmPtr, 4, out var readOldWeatherAsm))
             {
                 throw new Exception("Could not read memory");
             }
             else
             {
-                if (!readOldWeatherAsm.SequenceEqual(OldWeatherAsm))
+                if(!readOldWeatherAsm.SequenceEqual(OldWeatherAsm))
                 {
                     throw new Exception("Weather memory is different from expected. If the game have just updated, " +
                         "you might have to wait for newer version of plugin.");

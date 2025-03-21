@@ -1,22 +1,22 @@
 ﻿namespace Weatherman
 {
-    class OrchestrionController : IDisposable
+    internal class OrchestrionController : IDisposable
     {
         private Weatherman plugin;
         internal bool BGMModified = false;
-        internal List<Song> SongList = new()
-        {
+        internal List<Song> SongList =
+        [
             new Song(0, "Default")
-        };
+        ];
 
         public OrchestrionController(Weatherman p)
         {
-            this.plugin = p;
+            plugin = p;
         }
 
         public void Dispose()
         {
-            
+
         }
 
         /*public IDalamudPlugin GetOrchestrionPlugin()
@@ -52,7 +52,7 @@
                 PluginLog.Debug("Invoked PlaySong " + id);
                 Svc.PluginInterface.GetIpcSubscriber<int, bool>("Orch.PlaySong").InvokeFunc(id);
             }
-            catch (Exception e)
+            catch(Exception e)
             {
                 PluginLog.Error("Failed to play song:" + e.Message);
             }
@@ -65,7 +65,7 @@
                 PluginLog.Debug("Invoked StopSong");
                 Svc.PluginInterface.GetIpcSubscriber<int, bool>("Orch.PlaySong").InvokeFunc(0);
             }
-            catch (Exception e)
+            catch(Exception e)
             {
                 PluginLog.Error("Failed to stop song:" + e.Message);
             }
@@ -73,12 +73,12 @@
 
         public List<Song> GetSongList()
         {
-            if (SongList.Count > 1) return SongList;
+            if(SongList.Count > 1) return SongList;
             try
             {
                 SongList.AddRange(Svc.PluginInterface.GetIpcSubscriber<List<Song>>("Orch.AllSongInfo").InvokeFunc().Where(x => x.Id != 0));
             }
-            catch (Exception e)
+            catch(Exception e)
             {
                 //PluginLog.Error("Failed to retrieve song list:" + e.Message + "\n" + e.StackTrace ?? "");
             }
@@ -88,7 +88,7 @@
         public Song GetSongById(int id)
         {
             var a = SongList.Find(x => x.Id == id);
-            if (a != null) return a;
+            if(a != null) return a;
             return new Song(id, id.ToString());
         }
     }

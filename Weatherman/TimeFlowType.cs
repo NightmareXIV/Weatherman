@@ -1,6 +1,6 @@
 ﻿namespace Weatherman
 {
-    enum TimeFlowType
+    internal enum TimeFlowType
     {
         Normal,
         Fixed,

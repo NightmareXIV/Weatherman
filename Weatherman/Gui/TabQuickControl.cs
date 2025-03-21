@@ -4,16 +4,16 @@ namespace Weatherman
 {
     internal unsafe partial class Gui
     {
-        void DrawTabQuickControl()
+        private void DrawTabQuickControl()
         {
             var canModWeather = p.weatherAllowedZones.Contains(Svc.ClientState.TerritoryType);
             var canModTime = p.timeAllowedZones.Contains(Svc.ClientState.TerritoryType);
-            if (canModWeather || canModTime)
+            if(canModWeather || canModTime)
             {
                 ImGui.Checkbox("Pause Weatherman", ref p.PausePlugin);
-                if (!p.PausePlugin)
+                if(!p.PausePlugin)
                 {
-                    if (Svc.Condition[ConditionFlag.WatchingCutscene])
+                    if(Svc.Condition[ConditionFlag.WatchingCutscene])
                     {
                         ImGui.TextWrapped("Disable \"Stop Time/Weather\" in gpose to control them with Weatherman.");
                     }
@@ -21,32 +21,32 @@ namespace Weatherman
                     {
                         ImGui.TextWrapped("These controls will allow you to temporarily adjust weather and time. They are reset on zone change.");
                     }
-                    if (canModTime)
+                    if(canModTime)
                     {
                         ImGui.Checkbox("Time: ", ref p.TimeOverride);
                         ImGui.SameLine();
                         ImGui.SetNextItemWidth(150f);
                         var span = TimeSpan.FromSeconds(p.TimeOverrideValue);
                         var position = (int)MathF.Ceiling((float)p.TimeOverrideValue / 3600f);
-                        if (ImGui.GetIO().KeyCtrl)
+                        if(ImGui.GetIO().KeyCtrl)
                         {
                             ImGui.Text("Right click me instead!");
                         }
                         else
                         {
-                            if (ImGui.SliderInt("##customTime", ref position, 0, 24, $"{span.Hours:D2}:{span.Minutes:D2}:{span.Seconds:D2}"))
+                            if(ImGui.SliderInt("##customTime", ref position, 0, 24, $"{span.Hours:D2}:{span.Minutes:D2}:{span.Seconds:D2}"))
                             {
                                 p.TimeOverrideValue = position * 3600;
-                                if (p.TimeOverrideValue == Weatherman.SecondsInDay) p.TimeOverrideValue -= 1;
+                                if(p.TimeOverrideValue == Weatherman.SecondsInDay) p.TimeOverrideValue -= 1;
                                 p.TimeOverride = true;
                             }
-                            if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
+                            if(ImGui.IsItemClicked(ImGuiMouseButton.Right))
                             {
                                 p.TimeOverride = true;
                                 ImGui.OpenPopup("#PreciseTimeSet");
                             }
                         }
-                        if (ImGui.BeginPopup("#PreciseTimeSet"))
+                        if(ImGui.BeginPopup("#PreciseTimeSet"))
                         {
                             var oSpan = TimeSpan.FromSeconds(p.TimeOverrideValue);
                             var s = oSpan.Seconds;
@@ -71,32 +71,32 @@ namespace Weatherman
                             p.TimeOverrideValue = h * 60 * 60 + m * 60 + s;
                             ImGui.EndPopup();
                         }
-                        ValidateRange(ref p.TimeOverrideValue, 0, Weatherman.SecondsInDay-1);
+                        ValidateRange(ref p.TimeOverrideValue, 0, Weatherman.SecondsInDay - 1);
                     }
-                    if (canModWeather)
+                    if(canModWeather)
                     {
-                        foreach (byte i in p.GetWeathers(Svc.ClientState.TerritoryType))
+                        foreach(var i in p.GetWeathers(Svc.ClientState.TerritoryType))
                         {
                             ImGui.PushID(i.ToString());
                             var colored = false;
-                            if (p.IsWeatherNormal(i, Svc.ClientState.TerritoryType))
+                            if(p.IsWeatherNormal(i, Svc.ClientState.TerritoryType))
                             {
                                 ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.ParsedGreen);
                                 colored = true;
                             }
-                            if (ImGui.RadioButton(String.IsNullOrWhiteSpace(p.weathers[i]) ? i.ToString() : p.weathers[i], p.SelectedWeather == i))
+                            if(ImGui.RadioButton(String.IsNullOrWhiteSpace(p.weathers[i]) ? i.ToString() : p.weathers[i], p.SelectedWeather == i))
                             {
                                 p.SelectedWeather = i;
                             }
-                            if (colored) ImGui.PopStyleColor(1);
+                            if(colored) ImGui.PopStyleColor(1);
                             ImGui.PopID();
                         }
-                        if (p.SelectedWeather != 255 && ImGui.Button("Reset weather##weather"))
+                        if(p.SelectedWeather != 255 && ImGui.Button("Reset weather##weather"))
                         {
                             p.SelectedWeather = 255;
                         }
                     }
-                    if (ImGui.Button("Reload zone settings"))
+                    if(ImGui.Button("Reload zone settings"))
                     {
                         p.ApplyWeatherChanges(Svc.ClientState.TerritoryType);
                     }

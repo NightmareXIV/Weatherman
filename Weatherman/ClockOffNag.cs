@@ -7,7 +7,7 @@ namespace Weatherman
 {
     internal unsafe class ClockOffNag : IDisposable
     {
-        Weatherman p;
+        private Weatherman p;
         private bool disposedValue;
 
         internal ClockOffNag(Weatherman p)
@@ -22,7 +22,7 @@ namespace Weatherman
             {
                 var tt = p.memoryManager.TrueTime;
                 var et = p.GetET();
-                if (Math.Abs(tt - et) > 500 && !p.configuration.NoClockNag)
+                if(Math.Abs(tt - et) > 500 && !p.configuration.NoClockNag)
                 {
                     Svc.PluginInterface.UiBuilder.AddNotification("Your clock appears to be out of sync. \nPlease synchronize your time for correct plugin's functioning. \n\nYou can disable this check in settings.", "Weatherman", NotificationType.Warning, 20000);
                     PluginLog.Warning($"Clock out of sync: local: {tt}, calculated: {et}, diff: {tt - et}");
@@ -33,9 +33,9 @@ namespace Weatherman
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if(!disposedValue)
             {
-                if (disposing)
+                if(disposing)
                 {
                     Svc.Framework.Update -= ClockCheck;
                 }

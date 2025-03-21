@@ -1,53 +1,53 @@
 ﻿using Dalamud;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.ImGuiNotification;
+using ECommons.DalamudServices.Legacy;
 using Lumina.Excel.Sheets;
 using System.IO;
 using System.Text.RegularExpressions;
-using ECommons.DalamudServices.Legacy;
-using Dalamud.Interface.ImGuiNotification;
 
 namespace Weatherman
 {
     internal unsafe partial class Gui
     {
-        float newMult = (float)Weatherman.ETMult;
-        void DrawTabDebug()
+        private float newMult = (float)Weatherman.ETMult;
+        private void DrawTabDebug()
         {
             try
             {
                 ImGui.BeginChild("##debugscreen");
-                if (ImGui.Button("Print configuration string"))
+                if(ImGui.Button("Print configuration string"))
                 {
                     PluginLog.Information(p.configuration.GetConfigurationString());
                 }
                 ImGui.Checkbox("Pause plugin execution", ref p.PausePlugin);
                 ImGui.Checkbox("Profiling", ref p.profiling);
-                if (p.profiling)
+                if(p.profiling)
                 {
                     ImGui.Text("Total time: " + p.totalTime);
                     ImGui.Text("Total ticks: " + p.totalTicks);
                     ImGui.Text("Tick avg: " + (float)p.totalTime / (float)p.totalTicks);
                     ImGui.Text("MS avg: " + ((float)p.totalTime / (float)p.totalTicks) / (float)Stopwatch.Frequency * 1000 + " ms");
-                    if (ImGui.Button("Reset##SW"))
+                    if(ImGui.Button("Reset##SW"))
                     {
                         p.totalTicks = 0;
                         p.totalTime = 0;
                     }
                 }
-                if (SafeMemory.ReadBytes(p.memoryManager.TimeAsmPtr, p.memoryManager.NewTimeAsm.Length, out var timeAsm))
+                if(SafeMemory.ReadBytes(p.memoryManager.TimeAsmPtr, p.memoryManager.NewTimeAsm.Length, out var timeAsm))
                 {
                     ImGui.TextUnformatted("Time asm: " + timeAsm.ToHexString());
                 }
-                if (p.memoryManager.IsTimeCustom())
+                if(p.memoryManager.IsTimeCustom())
                 {
                     ImGui.SameLine();
                     ImGui.TextUnformatted("[custom]");
                 }
-                if (SafeMemory.ReadBytes(p.memoryManager.WeatherAsmPtr, p.memoryManager.NewWeatherAsm.Length, out var weatherAsm))
+                if(SafeMemory.ReadBytes(p.memoryManager.WeatherAsmPtr, p.memoryManager.NewWeatherAsm.Length, out var weatherAsm))
                 {
                     ImGui.TextUnformatted("Weather asm: " + weatherAsm.ToHexString());
                 }
-                if (p.memoryManager.IsWeatherCustom())
+                if(p.memoryManager.IsWeatherCustom())
                 {
                     ImGui.SameLine();
                     ImGui.TextUnformatted("[custom]");
@@ -56,14 +56,14 @@ namespace Weatherman
                 ImGui.SetNextItemWidth(100f);
                 ImGui.DragFloat("New mult", ref newMult, float.Epsilon);
                 ImGui.SameLine();
-                if (ImGui.Button("Set##mult"))
+                if(ImGui.Button("Set##mult"))
                 {
                     Weatherman.ETMult = newMult;
                 }
                 ImGui.SameLine();
-                if (ImGui.Button("Reset##mult"))
+                if(ImGui.Button("Reset##mult"))
                 {
-                    Weatherman.ETMult = 144D/7D;
+                    Weatherman.ETMult = 144D / 7D;
                 }
                 ImGui.TextUnformatted("True weather: " + *p.memoryManager.TrueWeather + " / " + p.weathers[*p.memoryManager.TrueWeather]);
                 ImGui.TextUnformatted("Displayed weather: " + p.memoryManager.GetDisplayedWeather() + " / " + p.weathers[p.memoryManager.GetDisplayedWeather()]);
@@ -71,14 +71,14 @@ namespace Weatherman
                 var et = p.GetET();
                 ImGui.TextUnformatted("Calculated time: " + et + " / " + DateTimeOffset.FromUnixTimeSeconds(et).ToString());
                 var diff = Math.Abs(p.memoryManager.TrueTime - et);
-                ImGui.TextColored(diff < 50?ImGuiColors.HealerGreen:(diff<200?ImGuiColors.DalamudOrange:ImGuiColors.DalamudRed), $"Difference: {diff}");
-                if (p.memoryManager.IsTimeCustom()) ImGui.TextUnformatted("Time from asm: " + p.memoryManager.GetTime() + " / " +
+                ImGui.TextColored(diff < 50 ? ImGuiColors.HealerGreen : (diff < 200 ? ImGuiColors.DalamudOrange : ImGuiColors.DalamudRed), $"Difference: {diff}");
+                if(p.memoryManager.IsTimeCustom()) ImGui.TextUnformatted("Time from asm: " + p.memoryManager.GetTime() + " / " +
                     DateTimeOffset.FromUnixTimeSeconds(p.memoryManager.GetTime()).ToLocalTime().AlreadyLocal().ToString());
                 ImGui.TextUnformatted("Current zone: " + Svc.ClientState.TerritoryType + " / " +
                     p.zones[Svc.ClientState.TerritoryType].PlaceName.ValueNullable?.Name.ToString());
                 ImGui.TextUnformatted("Unblacklisted weather: " + p.UnblacklistedWeather);
-                List<string> wGui = new();
-                foreach (var w in p.weathers)
+                List<string> wGui = [];
+                foreach(var w in p.weathers)
                 {
                     wGui.Add(w.Key + " / " + w.Value);
                 }
@@ -97,22 +97,22 @@ namespace Weatherman
                 }*/
                 ImGui.TextUnformatted("Selected weather: " + p.SelectedWeather);
                 ImGui.SameLine();
-                if (ImGui.SmallButton("Reset##weather"))
+                if(ImGui.SmallButton("Reset##weather"))
                 {
                     p.SelectedWeather = 255;
                 }
                 ImGui.TextUnformatted("Supported weathers:");
-                foreach (byte i in p.GetWeathers(Svc.ClientState.TerritoryType))
+                foreach(var i in p.GetWeathers(Svc.ClientState.TerritoryType))
                 {
                     var colored = false;
-                    if (p.memoryManager.GetDisplayedWeather() == i)
+                    if(p.memoryManager.GetDisplayedWeather() == i)
                     {
                         ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1, 0, 0, 1));
                         colored = true;
                     }
-                    if (p.weatherAllowedZones.Contains(Svc.ClientState.TerritoryType))
+                    if(p.weatherAllowedZones.Contains(Svc.ClientState.TerritoryType))
                     {
-                        if (ImGui.SmallButton(i + " / " + p.weathers[i]))
+                        if(ImGui.SmallButton(i + " / " + p.weathers[i]))
                         {
                             p.SelectedWeather = i;
                         }
@@ -121,23 +121,23 @@ namespace Weatherman
                     {
                         ImGui.TextUnformatted(i + " / " + p.weathers[i]);
                     }
-                    if (colored) ImGui.PopStyleColor(1);
-                    if (p.IsWeatherNormal(i, Svc.ClientState.TerritoryType))
+                    if(colored) ImGui.PopStyleColor(1);
+                    if(p.IsWeatherNormal(i, Svc.ClientState.TerritoryType))
                     {
                         ImGui.SameLine();
                         ImGui.TextColored(new Vector4(0, 1, 0, 1), "Occurs normally");
                     }
                 }
-                if (ImGui.CollapsingHeader("Weather allowed zones"))
+                if(ImGui.CollapsingHeader("Weather allowed zones"))
                 {
-                    foreach (var a in p.weatherAllowedZones)
+                    foreach(var a in p.weatherAllowedZones)
                     {
                         ImGui.TextUnformatted($"{a} / {p.zones[a].PlaceName.Value.Name} ({p.zones[a].ContentFinderCondition.Value.Name} | {Svc.Data.GetExcelSheet<Quest>().GetRowOrDefault((uint)p.zones[a].QuestBattle.ValueNullable?.Quest.RowId)?.Name})");
                     }
                 }
-                if (ImGui.CollapsingHeader("Time allowed zones"))
+                if(ImGui.CollapsingHeader("Time allowed zones"))
                 {
-                    foreach (var a in p.timeAllowedZones)
+                    foreach(var a in p.timeAllowedZones)
                     {
                         ImGui.TextUnformatted($"{a} / {p.zones[a].PlaceName.Value.Name} ({p.zones[a].ContentFinderCondition.Value.Name} | {Svc.Data.GetExcelSheet<Quest>().GetRowOrDefault((uint)p.zones[a].QuestBattle.ValueNullable?.Quest.RowId)?.Name})");
                     }
@@ -155,16 +155,16 @@ namespace Weatherman
                     if(ImGui.Button("Dump all"))
                     {
                         var rgx = new Regex("[^a-zA-Z0-9 -]");
-                        foreach (var a in p.weatherList)
+                        foreach(var a in p.weatherList)
                         {
-                            if (a.Value.EnvbFile != null)
+                            if(a.Value.EnvbFile != null)
                             {
                                 try
                                 {
                                     var path = Path.Combine(Svc.PluginInterface.GetPluginConfigDirectory(), "envbdump");
-                                    foreach (var s in a.Value.EnvbFile.Split("/"))
+                                    foreach(var s in a.Value.EnvbFile.Split("/"))
                                     {
-                                        if (s.EndsWith(".envb"))
+                                        if(s.EndsWith(".envb"))
                                         {
                                             Directory.CreateDirectory(path);
                                             Svc.Data.GetFile(a.Value.EnvbFile).SaveFile(Path.Combine(path, s));
@@ -174,7 +174,7 @@ namespace Weatherman
                                         path = Path.Combine(path, s);
                                     }
                                 }
-                                catch (Exception e)
+                                catch(Exception e)
                                 {
                                     PluginLog.Error($"{e.Message}\n{e.StackTrace}");
                                 }
@@ -184,7 +184,7 @@ namespace Weatherman
                 }
                 ImGui.EndChild();
             }
-            catch (Exception e)
+            catch(Exception e)
             {
                 ImGui.TextUnformatted(e.Message);
             }

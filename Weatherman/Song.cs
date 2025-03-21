@@ -6,13 +6,13 @@
         public string Name;
         public Song(int id, string name)
         {
-            this.Id = id;
-            this.Name = name;
+            Id = id;
+            Name = name;
         }
 
-        override public string ToString()
+        public override string ToString()
         {
-            return this.Id + " / " + this.Name;
+            return Id + " / " + Name;
         }
     }
 }

@@ -4,7 +4,7 @@ namespace Weatherman
 {
     internal unsafe partial class Gui
     {
-        void DrawTabBlacklist()
+        private void DrawTabBlacklist()
         {
             ImGui.BeginChild("##wblacklist");
             ImGui.TextUnformatted("Select weathers which you do not want to ever see again in any zone.");
@@ -36,7 +36,7 @@ namespace Weatherman
             ImGui.Unindent();
 
             ImGui.Separator();
-            if (ImGui.Button("Apply weather changes"))
+            if(ImGui.Button("Apply weather changes"))
             {
                 p.ApplyWeatherChanges(Svc.ClientState.TerritoryType);
             }
@@ -45,14 +45,14 @@ namespace Weatherman
             ImGui.Separator();
 
             var temparr = p.configuration.BlacklistedWeathers.ToDictionary(entry => entry.Key, entry => entry.Value);
-            foreach (var w in temparr)
+            foreach(var w in temparr)
             {
                 var v = temparr[w.Key];
                 var normal = p.IsWeatherNormal(w.Key, Svc.ClientState.TerritoryType);
                 var current = *p.memoryManager.TrueWeather == w.Key;
-                if (normal || current) ImGui.PushStyleColor(ImGuiCol.Text, current ? (normal ? new Vector4(1, 1, 0, 1) : new Vector4(1, 0, 0, 1)) : colorGreen);
+                if(normal || current) ImGui.PushStyleColor(ImGuiCol.Text, current ? (normal ? new Vector4(1, 1, 0, 1) : new Vector4(1, 0, 0, 1)) : colorGreen);
                 ImGui.Checkbox(w.Key + " / " + p.weathers[w.Key], ref v);
-                if (normal || current) ImGui.PopStyleColor();
+                if(normal || current) ImGui.PopStyleColor();
                 p.configuration.BlacklistedWeathers[w.Key] = v;
             }
             ImGui.EndChild();

@@ -2,7 +2,7 @@
 {
     internal partial class Gui
     {
-        void DrawTabGlobal()
+        private void DrawTabGlobal()
         {
             ImGui.TextUnformatted("Global time control: ");
             ImGui.SameLine();
@@ -14,12 +14,12 @@
             ImGui.PushItemWidth(150f);
             ImGui.Combo("##timecomboglobal", ref p.configuration.GlobalTimeFlowControl, timeflowcombo, timeflowcombo.Length);
             ImGui.PopItemWidth();
-            if (p.configuration.GlobalTimeFlowControl == 2)
+            if(p.configuration.GlobalTimeFlowControl == 2)
             {
                 ImGui.TextUnformatted("Set desired time of day in seconds. Double-click to edit field manually.");
                 ImGui.PushItemWidth(150f);
                 ImGui.DragInt("##timecontrolfixedglobal", ref p.configuration.GlobalFixedTime, 100.0f, 0, Weatherman.SecondsInDay - 1);
-                if (p.configuration.GlobalFixedTime > Weatherman.SecondsInDay
+                if(p.configuration.GlobalFixedTime > Weatherman.SecondsInDay
                     || p.configuration.GlobalFixedTime < 0) p.configuration.GlobalFixedTime = 0;
                 ImGui.PopItemWidth();
                 ImGui.SameLine();
@@ -27,12 +27,12 @@
             }
             if(p.configuration.GlobalTimeFlowControl == 7)
             {
-                if (ImGui.RadioButton("Use local PC time", !p.configuration.UseGMTForRealTime)) p.configuration.UseGMTForRealTime = false;
-                if (ImGui.RadioButton("Use server time (GMT time)", p.configuration.UseGMTForRealTime)) p.configuration.UseGMTForRealTime = true;
+                if(ImGui.RadioButton("Use local PC time", !p.configuration.UseGMTForRealTime)) p.configuration.UseGMTForRealTime = false;
+                if(ImGui.RadioButton("Use server time (GMT time)", p.configuration.UseGMTForRealTime)) p.configuration.UseGMTForRealTime = true;
                 ImGui.SetNextItemWidth(150);
                 ImGui.InputInt("Additional offset, hours: ", ref p.configuration.Offset);
-                if (p.configuration.Offset < -12) p.configuration.Offset = -12;
-                if (p.configuration.Offset > 12) p.configuration.Offset = 12;
+                if(p.configuration.Offset < -12) p.configuration.Offset = -12;
+                if(p.configuration.Offset > 12) p.configuration.Offset = 12;
             }
             ImGui.Checkbox("Enable music control", ref p.configuration.MusicEnabled);
             ImGui.TextUnformatted("Requires Orchestrion plugin installed and enabled.");
@@ -41,7 +41,7 @@
             ImGui.Checkbox("Enable weather control", ref p.configuration.EnableWeatherControl);
             ImGui.Checkbox("Disable clock out of sync check", ref p.configuration.NoClockNag);
             ImGui.Checkbox("Change time flow speed", ref p.configuration.ChangeTimeFlowSpeed);
-            if (p.configuration.ChangeTimeFlowSpeed)
+            if(p.configuration.ChangeTimeFlowSpeed)
             {
                 ImGui.SetNextItemWidth(100f);
                 ImGui.DragFloat("Time flow speed multiplier", ref p.configuration.TimeFlowSpeed, 0.01f, 0f, 100f);

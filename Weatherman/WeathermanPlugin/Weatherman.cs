@@ -76,7 +76,7 @@ namespace Weatherman
                     weatherRates = Svc.Data.GetExcelSheet<WeatherRate>();
                     ZoneSettings = [];
                     PluginLog.Verbose($"Populating zone settings");
-                    foreach (var z in zones)
+                    foreach(var z in zones)
                     {
                         var v = ParseLvb(z.Key);
                         weatherList[z.Key] = (v.WeatherList, v.EnvbFile);
@@ -94,11 +94,11 @@ namespace Weatherman
                     configuration.Initialize(this);
                     var normalweathers = new HashSet<byte>();
                     PluginLog.Verbose($"Loading normal weathers");
-                    foreach (var z in ZoneSettings)
+                    foreach(var z in ZoneSettings)
                     {
-                        foreach (var a in z.Value.SupportedWeathers)
+                        foreach(var a in z.Value.SupportedWeathers)
                         {
-                            if (a.IsNormal)
+                            if(a.IsNormal)
                             {
                                 normalweathers.Add(a.Id);
                             }
@@ -106,16 +106,16 @@ namespace Weatherman
                     }
                     PluginLog.Verbose($"Loading blacklisted weathers");
                     var tempdict = new Dictionary<byte, bool>(configuration.BlacklistedWeathers);
-                    foreach (var i in tempdict)
+                    foreach(var i in tempdict)
                     {
-                        if (!normalweathers.Contains(i.Key))
+                        if(!normalweathers.Contains(i.Key))
                         {
                             configuration.BlacklistedWeathers.Remove(i.Key);
                         }
                     }
-                    foreach (var i in normalweathers)
+                    foreach(var i in normalweathers)
                     {
-                        if (!configuration.BlacklistedWeathers.ContainsKey(i)) configuration.BlacklistedWeathers.Add(i, false);
+                        if(!configuration.BlacklistedWeathers.ContainsKey(i)) configuration.BlacklistedWeathers.Add(i, false);
                     }
                     PluginLog.Verbose($"Registering events");
                     Svc.Framework.Update += HandleFrameworkUpdate;
@@ -149,14 +149,14 @@ namespace Weatherman
             Svc.Commands.RemoveHandler("/weatherman");
             memoryManager.Dispose();
             clockOffNag.Dispose();
-            StopSongIfModified(0,0);
+            StopSongIfModified(0, 0);
             orchestrionController.Dispose();
             ECommonsMain.Dispose();
         }
 
         private void StopSongIfModified(int a, int b)
         {
-            if (orchestrionController.BGMModified)
+            if(orchestrionController.BGMModified)
             {
                 orchestrionController.StopSong();
                 orchestrionController.BGMModified = false;
@@ -175,10 +175,10 @@ namespace Weatherman
 
         public bool IsWeatherNormal(byte id, ushort terr)
         {
-            if (!zones.ContainsKey(terr)) return false;
-            foreach (var u in weatherRates.GetRow(zones[terr].WeatherRate).Weather)
+            if(!zones.ContainsKey(terr)) return false;
+            foreach(var u in weatherRates.GetRow(zones[terr].WeatherRate).Weather)
             {
-                if (u.RowId != 0 && u.RowId == id) return true;
+                if(u.RowId != 0 && u.RowId == id) return true;
             }
             return false;
         }
@@ -191,19 +191,19 @@ namespace Weatherman
         private (List<byte> WeatherList, string EnvbFile) ParseLvb(ushort id) //from titleedit https://github.com/lmcintyre/TitleEditPlugin
         {
             var weathers = new List<byte>();
-            if (!zones.TryGetValue(id, out var territoryType)) return (null, null);
+            if(!zones.TryGetValue(id, out var territoryType)) return (null, null);
             try
             {
                 var file = Svc.Data.GetFile<LvbFile>($"bg/{territoryType.Bg}.lvb");
-                if (file?.weatherIds == null || file.weatherIds.Length == 0)
+                if(file?.weatherIds == null || file.weatherIds.Length == 0)
                     return (null, null);
-                foreach (var weather in file.weatherIds)
-                    if (weather > 0 && weather < 255)
+                foreach(var weather in file.weatherIds)
+                    if(weather > 0 && weather < 255)
                         weathers.Add((byte)weather);
                 weathers.Sort();
                 return (weathers, file.envbFile);
             }
-            catch (Exception e)
+            catch(Exception e)
             {
                 PluginLog.Error($"Failed to load lvb for {territoryType}\n{e}");
             }

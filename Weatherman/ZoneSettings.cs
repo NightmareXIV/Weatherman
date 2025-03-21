@@ -2,7 +2,7 @@
 
 namespace Weatherman
 {
-    class ZoneSettings
+    internal class ZoneSettings
     {
         public ushort ZoneId;
         public string ZoneName;
@@ -17,11 +17,11 @@ namespace Weatherman
 
         public void Init(Weatherman plugin)
         {
-            SupportedWeathers = new List<WeathermanWeather>();
-            if(plugin.GetWeathers(ZoneId) != null) foreach (var w in plugin.GetWeathers(ZoneId))
-            {
-                SupportedWeathers.Add(new WeathermanWeather(w, false, plugin.IsWeatherNormal(w, ZoneId)));
-            }
+            SupportedWeathers = [];
+            if(plugin.GetWeathers(ZoneId) != null) foreach(var w in plugin.GetWeathers(ZoneId))
+                {
+                    SupportedWeathers.Add(new WeathermanWeather(w, false, plugin.IsWeatherNormal(w, ZoneId)));
+                }
         }
 
         public string GetString()
@@ -32,11 +32,11 @@ namespace Weatherman
                 TimeFlow.ToString(),
                 FixedTime.ToString()
             };
-            if (IsUntouched()) return null;
+            if(IsUntouched()) return null;
             var sel = new List<string>();
-            foreach (var z in SupportedWeathers)
+            foreach(var z in SupportedWeathers)
             {
-                if (z.Selected) sel.Add(z.Id.ToString());
+                if(z.Selected) sel.Add(z.Id.ToString());
             }
             b.Add(string.Join("|", sel));
             b.Add(Music.ToString());
@@ -51,23 +51,23 @@ namespace Weatherman
             FixedTime = int.Parse(ss[2]);
             var selectedw = ss[3].Split('|');
             Music = ss.Length < 5 ? 0 : int.Parse(ss[4]);
-            foreach (var i in selectedw)
+            foreach(var i in selectedw)
             {
                 var ii = byte.Parse(i);
-                foreach (var z in SupportedWeathers)
+                foreach(var z in SupportedWeathers)
                 {
-                    if (z.Id == ii) z.Selected = true;
+                    if(z.Id == ii) z.Selected = true;
                 }
             }
         }
         public bool IsUntouched()
         {
             var sel = new List<string>();
-            foreach (var z in SupportedWeathers)
+            foreach(var z in SupportedWeathers)
             {
-                if (z.Selected) sel.Add(z.Id.ToString());
+                if(z.Selected) sel.Add(z.Id.ToString());
             }
-            return this.WeatherControl == false && this.TimeFlow == 0 && this.FixedTime == 0 && sel.Count == 0 && this.Music == 0;
+            return WeatherControl == false && TimeFlow == 0 && FixedTime == 0 && sel.Count == 0 && Music == 0;
         }
     }
 }

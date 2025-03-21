@@ -5,14 +5,14 @@ namespace Weatherman
 {
     internal class TickScheduler
     {
-        long executeAt;
-        Action function;
-        IFramework framework;
-        bool disposed = false;
+        private long executeAt;
+        private Action function;
+        private IFramework framework;
+        private bool disposed = false;
 
         public TickScheduler(Action function, IFramework framework, long delayMS = 0)
         {
-            this.executeAt = Environment.TickCount64 + delayMS;
+            executeAt = Environment.TickCount64 + delayMS;
             this.function = function;
             this.framework = framework;
             framework.Update += Execute;
@@ -20,25 +20,25 @@ namespace Weatherman
 
         public void Dispose()
         {
-            if (!disposed)
+            if(!disposed)
             {
                 framework.Update -= Execute;
             }
             disposed = true;
         }
 
-        void Execute(object _)
+        private void Execute(object _)
         {
-            if (Environment.TickCount64 < executeAt) return;
+            if(Environment.TickCount64 < executeAt) return;
             try
             {
                 function();
             }
-            catch (Exception e)
+            catch(Exception e)
             {
                 PluginLog.Error(e.Message + "\n" + e.StackTrace ?? "");
             }
-            this.Dispose();
+            Dispose();
         }
     }
 }

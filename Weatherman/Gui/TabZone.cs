@@ -5,7 +5,7 @@ namespace Weatherman
 {
     internal partial class Gui
     {
-        void DrawTabZone()
+        private void DrawTabZone()
         {
             ImGui.TextUnformatted("Filter:");
             ImGui.SameLine();
@@ -20,7 +20,7 @@ namespace Weatherman
             ImGui.Checkbox("Current zone on top", ref p.configuration.ShowCurrentZoneOnTop);
             ImGui.SameLine();
             ImGui.Checkbox("Show unnamed zones", ref p.configuration.ShowUnnamedZones);
-            if (ImGui.Button("Apply weather changes"))
+            if(ImGui.Button("Apply weather changes"))
             {
                 p.ApplyWeatherChanges(Svc.ClientState.TerritoryType);
             }
@@ -52,14 +52,14 @@ namespace Weatherman
             ImGui.Separator();
 
             //current zone
-            if (p.configuration.ShowCurrentZoneOnTop && p.ZoneSettings.ContainsKey(Svc.ClientState.TerritoryType))
+            if(p.configuration.ShowCurrentZoneOnTop && p.ZoneSettings.ContainsKey(Svc.ClientState.TerritoryType))
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 1, 1, 1));
                 PrintZoneRow(p.ZoneSettings[Svc.ClientState.TerritoryType], false);
                 ImGui.PopStyleColor();
             }
 
-            foreach (var z in p.ZoneSettings.Values)
+            foreach(var z in p.ZoneSettings.Values)
             {
                 PrintZoneRow(z);
             }
@@ -68,30 +68,30 @@ namespace Weatherman
 
 
 
-        void PrintZoneRow(ZoneSettings z, bool filtering = true)
+        private void PrintZoneRow(ZoneSettings z, bool filtering = true)
         {
             var modAllowed = p.weatherAllowedZones.Contains(z.ZoneId) || p.timeAllowedZones.Contains(z.ZoneId);
             var bothModAllowed = p.weatherAllowedZones.Contains(z.ZoneId) && p.timeAllowedZones.Contains(z.ZoneId);
             var grayed = false;
-            if (filtering)
+            if(filtering)
             {
-                if (filter != ""
+                if(filter != ""
                     && !z.ZoneId.ToString().ToLower().Contains(filter.ToLower())
                     && !z.terr.PlaceNameZone.Value.Name.ToString().ToLower().Contains(filter.ToLower())
                     && !z.ZoneName.ToLower().Contains(filter.ToLower())) return;
                 //if (displayOnlyReal && !p.IsWorldTerritory(z.ZoneId)) return;
-                if (p.configuration.ShowOnlyModified)
+                if(p.configuration.ShowOnlyModified)
                 {
                     var sel = new List<string>();
-                    foreach (var zz in z.SupportedWeathers)
+                    foreach(var zz in z.SupportedWeathers)
                     {
-                        if (zz.Selected) sel.Add(zz.Id.ToString());
+                        if(zz.Selected) sel.Add(zz.Id.ToString());
                     }
-                    if (z.IsUntouched()) return;
+                    if(z.IsUntouched()) return;
                 }
-                if (!p.configuration.ShowUnnamedZones && z.ZoneName.Length == 0) return;
-                if (p.configuration.ShowOnlyWorldZones && !bothModAllowed) return;
-                if (!modAllowed)
+                if(!p.configuration.ShowUnnamedZones && z.ZoneName.Length == 0) return;
+                if(p.configuration.ShowOnlyWorldZones && !bothModAllowed) return;
+                if(!modAllowed)
                 {
                     grayed = true;
                     ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.7f, 0.7f, 0.7f, 1));
@@ -103,16 +103,16 @@ namespace Weatherman
             ImGui.NextColumn();
             ImGui.TextUnformatted(z.ZoneName);
             ImGui.NextColumn();
-            if (p.timeAllowedZones.Contains(z.ZoneId))
+            if(p.timeAllowedZones.Contains(z.ZoneId))
             {
                 ImGui.PushItemWidth(120f);
                 ImGui.Combo("##timecombo" + ++uid, ref z.TimeFlow, timeflowcombo, timeflowcombo.Length);
                 ImGui.PopItemWidth();
-                if (z.TimeFlow == 2)
+                if(z.TimeFlow == 2)
                 {
                     ImGui.PushItemWidth(50f);
                     ImGui.DragInt("##timecontrol" + ++uid, ref z.FixedTime, 100.0f, 0, Weatherman.SecondsInDay - 1);
-                    if (z.FixedTime > Weatherman.SecondsInDay || z.FixedTime < 0) z.FixedTime = 0;
+                    if(z.FixedTime > Weatherman.SecondsInDay || z.FixedTime < 0) z.FixedTime = 0;
                     ImGui.PopItemWidth();
                     ImGui.SameLine();
                     ImGui.TextUnformatted(DateTimeOffset.FromUnixTimeSeconds(z.FixedTime).ToString("HH:mm:ss"));
@@ -123,27 +123,27 @@ namespace Weatherman
                 ImGui.TextUnformatted("Unsupported");
             }
             ImGui.NextColumn();
-            if (p.weatherAllowedZones.Contains(z.ZoneId))
+            if(p.weatherAllowedZones.Contains(z.ZoneId))
             {
-                if (z.WeatherControl)
+                if(z.WeatherControl)
                 {
                     ImGui.Checkbox("##wcontrol" + ++uid, ref z.WeatherControl);
                     ImGui.SameLine();
                     ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
                     var wCount = z.SupportedWeathers.Where(w => w.Selected).Count();
-                    if (ImGui.BeginCombo($"##wcontrolc{uid}", wCount == 0 ? "Original" : $"{wCount} weathers"))
+                    if(ImGui.BeginCombo($"##wcontrolc{uid}", wCount == 0 ? "Original" : $"{wCount} weathers"))
                     {
-                        if (z.SupportedWeathers.Count == 0)
+                        if(z.SupportedWeathers.Count == 0)
                         {
                             ImGui.TextUnformatted("Zone has no supported weathers");
                         }
                         else
                         {
-                            foreach (var weather in z.SupportedWeathers)
+                            foreach(var weather in z.SupportedWeathers)
                             {
-                                if (weather.IsNormal) ImGui.PushStyleColor(ImGuiCol.Text, colorGreen);
+                                if(weather.IsNormal) ImGui.PushStyleColor(ImGuiCol.Text, colorGreen);
                                 ImGui.Checkbox(weather.Id + " | " + p.weathers[weather.Id] + "##" + ++uid, ref weather.Selected);
-                                if (weather.IsNormal) ImGui.PopStyleColor();
+                                if(weather.IsNormal) ImGui.PopStyleColor();
                             }
                         }
                         ImGui.EndCombo();
@@ -159,10 +159,10 @@ namespace Weatherman
                 ImGui.TextUnformatted("Unsupported");
             }
             ImGui.NextColumn();
-            if (p.configuration.MusicEnabled && Svc.PluginInterface.InstalledPlugins.Any(x => x.InternalName == "orchestrion" && x.IsLoaded))
+            if(p.configuration.MusicEnabled && Svc.PluginInterface.InstalledPlugins.Any(x => x.InternalName == "orchestrion" && x.IsLoaded))
             {
                 var songs = p.orchestrionController.GetSongList();
-                if (songs != null)
+                if(songs != null)
                 {
                     ImGui.PushItemWidth(130f);
                     if(ImGui.BeginCombo("##SelectSong" + ++uid, p.orchestrionController.GetSongById(z.Music).ToString(), ImGuiComboFlags.HeightLarge))
@@ -195,9 +195,9 @@ namespace Weatherman
                 ImGui.TextUnformatted("Music is not enabled");
             }
             ImGui.NextColumn();
-            if (ImGui.Button("X##" + ++uid))
+            if(ImGui.Button("X##" + ++uid))
             {
-                foreach (var zz in z.SupportedWeathers)
+                foreach(var zz in z.SupportedWeathers)
                 {
                     zz.Selected = false;
                 }
@@ -206,7 +206,7 @@ namespace Weatherman
                 z.FixedTime = 0;
                 z.Music = 0;
             }
-            if (grayed) ImGui.PopStyleColor();
+            if(grayed) ImGui.PopStyleColor();
             ImGui.NextColumn();
             ImGui.Separator();
         }

@@ -3,13 +3,13 @@
 namespace Weatherman
 {
     [Serializable]
-    class Configuration : IPluginConfiguration
+    internal class Configuration : IPluginConfiguration
     {
         public int Version { get; set; } = 1;
         public string ConfigurationString = "";
         public int GlobalTimeFlowControl = 0;
         public int GlobalFixedTime = 0;
-        public SortedDictionary<byte, bool> BlacklistedWeathers = new();
+        public SortedDictionary<byte, bool> BlacklistedWeathers = [];
         public bool EnableLogging = true;
         public bool MusicEnabled = false;
         public bool ShowUnnamedZones = false;
@@ -47,27 +47,27 @@ namespace Weatherman
         public string GetConfigurationString()
         {
             var configList = new List<string>();
-            foreach (var z in plugin.ZoneSettings)
+            foreach(var z in plugin.ZoneSettings)
             {
                 var v = z.Value.GetString();
-                if (v != null) configList.Add(z.Key + "@" + v);
+                if(v != null) configList.Add(z.Key + "@" + v);
             }
             return string.Join("\n", configList);
         }
 
         public void SetConfigurationString(string s)
         {
-            foreach (var z in s.Split('\n'))
+            foreach(var z in s.Split('\n'))
             {
                 try
                 {
                     var key = ushort.Parse(z.Split('@')[0]);
-                    if (plugin.ZoneSettings.ContainsKey(key))
+                    if(plugin.ZoneSettings.ContainsKey(key))
                     {
                         plugin.ZoneSettings[key].FromString(z.Split('@')[1]);
                     }
                 }
-                catch (Exception)
+                catch(Exception)
                 {
                     continue;
                 }
