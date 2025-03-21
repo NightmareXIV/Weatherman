@@ -1,116 +1,115 @@
 ﻿using Dalamud.Interface.ImGuiNotification;
 using ECommons;
 
-namespace Weatherman
+namespace Weatherman;
+
+internal unsafe partial class Weatherman
 {
-    internal unsafe partial class Weatherman
+    private void HandleFrameworkUpdate(object f)
     {
-        private void HandleFrameworkUpdate(object f)
+        try
         {
-            try
+            if(profiling)
             {
-                if(profiling)
+                totalTicks++;
+                stopwatch.Restart();
+            }
+            if(Utils.IsPlayerWatchingCutscene())
+            {
+                if(!InCutscene)
                 {
-                    totalTicks++;
-                    stopwatch.Restart();
-                }
-                if(Utils.IsPlayerWatchingCutscene())
-                {
-                    if(!InCutscene)
+                    PluginLog.Debug("Cutscene started");
+                    InCutscene = true;
+                    if(configuration.DisableInCutscene)
                     {
-                        PluginLog.Debug("Cutscene started");
-                        InCutscene = true;
-                        if(configuration.DisableInCutscene)
-                        {
-                            StopSongIfModified(0, 0);
-                        }
+                        StopSongIfModified(0, 0);
                     }
                 }
-                else
+            }
+            else
+            {
+                if(InCutscene)
                 {
-                    if(InCutscene)
-                    {
-                        PluginLog.Debug("Cutscene ended");
-                        InCutscene = false;
-                        ApplyWeatherChanges(Svc.ClientState.TerritoryType);
-                    }
+                    PluginLog.Debug("Cutscene ended");
+                    InCutscene = false;
+                    ApplyWeatherChanges(Svc.ClientState.TerritoryType);
                 }
-                if(Svc.ClientState.LocalPlayer != null
-                    && !PausePlugin
-                    && !(configuration.DisableInCutscene && InCutscene))
+            }
+            if(Svc.ClientState.LocalPlayer != null
+                && !PausePlugin
+                && !(configuration.DisableInCutscene && InCutscene))
+            {
+                if(CanModifyTime())
                 {
-                    if(CanModifyTime())
-                    {
-                        SetTimeBySetting(GetZoneTimeFlowSetting(Svc.ClientState.TerritoryType));
-                    }
-                    else
-                    {
-                        memoryManager.DisableCustomTime();
-                    }
-                    if(CanModifyWeather())
-                    {
-                        if(SelectedWeather != 255)
-                        {
-                            memoryManager.EnableCustomWeather();
-                            if(memoryManager.GetWeather() != SelectedWeather)
-                            {
-                                memoryManager.SetWeather(SelectedWeather);
-                                if(configuration.DisplayNotifications)
-                                {
-                                    Svc.PluginInterface.UiBuilder.AddNotification($"{weathers[SelectedWeather]}\nReason: selected by user", "Weatherman: weather changed", NotificationType.Info, 5000);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            var suggesterWeather = *memoryManager.TrueWeather;
-                            if(UnblacklistedWeather != 0 && suggesterWeather != UnblacklistedWeather
-                            && configuration.BlacklistedWeathers.TryGetValue(suggesterWeather, out var value)
-                            && value && configuration.BlacklistCS.EqualsAny(null, Utils.IsPlayerWatchingCutscene()))
-                            {
-                                suggesterWeather = UnblacklistedWeather;
-                            }
-                            //this is to retain smooth transitions
-                            if(suggesterWeather == *memoryManager.TrueWeather)
-                            {
-                                memoryManager.DisableCustomWeather();
-                            }
-                            else
-                            {
-                                memoryManager.EnableCustomWeather();
-                                if(memoryManager.GetWeather() != suggesterWeather)
-                                {
-                                    memoryManager.SetWeather(suggesterWeather);
-                                    if(configuration.DisplayNotifications)
-                                    {
-                                        Svc.PluginInterface.UiBuilder.AddNotification($"{weathers[SelectedWeather]}\nReason: found blacklisted weather", "Weatherman: weather changed", NotificationType.Info, 5000);
-                                    }
-                                }
-                            }
-
-                        }
-                    }
-                    else
-                    {
-                        memoryManager.DisableCustomWeather();
-                    }
-
+                    SetTimeBySetting(GetZoneTimeFlowSetting(Svc.ClientState.TerritoryType));
                 }
                 else
                 {
                     memoryManager.DisableCustomTime();
+                }
+                if(CanModifyWeather())
+                {
+                    if(SelectedWeather != 255)
+                    {
+                        memoryManager.EnableCustomWeather();
+                        if(memoryManager.GetWeather() != SelectedWeather)
+                        {
+                            memoryManager.SetWeather(SelectedWeather);
+                            if(configuration.DisplayNotifications)
+                            {
+                                Svc.PluginInterface.UiBuilder.AddNotification($"{weathers[SelectedWeather]}\nReason: selected by user", "Weatherman: weather changed", NotificationType.Info, 5000);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var suggesterWeather = *memoryManager.TrueWeather;
+                        if(UnblacklistedWeather != 0 && suggesterWeather != UnblacklistedWeather
+                        && configuration.BlacklistedWeathers.TryGetValue(suggesterWeather, out var value)
+                        && value && configuration.BlacklistCS.EqualsAny(null, Utils.IsPlayerWatchingCutscene()))
+                        {
+                            suggesterWeather = UnblacklistedWeather;
+                        }
+                        //this is to retain smooth transitions
+                        if(suggesterWeather == *memoryManager.TrueWeather)
+                        {
+                            memoryManager.DisableCustomWeather();
+                        }
+                        else
+                        {
+                            memoryManager.EnableCustomWeather();
+                            if(memoryManager.GetWeather() != suggesterWeather)
+                            {
+                                memoryManager.SetWeather(suggesterWeather);
+                                if(configuration.DisplayNotifications)
+                                {
+                                    Svc.PluginInterface.UiBuilder.AddNotification($"{weathers[SelectedWeather]}\nReason: found blacklisted weather", "Weatherman: weather changed", NotificationType.Info, 5000);
+                                }
+                            }
+                        }
+
+                    }
+                }
+                else
+                {
                     memoryManager.DisableCustomWeather();
                 }
-                if(profiling)
-                {
-                    stopwatch.Stop();
-                    totalTime += stopwatch.ElapsedTicks;
-                }
+
             }
-            catch(Exception e)
+            else
             {
-                PluginLog.Error($"{e.Message}\n{e.StackTrace ?? ""}");
+                memoryManager.DisableCustomTime();
+                memoryManager.DisableCustomWeather();
             }
+            if(profiling)
+            {
+                stopwatch.Stop();
+                totalTime += stopwatch.ElapsedTicks;
+            }
+        }
+        catch(Exception e)
+        {
+            PluginLog.Error($"{e.Message}\n{e.StackTrace ?? ""}");
         }
     }
 }

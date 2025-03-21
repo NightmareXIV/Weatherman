@@ -1,44 +1,43 @@
 ﻿using Dalamud.Game;
 using Dalamud.Plugin.Services;
 
-namespace Weatherman
+namespace Weatherman;
+
+internal class TickScheduler
 {
-    internal class TickScheduler
+    private long executeAt;
+    private Action function;
+    private IFramework framework;
+    private bool disposed = false;
+
+    public TickScheduler(Action function, IFramework framework, long delayMS = 0)
     {
-        private long executeAt;
-        private Action function;
-        private IFramework framework;
-        private bool disposed = false;
+        executeAt = Environment.TickCount64 + delayMS;
+        this.function = function;
+        this.framework = framework;
+        framework.Update += Execute;
+    }
 
-        public TickScheduler(Action function, IFramework framework, long delayMS = 0)
+    public void Dispose()
+    {
+        if(!disposed)
         {
-            executeAt = Environment.TickCount64 + delayMS;
-            this.function = function;
-            this.framework = framework;
-            framework.Update += Execute;
+            framework.Update -= Execute;
         }
+        disposed = true;
+    }
 
-        public void Dispose()
+    private void Execute(object _)
+    {
+        if(Environment.TickCount64 < executeAt) return;
+        try
         {
-            if(!disposed)
-            {
-                framework.Update -= Execute;
-            }
-            disposed = true;
+            function();
         }
-
-        private void Execute(object _)
+        catch(Exception e)
         {
-            if(Environment.TickCount64 < executeAt) return;
-            try
-            {
-                function();
-            }
-            catch(Exception e)
-            {
-                PluginLog.Error(e.Message + "\n" + e.StackTrace ?? "");
-            }
-            Dispose();
+            PluginLog.Error(e.Message + "\n" + e.StackTrace ?? "");
         }
+        Dispose();
     }
 }

@@ -1,95 +1,94 @@
-﻿namespace Weatherman
+﻿namespace Weatherman;
+
+internal class OrchestrionController : IDisposable
 {
-    internal class OrchestrionController : IDisposable
+    private Weatherman plugin;
+    internal bool BGMModified = false;
+    internal List<Song> SongList =
+    [
+        new Song(0, "Default")
+    ];
+
+    public OrchestrionController(Weatherman p)
     {
-        private Weatherman plugin;
-        internal bool BGMModified = false;
-        internal List<Song> SongList =
-        [
-            new Song(0, "Default")
-        ];
+        plugin = p;
+    }
 
-        public OrchestrionController(Weatherman p)
+    public void Dispose()
+    {
+
+    }
+
+    /*public IDalamudPlugin GetOrchestrionPlugin()
+    {
+        try
         {
-            plugin = p;
-        }
+            var pluginManager = Svc.PluginInterface.GetType().Assembly.
+                GetType("Dalamud.Service`1", true).MakeGenericType(Svc.PluginInterface.GetType().Assembly.GetType("Dalamud.Plugin.Internal.PluginManager", true)).
+                GetMethod("Get").Invoke(null, BindingFlags.Default, null, new object[] { }, null);
+            var installedPlugins = (System.Collections.IList)pluginManager.GetType().GetProperty("InstalledPlugins").GetValue(pluginManager);
 
-        public void Dispose()
-        {
-
-        }
-
-        /*public IDalamudPlugin GetOrchestrionPlugin()
-        {
-            try
+            foreach (var t in installedPlugins)
             {
-                var pluginManager = Svc.PluginInterface.GetType().Assembly.
-                    GetType("Dalamud.Service`1", true).MakeGenericType(Svc.PluginInterface.GetType().Assembly.GetType("Dalamud.Plugin.Internal.PluginManager", true)).
-                    GetMethod("Get").Invoke(null, BindingFlags.Default, null, new object[] { }, null);
-                var installedPlugins = (System.Collections.IList)pluginManager.GetType().GetProperty("InstalledPlugins").GetValue(pluginManager);
-
-                foreach (var t in installedPlugins)
+                if ((string)t.GetType().GetProperty("Name").GetValue(t) == "Orchestrion")
                 {
-                    if ((string)t.GetType().GetProperty("Name").GetValue(t) == "Orchestrion")
-                    {
-                        return (IDalamudPlugin)t.GetType().GetField("instance", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(t);
-                    }
+                    return (IDalamudPlugin)t.GetType().GetField("instance", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(t);
                 }
-                return null;
             }
-            catch (Exception e)
-            {
-                PluginLog.Error("Can't find orchestrion plugin: " + e.Message);
-                PluginLog.Error(e.StackTrace);
-                return null;
-            }
-        }*/
-
-        public void PlaySong(int id)
-        {
-            try
-            {
-                PluginLog.Debug("Invoked PlaySong " + id);
-                Svc.PluginInterface.GetIpcSubscriber<int, bool>("Orch.PlaySong").InvokeFunc(id);
-            }
-            catch(Exception e)
-            {
-                PluginLog.Error("Failed to play song:" + e.Message);
-            }
+            return null;
         }
-
-        public void StopSong()
+        catch (Exception e)
         {
-            try
-            {
-                PluginLog.Debug("Invoked StopSong");
-                Svc.PluginInterface.GetIpcSubscriber<int, bool>("Orch.PlaySong").InvokeFunc(0);
-            }
-            catch(Exception e)
-            {
-                PluginLog.Error("Failed to stop song:" + e.Message);
-            }
+            PluginLog.Error("Can't find orchestrion plugin: " + e.Message);
+            PluginLog.Error(e.StackTrace);
+            return null;
         }
+    }*/
 
-        public List<Song> GetSongList()
+    public void PlaySong(int id)
+    {
+        try
         {
-            if(SongList.Count > 1) return SongList;
-            try
-            {
-                SongList.AddRange(Svc.PluginInterface.GetIpcSubscriber<List<Song>>("Orch.AllSongInfo").InvokeFunc().Where(x => x.Id != 0));
-            }
-            catch(Exception e)
-            {
-                //PluginLog.Error("Failed to retrieve song list:" + e.Message + "\n" + e.StackTrace ?? "");
-            }
-            return SongList;
+            PluginLog.Debug("Invoked PlaySong " + id);
+            Svc.PluginInterface.GetIpcSubscriber<int, bool>("Orch.PlaySong").InvokeFunc(id);
         }
+        catch(Exception e)
+        {
+            PluginLog.Error("Failed to play song:" + e.Message);
+        }
+    }
 
-        public Song GetSongById(int id)
+    public void StopSong()
+    {
+        try
         {
-            var a = SongList.Find(x => x.Id == id);
-            if(a != null) return a;
-            return new Song(id, id.ToString());
+            PluginLog.Debug("Invoked StopSong");
+            Svc.PluginInterface.GetIpcSubscriber<int, bool>("Orch.PlaySong").InvokeFunc(0);
         }
+        catch(Exception e)
+        {
+            PluginLog.Error("Failed to stop song:" + e.Message);
+        }
+    }
+
+    public List<Song> GetSongList()
+    {
+        if(SongList.Count > 1) return SongList;
+        try
+        {
+            SongList.AddRange(Svc.PluginInterface.GetIpcSubscriber<List<Song>>("Orch.AllSongInfo").InvokeFunc().Where(x => x.Id != 0));
+        }
+        catch(Exception e)
+        {
+            //PluginLog.Error("Failed to retrieve song list:" + e.Message + "\n" + e.StackTrace ?? "");
+        }
+        return SongList;
+    }
+
+    public Song GetSongById(int id)
+    {
+        var a = SongList.Find(x => x.Id == id);
+        if(a != null) return a;
+        return new Song(id, id.ToString());
     }
 }
