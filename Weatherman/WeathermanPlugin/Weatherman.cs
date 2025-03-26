@@ -182,8 +182,8 @@ internal unsafe partial class Weatherman : IDalamudPlugin
 
     public bool IsWeatherNormal(byte id, ushort terr)
     {
-        if(!zones.ContainsKey(terr)) return false;
-        foreach(var u in weatherRates.GetRow(zones[terr].WeatherRate).Weather)
+        if(!zones.TryGetValue(terr, out var value)) return false;
+        foreach(var u in weatherRates.GetRow(value.WeatherRate.RowId).Weather)
         {
             if(u.RowId != 0 && u.RowId == id) return true;
         }
