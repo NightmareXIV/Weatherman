@@ -1,6 +1,5 @@
 ﻿using Dalamud;
 using Dalamud.Hooking;
-using PInvoke;
 
 namespace Weatherman;
 
@@ -84,8 +83,8 @@ internal unsafe class MemoryManager : IDisposable
         if(!IsTimeCustom())
         {
             SafeMemory.WriteBytes(TimeAsmPtr, NewTimeAsm);
-            var result = Kernel32.GetLastError();
-            PluginLog.Debug($"EnableCustomTime result: {result}");
+            //var result = Kernel32.GetLastError();
+            //PluginLog.Debug($"EnableCustomTime result: {result}");
         }
     }
 
@@ -94,8 +93,8 @@ internal unsafe class MemoryManager : IDisposable
         if(IsTimeCustom())
         {
             SafeMemory.WriteBytes(TimeAsmPtr, OldTimeAsm);
-            var result = Kernel32.GetLastError();
-            PluginLog.Debug($"DisableCustomTime result: {result}");
+            //var result = Kernel32.GetLastError();
+            //PluginLog.Debug($"DisableCustomTime result: {result}");
         }
     }
 
@@ -119,7 +118,8 @@ internal unsafe class MemoryManager : IDisposable
     {
         this.p = p;
 
-        if(Svc.SigScanner.TryScanText("48 89 5C 24 ?? 56 57 41 57 48 83 EC 40 45 33 FF", out var ptr))
+        //TODO: finally figure this out
+        /*if(Svc.SigScanner.TryScanText("48 89 5C 24 ?? 56 57 41 57 48 83 EC 40 45 33 FF", out var ptr))
         {
             PluginLog.Information($"PlayWeatherSound ptr: {ptr:X16}");
             PlayWeatherSoundHook = Svc.Hook.HookFromAddress<PlayWeatherSound>(ptr, PlayWeatherSoundDetour);
@@ -128,7 +128,7 @@ internal unsafe class MemoryManager : IDisposable
         else
         {
             PluginLog.Warning("PlayWeatherSound function was not found, sound changing will be disabled");
-        }
+        }*/
 
         //setup time
         TimeAsmPtr = Svc.SigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC 30 4C 8B 15") + 0x19;
@@ -156,7 +156,7 @@ internal unsafe class MemoryManager : IDisposable
         //setup weather
         TrueWeather = (byte*)(*(IntPtr*)Svc.SigScanner.GetStaticAddressFromSig("48 8B 05 ?? ?? ?? ?? 48 83 C1 10 48 89 74 24") + 0x26);
         PluginLog.Information($"Weather ptr: {(IntPtr)TrueWeather:X16}");
-        WeatherAsmPtr = Svc.SigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC 30 80 B9 ?? ?? ?? ?? ?? 49 8B F8 0F 29 74 24") + 0x55;
+        WeatherAsmPtr = Svc.SigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC 30 80 B9 ?? ?? ?? ?? ?? 49 8B F8 0F 29 74 24 ?? 48 8B D9 0F 28 F1") + 0x55;
         PluginLog.Information($"Weather asm ptr: {(IntPtr)WeatherAsmPtr:X16}");
         if(Static.VirtualProtect(
             (UIntPtr)(WeatherAsmPtr + 0x1).ToPointer(), (IntPtr)0x1,
