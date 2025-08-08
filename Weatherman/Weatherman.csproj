@@ -46,10 +46,6 @@
           <HintPath>$(DalamudLibPath)Dalamud.Common.dll</HintPath>
           <Private>False</Private>
       </Reference>
-      <Reference Include="ImGui.NET">
-          <HintPath>$(DalamudLibPath)ImGui.NET.dll</HintPath>
-          <Private>False</Private>
-      </Reference>
       <Reference Include="ImGuiScene">
           <HintPath>$(DalamudLibPath)ImGuiScene.dll</HintPath>
           <Private>False</Private>
@@ -62,16 +58,16 @@
           <HintPath>$(DalamudLibPath)Lumina.Excel.dll</HintPath>
           <Private>False</Private>
       </Reference>
+      <Reference Include="Dalamud.Interface">
+          <HintPath>$(DalamudLibPath)Dalamud.Interface.dll</HintPath>
+          <Private>False</Private>
+      </Reference>
+      <Reference Include="Dalamud.Bindings.ImGui">
+          <HintPath>$(DalamudLibPath)Dalamud.Bindings.ImGui.dll</HintPath>
+          <Private>False</Private>
+      </Reference>
       <Reference Include="FFXIVClientStructs">
           <HintPath>$(DalamudLibPath)FFXIVClientStructs.dll</HintPath>
-          <Private>False</Private>
-      </Reference>
-      <Reference Include="PInvoke.User32">
-          <HintPath>$(DalamudLibPath)PInvoke.User32.dll</HintPath>
-          <Private>False</Private>
-      </Reference>
-      <Reference Include="PInvoke.Windows.Core">
-          <HintPath>$(DalamudLibPath)PInvoke.Windows.Core.dll</HintPath>
           <Private>False</Private>
       </Reference>
       <Reference Include="SharpDX.Mathematics">
@@ -86,25 +82,13 @@
           <HintPath>$(DalamudLibPath)Serilog.dll</HintPath>
           <Private>False</Private>
       </Reference>
-      <Reference Include="PInvoke.User32">
-          <HintPath>$(DalamudLibPath)PInvoke.User32.dll</HintPath>
-          <Private>False</Private>
-      </Reference>
-      <Reference Include="PInvoke.Windows.Core">
-          <HintPath>$(DalamudLibPath)PInvoke.Windows.Core.dll</HintPath>
-          <Private>False</Private>
-      </Reference>
-      <Reference Include="PInvoke.Kernel32">
-          <HintPath>$(DalamudLibPath)PInvoke.Kernel32.dll</HintPath>
-          <Private>False</Private>
-      </Reference>
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="DalamudPackager" Version="12.0.0" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\ECommons\ECommons\ECommons.csproj" />
+	  <PackageReference Include="DalamudPackager" Version="13.0.0" />
+	  <PackageReference Include="ECommons" Version="3.0.0.17-api13" />
+	  <PackageReference Include="PInvoke.Kernel32" Version="0.7.124" />
+	  <PackageReference Include="PInvoke.User32" Version="0.7.124" />
+	  <PackageReference Include="PInvoke.Windows.Core" Version="0.7.124" />
 	</ItemGroup>
 </Project>

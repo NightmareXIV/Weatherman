@@ -2,7 +2,8 @@
 global using ECommons.DalamudServices;
 global using ECommons.DalamudServices.Legacy;
 global using ECommons.Logging;
-global using ImGuiNET;
+global using Dalamud.Interface.Utility;
+global using Dalamud.Bindings.ImGui;
 global using System;
 global using System.Collections.Generic;
 global using System.Diagnostics;
