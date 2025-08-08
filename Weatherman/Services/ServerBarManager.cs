@@ -21,7 +21,7 @@ public unsafe class ServerBarManager : IDisposable
             Svc.Framework.Update += OnUpdate;
             Entry = Svc.DtrBar.Get("Weatherman", "");
             Entry.Shown = true;
-            Entry.OnClick = OnClick;
+            Entry.OnClick = _ => OnClick();
             UpdateText();
         }
     }
