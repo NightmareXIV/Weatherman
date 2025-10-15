@@ -1,5 +1,6 @@
 ﻿using ECommons;
 using ECommons.Configuration;
+using ECommons.ExcelServices.TerritoryEnumeration;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using System;
@@ -33,6 +34,7 @@ public sealed class DataProvider
             163, 367, //qarn
             158, 362, //brayfox
             623, //bardam
+            Dungeons.Cutters_Cry,
         ];
         Zones = Svc.Data.GetExcelSheet<TerritoryType>().ToDictionary(row => (ushort)row.RowId, row => row);
         WeatherAllowedZones.UnionWith(Svc.Data.GetExcelSheet<TerritoryType>().Where(x => x.Mount && !x.IsPvpZone).Select(x => (ushort)x.RowId));
