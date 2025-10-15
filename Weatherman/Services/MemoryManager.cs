@@ -37,12 +37,12 @@ public unsafe class MemoryManager : IDisposable
     EzHook<UpdateBgmSituation> UpdateBgmSituationHook;
     byte UpdateBgmSituationDetour(nint a1, ushort bgmSituationId, int column, nint a4, nint a5)
     {
-        PluginLog.Information($"{column}");
+        //PluginLog.Information($"{column}");
         if(IsTimeCustom() && column != 3)
         {
             var isDay = GetTime() % 86400 > 43200;
             column = isDay ? 1 : 2;
-            PluginLog.Information($"{column}");
+            //PluginLog.Information($"{column}");
         }
         return UpdateBgmSituationHook.Original(a1, bgmSituationId, column, a4, a5);
     }
