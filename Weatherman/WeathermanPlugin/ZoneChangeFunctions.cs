@@ -1,6 +1,8 @@
-﻿namespace Weatherman;
+﻿using Weatherman.Services;
 
-internal partial class Weatherman
+namespace Weatherman;
+
+public partial class Weatherman
 {
     private void HandleZoneChange(ushort u)
     {
@@ -17,9 +19,8 @@ internal partial class Weatherman
             SelectedWeather = 255;
             UnblacklistedWeather = 0;
             StopSongIfModified(0, 0);
-            if(ZoneSettings.ContainsKey(u))
+            if(S.DataProvider.ZoneSettings.TryGetValue(u, out var z))
             {
-                var z = ZoneSettings[u];
                 if(Config.MusicEnabled && z.Music != 0 && !orchestrionController.BGMModified)
                 {
                     orchestrionController.PlaySong(z.Music);
@@ -38,7 +39,7 @@ internal partial class Weatherman
                     }
                     else
                     {
-
+                        //
                     }
                 }
                 else
@@ -48,7 +49,7 @@ internal partial class Weatherman
                     {
                         if(Config.BlacklistedWeathers.ContainsKey(v.Id)
                             && !Config.BlacklistedWeathers[v.Id]
-                            && IsWeatherNormal(v.Id, Svc.ClientState.TerritoryType))
+                            && S.DataProvider.IsWeatherNormal(v.Id, Svc.ClientState.TerritoryType))
                         {
                             unblacklistedWeatherCandidates.Add(v.Id);
                         }
@@ -71,6 +72,6 @@ internal partial class Weatherman
 
     internal long GetET()
     {
-        return (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * ETMult / 1000D);
+        return (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * DataProvider.ETMult / 1000D);
     }
 }

@@ -21,8 +21,8 @@ internal partial class Gui
         {
             ImGui.TextUnformatted("Set desired time of day in seconds. Double-click to edit field manually.");
             ImGui.PushItemWidth(150f);
-            ImGui.DragInt("##timecontrolfixedglobal", ref p.Config.GlobalFixedTime, 100.0f, 0, Weatherman.SecondsInDay - 1);
-            if(p.Config.GlobalFixedTime > Weatherman.SecondsInDay
+            ImGui.DragInt("##timecontrolfixedglobal", ref p.Config.GlobalFixedTime, 100.0f, 0, DataProvider.SecondsInDay - 1);
+            if(p.Config.GlobalFixedTime > DataProvider.SecondsInDay
                 || p.Config.GlobalFixedTime < 0) p.Config.GlobalFixedTime = 0;
             ImGui.PopItemWidth();
             ImGui.SameLine();

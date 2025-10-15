@@ -5,12 +5,13 @@ using ECommons.DalamudServices.Legacy;
 using Lumina.Excel.Sheets;
 using System.IO;
 using System.Text.RegularExpressions;
+using Weatherman.Services;
 
 namespace Weatherman;
 
 internal unsafe partial class Gui
 {
-    private float newMult = (float)Weatherman.ETMult;
+    private float newMult = (float)DataProvider.ETMult;
     private void DrawTabDebug()
     {
         try
@@ -34,51 +35,55 @@ internal unsafe partial class Gui
                     p.totalTime = 0;
                 }
             }
-            if(SafeMemory.ReadBytes(p.memoryManager.TimeAsmPtr, p.memoryManager.NewTimeAsm.Length, out var timeAsm))
+            if(SafeMemory.ReadBytes(S.MemoryManager.RenderTimePatch.Address, S.MemoryManager.RenderTimePatch.PatchData.PatchData.Count, out var timeAsm))
             {
                 ImGui.TextUnformatted("Time asm: " + timeAsm.ToHexString());
             }
-            if(p.memoryManager.IsTimeCustom())
+            if(S.MemoryManager.IsTimeCustom())
             {
                 ImGui.SameLine();
                 ImGui.TextUnformatted("[custom]");
             }
-            if(SafeMemory.ReadBytes(p.memoryManager.WeatherAsmPtr, p.memoryManager.NewWeatherAsm.Length, out var weatherAsm))
+            if(SafeMemory.ReadBytes(S.MemoryManager.RenderWeatherPatch.Address, S.MemoryManager.RenderWeatherPatch.PatchData.PatchData.Count, out var weatherAsm))
             {
                 ImGui.TextUnformatted("Weather asm: " + weatherAsm.ToHexString());
             }
-            if(p.memoryManager.IsWeatherCustom())
+            if(S.MemoryManager.IsWeatherCustom())
             {
                 ImGui.SameLine();
                 ImGui.TextUnformatted("[custom]");
             }
-            ImGui.TextUnformatted($"Mult: {Weatherman.ETMult}");
+            if(SafeMemory.ReadBytes(S.MemoryManager.RenderSunlightShadowPatch.Address, S.MemoryManager.RenderWeatherPatch.PatchData.PatchData.Count, out var sunlightAsm))
+            {
+                ImGui.TextUnformatted("Sunlight shadow asm: " + sunlightAsm.ToHexString());
+            }
+            ImGui.TextUnformatted($"Mult: {DataProvider.ETMult}");
             ImGui.SetNextItemWidth(100f);
             ImGui.DragFloat("New mult", ref newMult, float.Epsilon);
             ImGui.SameLine();
             if(ImGui.Button("Set##mult"))
             {
-                Weatherman.ETMult = newMult;
+                DataProvider.ETMult = newMult;
             }
             ImGui.SameLine();
             if(ImGui.Button("Reset##mult"))
             {
-                Weatherman.ETMult = 144D / 7D;
+                DataProvider.ETMult = 144D / 7D;
             }
-            ImGui.TextUnformatted("True weather: " + *p.memoryManager.TrueWeather + " / " + p.weathers[*p.memoryManager.TrueWeather]);
-            ImGui.TextUnformatted("Displayed weather: " + p.memoryManager.GetDisplayedWeather() + " / " + p.weathers[p.memoryManager.GetDisplayedWeather()]);
-            ImGui.TextUnformatted("True time: " + p.memoryManager.TrueTime + " / " + DateTimeOffset.FromUnixTimeSeconds(p.memoryManager.TrueTime).ToString());
+            ImGui.TextUnformatted("True weather: " + *S.MemoryManager.TrueWeather + " / " + S.DataProvider.Weathers[*S.MemoryManager.TrueWeather]);
+            ImGui.TextUnformatted("Displayed weather: " + S.MemoryManager.GetDisplayedWeather() + " / " + S.DataProvider.Weathers[S.MemoryManager.GetDisplayedWeather()]);
+            ImGui.TextUnformatted("True time: " + S.MemoryManager.TrueTime + " / " + DateTimeOffset.FromUnixTimeSeconds(S.MemoryManager.TrueTime).ToString());
             var et = p.GetET();
             ImGui.TextUnformatted("Calculated time: " + et + " / " + DateTimeOffset.FromUnixTimeSeconds(et).ToString());
-            var diff = Math.Abs(p.memoryManager.TrueTime - et);
+            var diff = Math.Abs(S.MemoryManager.TrueTime - et);
             ImGui.TextColored(diff < 50 ? ImGuiColors.HealerGreen : (diff < 200 ? ImGuiColors.DalamudOrange : ImGuiColors.DalamudRed), $"Difference: {diff}");
-            if(p.memoryManager.IsTimeCustom()) ImGui.TextUnformatted("Time from asm: " + p.memoryManager.GetTime() + " / " +
-                DateTimeOffset.FromUnixTimeSeconds(p.memoryManager.GetTime()).ToLocalTime().AlreadyLocal().ToString());
+            if(S.MemoryManager.IsTimeCustom()) ImGui.TextUnformatted("Time from asm: " + S.MemoryManager.GetTime() + " / " +
+                DateTimeOffset.FromUnixTimeSeconds(S.MemoryManager.GetTime()).ToLocalTime().AlreadyLocal().ToString());
             ImGui.TextUnformatted("Current zone: " + Svc.ClientState.TerritoryType + " / " +
-                p.zones[Svc.ClientState.TerritoryType].PlaceName.ValueNullable?.Name.ToString());
+                S.DataProvider.Zones[Svc.ClientState.TerritoryType].PlaceName.ValueNullable?.Name.ToString());
             ImGui.TextUnformatted("Unblacklisted weather: " + p.UnblacklistedWeather);
             List<string> wGui = [];
-            foreach(var w in p.weathers)
+            foreach(var w in S.DataProvider.Weathers)
             {
                 wGui.Add(w.Key + " / " + w.Value);
             }
@@ -102,27 +107,27 @@ internal unsafe partial class Gui
                 p.SelectedWeather = 255;
             }
             ImGui.TextUnformatted("Supported weathers:");
-            foreach(var i in p.GetWeathers(Svc.ClientState.TerritoryType))
+            foreach(var i in S.DataProvider.GetWeathers(Svc.ClientState.TerritoryType))
             {
                 var colored = false;
-                if(p.memoryManager.GetDisplayedWeather() == i)
+                if(S.MemoryManager.GetDisplayedWeather() == i)
                 {
                     ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1, 0, 0, 1));
                     colored = true;
                 }
-                if(p.weatherAllowedZones.Contains(Svc.ClientState.TerritoryType))
+                if(S.DataProvider.WeatherAllowedZones.Contains(Svc.ClientState.TerritoryType))
                 {
-                    if(ImGui.SmallButton(i + " / " + p.weathers[i]))
+                    if(ImGui.SmallButton(i + " / " + S.DataProvider.Weathers[i]))
                     {
                         p.SelectedWeather = i;
                     }
                 }
                 else
                 {
-                    ImGui.TextUnformatted(i + " / " + p.weathers[i]);
+                    ImGui.TextUnformatted(i + " / " + S.DataProvider.Weathers[i]);
                 }
                 if(colored) ImGui.PopStyleColor(1);
-                if(p.IsWeatherNormal(i, Svc.ClientState.TerritoryType))
+                if(S.DataProvider.IsWeatherNormal(i, Svc.ClientState.TerritoryType))
                 {
                     ImGui.SameLine();
                     ImGui.TextColored(new Vector4(0, 1, 0, 1), "Occurs normally");
@@ -130,21 +135,21 @@ internal unsafe partial class Gui
             }
             if(ImGui.CollapsingHeader("Weather allowed zones"))
             {
-                foreach(var a in p.weatherAllowedZones)
+                foreach(var a in S.DataProvider.WeatherAllowedZones)
                 {
-                    ImGui.TextUnformatted($"{a} / {p.zones[a].PlaceName.Value.Name} ({p.zones[a].ContentFinderCondition.Value.Name} | {Svc.Data.GetExcelSheet<Quest>().GetRowOrDefault((uint)p.zones[a].QuestBattle.ValueNullable?.Quest.RowId)?.Name})");
+                    ImGui.TextUnformatted($"{a} / {S.DataProvider.Zones[a].PlaceName.Value.Name} ({S.DataProvider.Zones[a].ContentFinderCondition.Value.Name} | {Svc.Data.GetExcelSheet<Quest>().GetRowOrDefault((uint)S.DataProvider.Zones[a].QuestBattle.ValueNullable?.Quest.RowId)?.Name})");
                 }
             }
             if(ImGui.CollapsingHeader("Time allowed zones"))
             {
-                foreach(var a in p.timeAllowedZones)
+                foreach(var a in S.DataProvider.TimeAllowedZones)
                 {
-                    ImGui.TextUnformatted($"{a} / {p.zones[a].PlaceName.Value.Name} ({p.zones[a].ContentFinderCondition.Value.Name} | {Svc.Data.GetExcelSheet<Quest>().GetRowOrDefault((uint)p.zones[a].QuestBattle.ValueNullable?.Quest.RowId)?.Name})");
+                    ImGui.TextUnformatted($"{a} / {S.DataProvider.Zones[a].PlaceName.Value.Name} ({S.DataProvider.Zones[a].ContentFinderCondition.Value.Name} | {Svc.Data.GetExcelSheet<Quest>().GetRowOrDefault((uint)S.DataProvider.Zones[a].QuestBattle.ValueNullable?.Quest.RowId)?.Name})");
                 }
             }
             if(ImGui.CollapsingHeader("envb files"))
             {
-                foreach(var a in p.weatherList)
+                foreach(var a in S.DataProvider.WeatherList)
                 {
                     if(ImGui.Selectable($"{a.Key}: {a.Value.EnvbFile}"))
                     {
@@ -155,7 +160,7 @@ internal unsafe partial class Gui
                 if(ImGui.Button("Dump all"))
                 {
                     var rgx = new Regex("[^a-zA-Z0-9 -]");
-                    foreach(var a in p.weatherList)
+                    foreach(var a in S.DataProvider.WeatherList)
                     {
                         if(a.Value.EnvbFile != null)
                         {
@@ -168,7 +173,7 @@ internal unsafe partial class Gui
                                     {
                                         Directory.CreateDirectory(path);
                                         Svc.Data.GetFile(a.Value.EnvbFile).SaveFile(Path.Combine(path, s));
-                                        File.Create(Path.Combine(path, $"{s}.Terr.{a.Key}.{rgx.Replace(p.zones[a.Key].PlaceName.Value.Name.ToString(), "")}")).Close();
+                                        File.Create(Path.Combine(path, $"{s}.Terr.{a.Key}.{rgx.Replace(S.DataProvider.Zones[a.Key].PlaceName.Value.Name.ToString(), "")}")).Close();
                                         break;
                                     }
                                     path = Path.Combine(path, s);

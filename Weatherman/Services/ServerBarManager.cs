@@ -40,8 +40,8 @@ public unsafe class ServerBarManager : IDisposable
 
     public void UpdateText()
     {
-        var text = Svc.Data.GetExcelSheet<Weather>().GetRowOrDefault(C.DTRBarRealAlways? *P.memoryManager.TrueWeather:P.memoryManager.GetDisplayedWeather())?.Name.ExtractText() ?? "Unknown";
-        if(P.memoryManager.IsWeatherCustom()) 
+        var text = Svc.Data.GetExcelSheet<Weather>().GetRowOrDefault(C.DTRBarRealAlways? *S.MemoryManager.TrueWeather:S.MemoryManager.GetDisplayedWeather())?.Name.ExtractText() ?? "Unknown";
+        if(S.MemoryManager.IsWeatherCustom()) 
         {
             Entry.Text = new SeStringBuilder().AddUiForeground(text, 31).Build();
         }
@@ -54,7 +54,7 @@ public unsafe class ServerBarManager : IDisposable
     (int Displayed, int True) LastState = default;
     void OnUpdate(object f)
     {
-        var newState = (P.memoryManager.GetDisplayedWeather(), *P.memoryManager.TrueWeather);
+        var newState = (S.MemoryManager.GetDisplayedWeather(), *S.MemoryManager.TrueWeather);
         if(newState != LastState)
         {
             PluginLog.Debug($"State updated");

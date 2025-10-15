@@ -2,6 +2,7 @@
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Plugin.Services;
 using ECommons.DalamudServices.Legacy;
+using Weatherman.Services;
 
 namespace Weatherman;
 
@@ -20,7 +21,7 @@ internal unsafe class ClockOffNag : IDisposable
     {
         if(Svc.ClientState.LocalPlayer != null)
         {
-            var tt = p.memoryManager.TrueTime;
+            var tt = S.MemoryManager.TrueTime;
             var et = p.GetET();
             if(Math.Abs(tt - et) > 500 && !p.Config.NoClockNag)
             {

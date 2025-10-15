@@ -1,4 +1,5 @@
 ﻿using Dalamud.Interface.Colors;
+using Weatherman.Services;
 
 namespace Weatherman;
 
@@ -6,8 +7,8 @@ internal unsafe partial class Gui
 {
     private void DrawTabQuickControl()
     {
-        var canModWeather = p.weatherAllowedZones.Contains(Svc.ClientState.TerritoryType);
-        var canModTime = p.timeAllowedZones.Contains(Svc.ClientState.TerritoryType);
+        var canModWeather = S.DataProvider.WeatherAllowedZones.Contains(Svc.ClientState.TerritoryType);
+        var canModTime = S.DataProvider.TimeAllowedZones.Contains(Svc.ClientState.TerritoryType);
         if(canModWeather || canModTime)
         {
             ImGui.Checkbox("Pause Weatherman", ref p.PausePlugin);
@@ -37,7 +38,7 @@ internal unsafe partial class Gui
                         if(ImGui.SliderInt("##customTime", ref position, 0, 24, $"{span.Hours:D2}:{span.Minutes:D2}:{span.Seconds:D2}"))
                         {
                             p.TimeOverrideValue = position * 3600;
-                            if(p.TimeOverrideValue == Weatherman.SecondsInDay) p.TimeOverrideValue -= 1;
+                            if(p.TimeOverrideValue == DataProvider.SecondsInDay) p.TimeOverrideValue -= 1;
                             p.TimeOverride = true;
                         }
                         if(ImGui.IsItemClicked(ImGuiMouseButton.Right))
@@ -71,20 +72,20 @@ internal unsafe partial class Gui
                         p.TimeOverrideValue = h * 60 * 60 + m * 60 + s;
                         ImGui.EndPopup();
                     }
-                    ValidateRange(ref p.TimeOverrideValue, 0, Weatherman.SecondsInDay - 1);
+                    ValidateRange(ref p.TimeOverrideValue, 0, DataProvider.SecondsInDay - 1);
                 }
                 if(canModWeather)
                 {
-                    foreach(var i in p.GetWeathers(Svc.ClientState.TerritoryType))
+                    foreach(var i in S.DataProvider.GetWeathers(Svc.ClientState.TerritoryType))
                     {
                         ImGui.PushID(i.ToString());
                         var colored = false;
-                        if(p.IsWeatherNormal(i, Svc.ClientState.TerritoryType))
+                        if(S.DataProvider.IsWeatherNormal(i, Svc.ClientState.TerritoryType))
                         {
                             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.ParsedGreen);
                             colored = true;
                         }
-                        if(ImGui.RadioButton(String.IsNullOrWhiteSpace(p.weathers[i]) ? i.ToString() : p.weathers[i], p.SelectedWeather == i))
+                        if(ImGui.RadioButton(String.IsNullOrWhiteSpace(S.DataProvider.Weathers[i]) ? i.ToString() : S.DataProvider.Weathers[i], p.SelectedWeather == i))
                         {
                             p.SelectedWeather = i;
                         }

@@ -1,6 +1,6 @@
 ﻿namespace Weatherman;
 
-internal class WeathermanWeather
+public class WeathermanWeather
 {
     public byte Id;
     public bool Selected;

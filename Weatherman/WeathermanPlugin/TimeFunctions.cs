@@ -1,88 +1,90 @@
-﻿namespace Weatherman;
+﻿using Weatherman.Services;
 
-internal unsafe partial class Weatherman
+namespace Weatherman;
+
+public unsafe partial class Weatherman
 {
     private void SetTimeBySetting(int setting)
     {
         if(TimeOverride)
         {
-            memoryManager.EnableCustomTime();
-            memoryManager.SetTime((uint)TimeOverrideValue);
+            S.MemoryManager.EnableCustomTime();
+            S.MemoryManager.SetTime((uint)TimeOverrideValue);
         }
         else
         {
             if(setting == 0) //game managed
             {
-                memoryManager.DisableCustomTime();
+                S.MemoryManager.DisableCustomTime();
             }
             else if(setting == 1) //normal
             {
-                memoryManager.EnableCustomTime();
+                S.MemoryManager.EnableCustomTime();
                 var et = GetET();
                 if(Config.ChangeTimeFlowSpeed)
                 {
-                    et = (long)(et % SecondsInDay * Config.TimeFlowSpeed);
+                    et = (long)(et % DataProvider.SecondsInDay * Config.TimeFlowSpeed);
                 }
-                memoryManager.SetTime((uint)(et % SecondsInDay));
+                S.MemoryManager.SetTime((uint)(et % DataProvider.SecondsInDay));
             }
             else if(setting == 2) //fixed
             {
-                memoryManager.EnableCustomTime();
+                S.MemoryManager.EnableCustomTime();
                 var et = (uint)GetZoneTimeFixedSetting(Svc.ClientState.TerritoryType);
-                memoryManager.SetTime(et);
+                S.MemoryManager.SetTime(et);
             }
             else if(setting == 3) //infiniday
             {
-                memoryManager.EnableCustomTime();
+                S.MemoryManager.EnableCustomTime();
                 var et = GetET();
                 if(Config.ChangeTimeFlowSpeed)
                 {
-                    et = (long)(et % SecondsInDay * Config.TimeFlowSpeed);
+                    et = (long)(et % DataProvider.SecondsInDay * Config.TimeFlowSpeed);
                 }
-                var timeOfDay = et % SecondsInDay;
-                if(timeOfDay > 18 * 60 * 60 || timeOfDay < 6 * 60 * 60) et += SecondsInDay / 2;
-                memoryManager.SetTime((uint)(et % SecondsInDay));
+                var timeOfDay = et % DataProvider.SecondsInDay;
+                if(timeOfDay > 18 * 60 * 60 || timeOfDay < 6 * 60 * 60) et += DataProvider.SecondsInDay / 2;
+                S.MemoryManager.SetTime((uint)(et % DataProvider.SecondsInDay));
             }
             else if(setting == 4) //infiniday r
             {
-                memoryManager.EnableCustomTime();
+                S.MemoryManager.EnableCustomTime();
                 var et = GetET();
                 if(Config.ChangeTimeFlowSpeed)
                 {
-                    et = (long)(et % SecondsInDay * Config.TimeFlowSpeed);
+                    et = (long)(et % DataProvider.SecondsInDay * Config.TimeFlowSpeed);
                 }
-                var timeOfDay = et % SecondsInDay;
+                var timeOfDay = et % DataProvider.SecondsInDay;
                 if(timeOfDay > 18 * 60 * 60) et -= 2 * (timeOfDay - 18 * 60 * 60);
                 if(timeOfDay < 6 * 60 * 60) et += 2 * (6 * 60 * 60 - timeOfDay);
-                memoryManager.SetTime((uint)(et % SecondsInDay));
+                S.MemoryManager.SetTime((uint)(et % DataProvider.SecondsInDay));
             }
             else if(setting == 5) //infininight
             {
-                memoryManager.EnableCustomTime();
+                S.MemoryManager.EnableCustomTime();
                 var et = GetET();
                 if(Config.ChangeTimeFlowSpeed)
                 {
-                    et = (long)(et % SecondsInDay * Config.TimeFlowSpeed);
+                    et = (long)(et % DataProvider.SecondsInDay * Config.TimeFlowSpeed);
                 }
-                var timeOfDay = et % SecondsInDay;
-                if(timeOfDay < 18 * 60 * 60 && timeOfDay > 6 * 60 * 60) et += SecondsInDay / 2;
-                memoryManager.SetTime((uint)(et % SecondsInDay));
+                var timeOfDay = et % DataProvider.SecondsInDay;
+                if(timeOfDay < 18 * 60 * 60 && timeOfDay > 6 * 60 * 60) et += DataProvider.SecondsInDay / 2;
+                S.MemoryManager.SetTime((uint)(et % DataProvider.SecondsInDay));
             }
             else if(setting == 6) //infininight r
             {
-                memoryManager.EnableCustomTime();
+                S.MemoryManager.EnableCustomTime();
                 var et = GetET();
                 if(Config.ChangeTimeFlowSpeed)
                 {
-                    et = (long)(et % SecondsInDay * Config.TimeFlowSpeed);
+                    et = (long)(et % DataProvider.SecondsInDay * Config.TimeFlowSpeed);
                 }
-                var timeOfDay = et % SecondsInDay;
+                var timeOfDay = et % DataProvider.SecondsInDay;
                 if(timeOfDay < 18 * 60 * 60 && timeOfDay > 6 * 60 * 60) et -= 2 * (timeOfDay - 6 * 60 * 60);
-                memoryManager.SetTime((uint)(et % SecondsInDay));
+                S.MemoryManager.SetTime((uint)(et % DataProvider.SecondsInDay));
             }
             else if(setting == 7) //real world
             {
-                memoryManager.EnableCustomTime();
+                S.MemoryManager.EnableCustomTime();
                 var now = DateTimeOffset.Now;
                 var offset = Config.UseGMTForRealTime ? TimeSpan.Zero : now.Offset;
                 if(Config.Offset != 0)
@@ -90,25 +92,25 @@ internal unsafe partial class Weatherman
                     offset += TimeSpan.FromHours(Config.Offset);
                 }
                 var et = (now + offset).ToUnixTimeSeconds();
-                memoryManager.SetTime((uint)(et % SecondsInDay));
+                S.MemoryManager.SetTime((uint)(et % DataProvider.SecondsInDay));
             }
         }
     }
 
     private int GetZoneTimeFlowSetting(ushort terr)
     {
-        if(ZoneSettings.ContainsKey(terr))
+        if(S.DataProvider.ZoneSettings.ContainsKey(terr))
         {
-            if(ZoneSettings[terr].TimeFlow > 0) return ZoneSettings[terr].TimeFlow;
+            if(S.DataProvider.ZoneSettings[terr].TimeFlow > 0) return S.DataProvider.ZoneSettings[terr].TimeFlow;
         }
         return Config.GlobalTimeFlowControl;
     }
 
     private int GetZoneTimeFixedSetting(ushort terr)
     {
-        if(ZoneSettings.ContainsKey(terr))
+        if(S.DataProvider.ZoneSettings.ContainsKey(terr))
         {
-            if(ZoneSettings[terr].TimeFlow == 2) return ZoneSettings[terr].FixedTime;
+            if(S.DataProvider.ZoneSettings[terr].TimeFlow == 2) return S.DataProvider.ZoneSettings[terr].FixedTime;
         }
         return Config.GlobalFixedTime;
     }

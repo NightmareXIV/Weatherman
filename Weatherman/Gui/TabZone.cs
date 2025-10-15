@@ -1,5 +1,6 @@
 ﻿using ECommons;
 using ECommons.ImGuiMethods;
+using Weatherman.Services;
 
 namespace Weatherman;
 
@@ -52,14 +53,14 @@ internal partial class Gui
         ImGui.Separator();
 
         //current zone
-        if(p.Config.ShowCurrentZoneOnTop && p.ZoneSettings.ContainsKey(Svc.ClientState.TerritoryType))
+        if(p.Config.ShowCurrentZoneOnTop && S.DataProvider.ZoneSettings.ContainsKey(Svc.ClientState.TerritoryType))
         {
             ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 1, 1, 1));
-            PrintZoneRow(p.ZoneSettings[Svc.ClientState.TerritoryType], false);
+            PrintZoneRow(S.DataProvider.ZoneSettings[Svc.ClientState.TerritoryType], false);
             ImGui.PopStyleColor();
         }
 
-        foreach(var z in p.ZoneSettings.Values)
+        foreach(var z in S.DataProvider.ZoneSettings.Values)
         {
             PrintZoneRow(z);
         }
@@ -70,8 +71,8 @@ internal partial class Gui
 
     private void PrintZoneRow(ZoneSettings z, bool filtering = true)
     {
-        var modAllowed = p.weatherAllowedZones.Contains(z.ZoneId) || p.timeAllowedZones.Contains(z.ZoneId);
-        var bothModAllowed = p.weatherAllowedZones.Contains(z.ZoneId) && p.timeAllowedZones.Contains(z.ZoneId);
+        var modAllowed = S.DataProvider.WeatherAllowedZones.Contains(z.ZoneId) || S.DataProvider.TimeAllowedZones.Contains(z.ZoneId);
+        var bothModAllowed = S.DataProvider.WeatherAllowedZones.Contains(z.ZoneId) && S.DataProvider.TimeAllowedZones.Contains(z.ZoneId);
         var grayed = false;
         if(filtering)
         {
@@ -103,7 +104,7 @@ internal partial class Gui
         ImGui.NextColumn();
         ImGui.TextUnformatted(z.ZoneName);
         ImGui.NextColumn();
-        if(p.timeAllowedZones.Contains(z.ZoneId))
+        if(S.DataProvider.TimeAllowedZones.Contains(z.ZoneId))
         {
             ImGui.PushItemWidth(120f);
             ImGui.Combo("##timecombo" + ++uid, ref z.TimeFlow, timeflowcombo, timeflowcombo.Length);
@@ -111,8 +112,8 @@ internal partial class Gui
             if(z.TimeFlow == 2)
             {
                 ImGui.PushItemWidth(50f);
-                ImGui.DragInt("##timecontrol" + ++uid, ref z.FixedTime, 100.0f, 0, Weatherman.SecondsInDay - 1);
-                if(z.FixedTime > Weatherman.SecondsInDay || z.FixedTime < 0) z.FixedTime = 0;
+                ImGui.DragInt("##timecontrol" + ++uid, ref z.FixedTime, 100.0f, 0, DataProvider.SecondsInDay - 1);
+                if(z.FixedTime > DataProvider.SecondsInDay || z.FixedTime < 0) z.FixedTime = 0;
                 ImGui.PopItemWidth();
                 ImGui.SameLine();
                 ImGui.TextUnformatted(DateTimeOffset.FromUnixTimeSeconds(z.FixedTime).ToString("HH:mm:ss"));
@@ -123,7 +124,7 @@ internal partial class Gui
             ImGui.TextUnformatted("Unsupported");
         }
         ImGui.NextColumn();
-        if(p.weatherAllowedZones.Contains(z.ZoneId))
+        if(S.DataProvider.WeatherAllowedZones.Contains(z.ZoneId))
         {
             if(z.WeatherControl)
             {
@@ -142,7 +143,7 @@ internal partial class Gui
                         foreach(var weather in z.SupportedWeathers)
                         {
                             if(weather.IsNormal) ImGui.PushStyleColor(ImGuiCol.Text, colorGreen);
-                            ImGui.Checkbox(weather.Id + " | " + p.weathers[weather.Id] + "##" + ++uid, ref weather.Selected);
+                            ImGui.Checkbox(weather.Id + " | " + S.DataProvider.Weathers[weather.Id] + "##" + ++uid, ref weather.Selected);
                             if(weather.IsNormal) ImGui.PopStyleColor();
                         }
                     }

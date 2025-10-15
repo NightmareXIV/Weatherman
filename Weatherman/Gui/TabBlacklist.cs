@@ -1,4 +1,5 @@
 ﻿using ECommons.ImGuiMethods;
+using Weatherman.Services;
 
 namespace Weatherman;
 
@@ -48,10 +49,10 @@ internal unsafe partial class Gui
         foreach(var w in temparr)
         {
             var v = temparr[w.Key];
-            var normal = p.IsWeatherNormal(w.Key, Svc.ClientState.TerritoryType);
-            var current = *p.memoryManager.TrueWeather == w.Key;
+            var normal = S.DataProvider.IsWeatherNormal(w.Key, Svc.ClientState.TerritoryType);
+            var current = *S.MemoryManager.TrueWeather == w.Key;
             if(normal || current) ImGui.PushStyleColor(ImGuiCol.Text, current ? (normal ? new Vector4(1, 1, 0, 1) : new Vector4(1, 0, 0, 1)) : colorGreen);
-            ImGui.Checkbox(w.Key + " / " + p.weathers[w.Key], ref v);
+            ImGui.Checkbox(w.Key + " / " + S.DataProvider.Weathers[w.Key], ref v);
             if(normal || current) ImGui.PopStyleColor();
             p.Config.BlacklistedWeathers[w.Key] = v;
         }

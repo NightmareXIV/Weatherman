@@ -2,7 +2,7 @@
 
 namespace Weatherman;
 
-internal class ZoneSettings
+public class ZoneSettings
 {
     public ushort ZoneId;
     public string ZoneName;
@@ -14,15 +14,6 @@ internal class ZoneSettings
     public int Music = 0;
 
     public ZoneSettings() { }
-
-    public void Init(Weatherman plugin)
-    {
-        SupportedWeathers = [];
-        if(plugin.GetWeathers(ZoneId) != null) foreach(var w in plugin.GetWeathers(ZoneId))
-            {
-                SupportedWeathers.Add(new WeathermanWeather(w, false, plugin.IsWeatherNormal(w, ZoneId)));
-            }
-    }
 
     public string GetString()
     {

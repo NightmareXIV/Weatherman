@@ -1,9 +1,10 @@
 ﻿using Dalamud.Configuration;
+using Weatherman.Services;
 
 namespace Weatherman;
 
 [Serializable]
-internal class Configuration : IPluginConfiguration
+public class Configuration : IPluginConfiguration
 {
     public int Version { get; set; } = 1;
     public string ConfigurationString = "";
@@ -47,7 +48,7 @@ internal class Configuration : IPluginConfiguration
     public string GetConfigurationString()
     {
         var configList = new List<string>();
-        foreach(var z in P.ZoneSettings)
+        foreach(var z in S.DataProvider.ZoneSettings)
         {
             var v = z.Value.GetString();
             if(v != null) configList.Add(z.Key + "@" + v);
@@ -62,9 +63,9 @@ internal class Configuration : IPluginConfiguration
             try
             {
                 var key = ushort.Parse(z.Split('@')[0]);
-                if(P.ZoneSettings.ContainsKey(key))
+                if(S.DataProvider.ZoneSettings.ContainsKey(key))
                 {
-                    P.ZoneSettings[key].FromString(z.Split('@')[1]);
+                    S.DataProvider.ZoneSettings[key].FromString(z.Split('@')[1]);
                 }
             }
             catch(Exception)

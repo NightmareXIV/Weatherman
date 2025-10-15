@@ -1,9 +1,10 @@
 ﻿using Dalamud.Interface.ImGuiNotification;
 using ECommons;
+using Weatherman.Services;
 
 namespace Weatherman;
 
-internal unsafe partial class Weatherman
+public unsafe partial class Weatherman
 {
     private void HandleFrameworkUpdate(object f)
     {
@@ -45,25 +46,25 @@ internal unsafe partial class Weatherman
                 }
                 else
                 {
-                    memoryManager.DisableCustomTime();
+                    S.MemoryManager.DisableCustomTime();
                 }
                 if(CanModifyWeather())
                 {
                     if(SelectedWeather != 255)
                     {
-                        memoryManager.EnableCustomWeather();
-                        if(memoryManager.GetWeather() != SelectedWeather)
+                        S.MemoryManager.EnableCustomWeather();
+                        if(S.MemoryManager.GetCustomWeather() != SelectedWeather)
                         {
-                            memoryManager.SetWeather(SelectedWeather);
+                            S.MemoryManager.SetWeather(SelectedWeather);
                             if(Config.DisplayNotifications)
                             {
-                                Svc.PluginInterface.UiBuilder.AddNotification($"{weathers[SelectedWeather]}\nReason: selected by user", "Weatherman: weather changed", NotificationType.Info, 5000);
+                                Svc.PluginInterface.UiBuilder.AddNotification($"{S.DataProvider.Weathers[SelectedWeather]}\nReason: selected by user", "Weatherman: weather changed", NotificationType.Info, 5000);
                             }
                         }
                     }
                     else
                     {
-                        var suggesterWeather = *memoryManager.TrueWeather;
+                        var suggesterWeather = *S.MemoryManager.TrueWeather;
                         if(UnblacklistedWeather != 0 && suggesterWeather != UnblacklistedWeather
                         && Config.BlacklistedWeathers.TryGetValue(suggesterWeather, out var value)
                         && value && Config.BlacklistCS.EqualsAny(null, Utils.IsPlayerWatchingCutscene()))
@@ -71,19 +72,19 @@ internal unsafe partial class Weatherman
                             suggesterWeather = UnblacklistedWeather;
                         }
                         //this is to retain smooth transitions
-                        if(suggesterWeather == *memoryManager.TrueWeather)
+                        if(suggesterWeather == *S.MemoryManager.TrueWeather)
                         {
-                            memoryManager.DisableCustomWeather();
+                            S.MemoryManager.DisableCustomWeather();
                         }
                         else
                         {
-                            memoryManager.EnableCustomWeather();
-                            if(memoryManager.GetWeather() != suggesterWeather)
+                            S.MemoryManager.EnableCustomWeather();
+                            if(S.MemoryManager.GetCustomWeather() != suggesterWeather)
                             {
-                                memoryManager.SetWeather(suggesterWeather);
+                                S.MemoryManager.SetWeather(suggesterWeather);
                                 if(Config.DisplayNotifications)
                                 {
-                                    Svc.PluginInterface.UiBuilder.AddNotification($"{weathers[SelectedWeather]}\nReason: found blacklisted weather", "Weatherman: weather changed", NotificationType.Info, 5000);
+                                    Svc.PluginInterface.UiBuilder.AddNotification($"{S.DataProvider.Weathers[SelectedWeather]}\nReason: found blacklisted weather", "Weatherman: weather changed", NotificationType.Info, 5000);
                                 }
                             }
                         }
@@ -92,14 +93,14 @@ internal unsafe partial class Weatherman
                 }
                 else
                 {
-                    memoryManager.DisableCustomWeather();
+                    S.MemoryManager.DisableCustomWeather();
                 }
 
             }
             else
             {
-                memoryManager.DisableCustomTime();
-                memoryManager.DisableCustomWeather();
+                S.MemoryManager.DisableCustomTime();
+                S.MemoryManager.DisableCustomWeather();
             }
             if(profiling)
             {
