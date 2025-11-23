@@ -24,7 +24,7 @@ public sealed class DataProvider
     public ExcelSheet<WeatherRate> WeatherRates;
     public Dictionary<ushort, ZoneSettings> ZoneSettings;
 
-    private DataProvider()
+    public DataProvider()
     {
         WeatherAllowedZones = [
            ..Utils.WhitelistedTypes,
@@ -62,6 +62,21 @@ public sealed class DataProvider
                 }
             ZoneSettings.Add(s.ZoneId, s);
         }
+        ZoneToWeatherIndexMap = new uint[ZoneSettings.Max(x => x.Value.ZoneId) + 1][];
+        foreach(var x in ZoneSettings)
+        {
+            ZoneToWeatherIndexMap[x.Key] = new uint[255];
+            for(var i = 0; i < x.Value.SupportedWeathers.Count; i++)
+            {
+                var w = x.Value.SupportedWeathers[i];
+                ZoneToWeatherIndexMap[x.Key][w.Id] = (uint)i;
+            }
+        }
+    }
+
+    public void InitializePostConfigLoad()
+    {
+
         var normalweathers = new HashSet<byte>();
         foreach(var z in ZoneSettings)
         {
@@ -84,16 +99,6 @@ public sealed class DataProvider
         foreach(var i in normalweathers)
         {
             if(!P.Config.BlacklistedWeathers.ContainsKey(i)) P.Config.BlacklistedWeathers.Add(i, false);
-        }
-        ZoneToWeatherIndexMap = new uint[ZoneSettings.Max(x => x.Value.ZoneId) + 1][];
-        foreach(var x in ZoneSettings)
-        {
-            ZoneToWeatherIndexMap[x.Key] = new uint[255];
-            for(var i = 0; i < x.Value.SupportedWeathers.Count; i++)
-            {
-                var w = x.Value.SupportedWeathers[i];
-                ZoneToWeatherIndexMap[x.Key][w.Id] = (uint)i;
-            }
         }
     }
 

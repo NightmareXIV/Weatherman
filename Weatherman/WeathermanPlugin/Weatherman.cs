@@ -45,8 +45,9 @@ public unsafe partial class Weatherman : IDalamudPlugin
             {
                 stopwatch = new();
                 orchestrionController = new(this);
-                
+
                 PluginLog.Verbose($"Loading configuration");
+                S.DataProvider = new();
                 Config = pluginInterface.GetPluginConfig() as Configuration ?? new();
                 Config.Initialize();
                 SingletonServiceManager.Initialize(typeof(S));
