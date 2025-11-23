@@ -40,7 +40,8 @@ public unsafe class MemoryManager : IDisposable
         //PluginLog.Information($"{column}");
         if(IsTimeCustom() && column != 3)
         {
-            var isDay = GetTime() % 86400 > 43200;
+            var seconds = GetTime() % 86400;
+            var isDay = seconds >= 21600 && seconds < 64800;
             column = isDay ? 1 : 2;
             //PluginLog.Information($"{column}");
         }
