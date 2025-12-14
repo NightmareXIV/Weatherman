@@ -51,6 +51,7 @@ public unsafe partial class Weatherman : IDalamudPlugin
                 Config = pluginInterface.GetPluginConfig() as Configuration ?? new();
                 Config.Initialize();
                 SingletonServiceManager.Initialize(typeof(S));
+                S.DataProvider.InitializePostConfigLoad();
                 Svc.Framework.Update += HandleFrameworkUpdate;
                 ConfigGui = new(this);
                 Svc.PluginInterface.UiBuilder.Draw += ConfigGui.Draw;
