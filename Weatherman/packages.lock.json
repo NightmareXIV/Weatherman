@@ -1,7 +1,7 @@
 {
   "version": 1,
   "dependencies": {
-    "net9.0-windows7.0": {
+    "net10.0-windows7.0": {
       "DalamudPackager": {
         "type": "Direct",
         "requested": "[13.1.0, )",
@@ -10,9 +10,9 @@
       },
       "ECommons": {
         "type": "Direct",
-        "requested": "[3.0.1.22, )",
-        "resolved": "3.0.1.22",
-        "contentHash": "MT7fdS3XN0lDEPbCl9BQDS59XPDYDJd9XA6YACxMc0RAXFnDblOCU7WGtXBOkAQ4FLnZTAruwpQcnBJA2Pv31Q=="
+        "requested": "[3.1.0.1, )",
+        "resolved": "3.1.0.1",
+        "contentHash": "FFpTsFd3jZMAX8becFBr/yPlKwkZT0PpuH3KGKPwTMQhtTJfvz4w6exiZmNwk5fuar5FhCDxjpb5BYsq87JsbQ=="
       }
     }
   }
