@@ -18,10 +18,10 @@ public unsafe class MemoryManager : IDisposable
     internal EzPatchWithPointer<uint> RenderTimePatch = new("48 89 5C 24 ?? 57 48 83 EC 30 4C 8B 15", 0x19, 
         new("4D 8B 8A 78 17 00 00", "49 C7 C1 00 00 00 00"), 3, autoEnable: false);
 
-    private delegate nint PlayWeatherSound(nint a1, byte weatherId);
-    [EzHook("E8 ?? ?? ?? ?? 4C 8B D0 48 85 C0 0F 84 ?? ?? ?? ?? 4C 8B 40 10")]
+    private delegate nint PlayWeatherSound(nint a1, byte weatherId, float a3, nint a4);
+    [EzHook("48 89 5C 24 ?? 48 89 6C 24 ?? 56 57 41 56 48 83 EC 30 45 33 F6 0F 29 74 24")]
     private EzHook<PlayWeatherSound> PlayWeatherSoundHook;
-    nint PlayWeatherSoundDetour(nint a1, byte weatherId)
+    nint PlayWeatherSoundDetour(nint a1, byte weatherId, float a3, nint a4)
     {
         //PluginLog.Debug($"Called PlayWeatherSoundDetour {weatherId}");
         if(IsWeatherCustom())
@@ -29,7 +29,7 @@ public unsafe class MemoryManager : IDisposable
             weatherId = GetDisplayedWeather();
             //PluginLog.Debug($"Weather ID was replaced to {weatherId}");
         }
-        return PlayWeatherSoundHook.Original(a1, weatherId);
+        return PlayWeatherSoundHook.Original(a1, weatherId, a3, a4);
     }
 
     delegate byte UpdateBgmSituation(nint a1, ushort bgmSituationId, int column, nint a4, nint a5);
