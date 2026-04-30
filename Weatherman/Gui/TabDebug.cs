@@ -80,7 +80,7 @@ internal unsafe partial class Gui
             if(S.MemoryManager.IsTimeCustom()) ImGui.TextUnformatted("Time from asm: " + S.MemoryManager.GetTime() + " / " +
                 DateTimeOffset.FromUnixTimeSeconds(S.MemoryManager.GetTime()).ToLocalTime().AlreadyLocal().ToString());
             ImGui.TextUnformatted("Current zone: " + Svc.ClientState.TerritoryType + " / " +
-                S.DataProvider.Zones[Svc.ClientState.TerritoryType].PlaceName.ValueNullable?.Name.ToString());
+                S.DataProvider.Zones[(ushort)Svc.ClientState.TerritoryType].PlaceName.ValueNullable?.Name.ToString());
             ImGui.TextUnformatted("Unblacklisted weather: " + p.UnblacklistedWeather);
             List<string> wGui = [];
             foreach(var w in S.DataProvider.Weathers)
@@ -107,7 +107,7 @@ internal unsafe partial class Gui
                 p.SelectedWeather = 255;
             }
             ImGui.TextUnformatted("Supported weathers:");
-            foreach(var i in S.DataProvider.GetWeathers(Svc.ClientState.TerritoryType))
+            foreach(var i in S.DataProvider.GetWeathers((ushort)Svc.ClientState.TerritoryType))
             {
                 var colored = false;
                 if(S.MemoryManager.GetDisplayedWeather() == i)
@@ -115,7 +115,7 @@ internal unsafe partial class Gui
                     ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1, 0, 0, 1));
                     colored = true;
                 }
-                if(S.DataProvider.WeatherAllowedZones.Contains(Svc.ClientState.TerritoryType))
+                if(S.DataProvider.WeatherAllowedZones.Contains((ushort)Svc.ClientState.TerritoryType))
                 {
                     if(ImGui.SmallButton(i + " / " + S.DataProvider.Weathers[i]))
                     {
@@ -127,7 +127,7 @@ internal unsafe partial class Gui
                     ImGui.TextUnformatted(i + " / " + S.DataProvider.Weathers[i]);
                 }
                 if(colored) ImGui.PopStyleColor(1);
-                if(S.DataProvider.IsWeatherNormal(i, Svc.ClientState.TerritoryType))
+                if(S.DataProvider.IsWeatherNormal(i, (ushort)Svc.ClientState.TerritoryType))
                 {
                     ImGui.SameLine();
                     ImGui.TextColored(new Vector4(0, 1, 0, 1), "Occurs normally");

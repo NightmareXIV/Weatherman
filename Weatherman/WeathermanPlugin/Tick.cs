@@ -33,7 +33,7 @@ public unsafe partial class Weatherman
                 {
                     PluginLog.Debug("Cutscene ended");
                     InCutscene = false;
-                    ApplyWeatherChanges(Svc.ClientState.TerritoryType);
+                    ApplyWeatherChanges((ushort)Svc.ClientState.TerritoryType);
                 }
             }
             if(Svc.ClientState.LocalPlayer != null
@@ -42,7 +42,7 @@ public unsafe partial class Weatherman
             {
                 if(CanModifyTime())
                 {
-                    SetTimeBySetting(GetZoneTimeFlowSetting(Svc.ClientState.TerritoryType));
+                    SetTimeBySetting(GetZoneTimeFlowSetting((ushort)Svc.ClientState.TerritoryType));
                 }
                 else
                 {

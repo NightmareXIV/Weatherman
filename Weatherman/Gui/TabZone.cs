@@ -23,7 +23,7 @@ internal partial class Gui
         ImGui.Checkbox("Show unnamed zones", ref p.Config.ShowUnnamedZones);
         if(ImGui.Button("Apply weather changes"))
         {
-            p.ApplyWeatherChanges(Svc.ClientState.TerritoryType);
+            p.ApplyWeatherChanges((ushort)Svc.ClientState.TerritoryType);
         }
         ImGui.SameLine();
         ImGui.TextUnformatted("Either click this button or change your zone for weather settings to become effective.");
@@ -53,10 +53,10 @@ internal partial class Gui
         ImGui.Separator();
 
         //current zone
-        if(p.Config.ShowCurrentZoneOnTop && S.DataProvider.ZoneSettings.ContainsKey(Svc.ClientState.TerritoryType))
+        if(p.Config.ShowCurrentZoneOnTop && S.DataProvider.ZoneSettings.ContainsKey((ushort)Svc.ClientState.TerritoryType))
         {
             ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 1, 1, 1));
-            PrintZoneRow(S.DataProvider.ZoneSettings[Svc.ClientState.TerritoryType], false);
+            PrintZoneRow(S.DataProvider.ZoneSettings[(ushort)Svc.ClientState.TerritoryType], false);
             ImGui.PopStyleColor();
         }
 

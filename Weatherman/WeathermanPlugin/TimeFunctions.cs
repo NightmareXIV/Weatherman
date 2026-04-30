@@ -30,7 +30,7 @@ public unsafe partial class Weatherman
             else if(setting == 2) //fixed
             {
                 S.MemoryManager.EnableCustomTime();
-                var et = (uint)GetZoneTimeFixedSetting(Svc.ClientState.TerritoryType);
+                var et = (uint)GetZoneTimeFixedSetting((ushort)Svc.ClientState.TerritoryType);
                 S.MemoryManager.SetTime(et);
             }
             else if(setting == 3) //infiniday

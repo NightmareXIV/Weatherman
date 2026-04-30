@@ -4,10 +4,10 @@ namespace Weatherman;
 
 public partial class Weatherman
 {
-    private void HandleZoneChange(ushort u)
+    private void HandleZoneChange(uint u)
     {
         PluginLog.Debug("Zone changed to " + u + "; time mod allowed=" + CanModifyTime() + ", weather mod allowed=" + CanModifyWeather());
-        ApplyWeatherChanges(u);
+        ApplyWeatherChanges((ushort)u);
     }
 
     public void ApplyWeatherChanges(ushort u)
@@ -49,7 +49,7 @@ public partial class Weatherman
                     {
                         if(Config.BlacklistedWeathers.ContainsKey(v.Id)
                             && !Config.BlacklistedWeathers[v.Id]
-                            && S.DataProvider.IsWeatherNormal(v.Id, Svc.ClientState.TerritoryType))
+                            && S.DataProvider.IsWeatherNormal(v.Id, (ushort)Svc.ClientState.TerritoryType))
                         {
                             unblacklistedWeatherCandidates.Add(v.Id);
                         }

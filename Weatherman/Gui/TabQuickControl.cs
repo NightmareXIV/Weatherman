@@ -7,8 +7,8 @@ internal unsafe partial class Gui
 {
     private void DrawTabQuickControl()
     {
-        var canModWeather = S.DataProvider.WeatherAllowedZones.Contains(Svc.ClientState.TerritoryType);
-        var canModTime = S.DataProvider.TimeAllowedZones.Contains(Svc.ClientState.TerritoryType);
+        var canModWeather = S.DataProvider.WeatherAllowedZones.Contains((ushort)Svc.ClientState.TerritoryType);
+        var canModTime = S.DataProvider.TimeAllowedZones.Contains((ushort)Svc.ClientState.TerritoryType);
         if(canModWeather || canModTime)
         {
             ImGui.Checkbox("Pause Weatherman", ref p.PausePlugin);
@@ -76,11 +76,11 @@ internal unsafe partial class Gui
                 }
                 if(canModWeather)
                 {
-                    foreach(var i in S.DataProvider.GetWeathers(Svc.ClientState.TerritoryType))
+                    foreach(var i in S.DataProvider.GetWeathers((ushort)Svc.ClientState.TerritoryType))
                     {
                         ImGui.PushID(i.ToString());
                         var colored = false;
-                        if(S.DataProvider.IsWeatherNormal(i, Svc.ClientState.TerritoryType))
+                        if(S.DataProvider.IsWeatherNormal(i, (ushort)Svc.ClientState.TerritoryType))
                         {
                             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.ParsedGreen);
                             colored = true;
@@ -99,7 +99,7 @@ internal unsafe partial class Gui
                 }
                 if(ImGui.Button("Reload zone settings"))
                 {
-                    p.ApplyWeatherChanges(Svc.ClientState.TerritoryType);
+                    p.ApplyWeatherChanges((ushort)Svc.ClientState.TerritoryType);
                 }
             }
         }

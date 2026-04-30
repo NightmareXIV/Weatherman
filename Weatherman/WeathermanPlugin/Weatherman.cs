@@ -57,7 +57,7 @@ public unsafe partial class Weatherman : IDalamudPlugin
                 Svc.PluginInterface.UiBuilder.Draw += ConfigGui.Draw;
                 Svc.PluginInterface.UiBuilder.OpenConfigUi += delegate { ConfigGui.configOpen = !ConfigGui.configOpen ? true : false; };
                 Svc.ClientState.TerritoryChanged += HandleZoneChange;
-                ApplyWeatherChanges(Svc.ClientState.TerritoryType);
+                ApplyWeatherChanges((ushort)Svc.ClientState.TerritoryType);
                 Svc.Commands.AddHandler("/weatherman", new CommandInfo(delegate { ConfigGui.configOpen = !ConfigGui.configOpen ? true : false; }) { HelpMessage = "Toggle plugin settings" });
                 Svc.ClientState.Logout += StopSongIfModified;
                 clockOffNag = new(this);
@@ -92,11 +92,11 @@ public unsafe partial class Weatherman : IDalamudPlugin
 
     internal bool CanModifyTime()
     {
-        return Config.EnableTimeControl && S.DataProvider.TimeAllowedZones.Contains(Svc.ClientState.TerritoryType);
+        return Config.EnableTimeControl && S.DataProvider.TimeAllowedZones.Contains((ushort)Svc.ClientState.TerritoryType);
     }
 
     internal bool CanModifyWeather()
     {
-        return Config.EnableWeatherControl && S.DataProvider.WeatherAllowedZones.Contains(Svc.ClientState.TerritoryType);
+        return Config.EnableWeatherControl && S.DataProvider.WeatherAllowedZones.Contains((ushort)Svc.ClientState.TerritoryType);
     }
 }

@@ -39,7 +39,7 @@ internal unsafe partial class Gui
         ImGui.Separator();
         if(ImGui.Button("Apply weather changes"))
         {
-            p.ApplyWeatherChanges(Svc.ClientState.TerritoryType);
+            p.ApplyWeatherChanges((ushort)Svc.ClientState.TerritoryType);
         }
         ImGui.SameLine();
         ImGui.TextUnformatted("Either click this button or change your zone for settings to become effective.");
@@ -49,7 +49,7 @@ internal unsafe partial class Gui
         foreach(var w in temparr)
         {
             var v = temparr[w.Key];
-            var normal = S.DataProvider.IsWeatherNormal(w.Key, Svc.ClientState.TerritoryType);
+            var normal = S.DataProvider.IsWeatherNormal(w.Key, (ushort)Svc.ClientState.TerritoryType);
             var current = *S.MemoryManager.TrueWeather == w.Key;
             if(normal || current) ImGui.PushStyleColor(ImGuiCol.Text, current ? (normal ? new Vector4(1, 1, 0, 1) : new Vector4(1, 0, 0, 1)) : colorGreen);
             ImGui.Checkbox(w.Key + " / " + S.DataProvider.Weathers[w.Key], ref v);
