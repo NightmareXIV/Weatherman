@@ -86,4 +86,16 @@ public class IPCProvider
     {
         return S.DataProvider.ZoneSettings;
     }
+
+    [EzIPC]
+    public byte GetDisplayedWeather()
+    {
+        return S.MemoryManager.GetDisplayedWeather();
+    }
+
+    [EzIPC]
+    public uint GetDisplayedTime()
+    {
+        return S.MemoryManager.IsTimeCustom() ? S.MemoryManager.GetTime() : (uint)S.MemoryManager.TrueTime;
+    }
 }
