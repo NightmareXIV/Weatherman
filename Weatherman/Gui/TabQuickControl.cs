@@ -73,6 +73,18 @@ internal unsafe partial class Gui
                         ImGui.EndPopup();
                     }
                     ValidateRange(ref p.TimeOverrideValue, 0, DataProvider.SecondsInDay - 1);
+                    
+                    ImGui.SameLine();
+
+                    ImGui.Text("Date: ");
+                    ImGui.SameLine();
+                    ImGui.SetNextItemWidth(150f);
+                    var dayOverride = (int)p.DayOverrideValue;
+                    if(ImGui.SliderInt("##customDay", ref dayOverride, 1, 32, $"Day {dayOverride} - {DataProvider.MoonPhases[(dayOverride - 1) / 4]}"))
+                    {
+                        p.DayOverrideValue = (byte)dayOverride;
+                        p.TimeOverride = true;
+                    }
                 }
                 if(canModWeather)
                 {
