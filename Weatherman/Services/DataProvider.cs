@@ -14,7 +14,13 @@ namespace Weatherman.Services;
 public sealed class DataProvider
 {
     public const int SecondsInDay = 60 * 60 * 24;
+    public const int SecondsInMoon = SecondsInDay * 32;
     public static double ETMult = 144D / 7D;
+    public static readonly string[] MoonPhases =
+    [
+        "New Moon", "Waxing Crescent", "Waxing Half Moon", "Waxing Gibbous",
+        "Full Moon", "Waning Gibbous", "Waning Half Moon", "Waning Crescent",
+    ];
     public uint[][] ZoneToWeatherIndexMap = [];
     public Dictionary<ushort, TerritoryType> Zones;
     public Dictionary<ushort, (List<byte> WeatherList, string EnvbFile)> WeatherList = [];

@@ -10,9 +10,12 @@ public unsafe partial class Weatherman
         {
             S.MemoryManager.EnableCustomTime();
             S.MemoryManager.SetTime((uint)TimeOverrideValue);
+            S.MemoryManager.EnableCustomDay();
+            S.MemoryManager.SetDay((uint)((DayOverrideValue - 1) * DataProvider.SecondsInDay));
         }
         else
         {
+            S.MemoryManager.DisableCustomDay();
             if(setting == 0) //game managed
             {
                 S.MemoryManager.DisableCustomTime();
