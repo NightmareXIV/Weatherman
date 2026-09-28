@@ -16,8 +16,10 @@ public unsafe class MemoryManager : IDisposable
         new("49 0F BE 40 24", "B8 00 00 00 00"), 1, autoEnable: false);
     internal EzPatchWithPointer<byte> RenderWeatherPatch = new("48 89 5C 24 ?? 57 48 83 EC 30 80 B9 ?? ?? ?? ?? ?? 49 8B F8 0F 29 74 24 ?? 48 8B D9 0F 28 F1", 0x55, 
         new("0F B6 50 26", "B2 00 90 90"), 1, autoEnable:false);
-    internal EzPatchWithPointer<uint> RenderTimePatch = new("48 89 5C 24 ?? 57 48 83 EC 30 4C 8B 15", 0x19, 
+    internal EzPatchWithPointer<uint> RenderTimePatch = new("48 89 5C 24 ?? 57 48 83 EC 30 4C 8B 15", 0x19,
         new("4D 8B 8A 78 17 00 00", "49 C7 C1 00 00 00 00"), 3, autoEnable: false);
+    internal EzPatchWithPointer<uint> RenderMoonPatch = new("48 89 5C 24 ?? 57 48 83 EC 30 4C 8B 15", 0x12C,
+        new("49 8B 8A 78 17 00 00", "48 C7 C1 00 00 00 00"), 3, autoEnable: false);
 
     private delegate nint PlayWeatherSound(nint a1, byte weatherId, float a3, nint a4);
     [EzHook("48 89 5C 24 ?? 48 89 6C 24 ?? 56 57 41 56 48 83 EC 30 45 33 F6 0F 29 74 24")]
@@ -138,6 +140,45 @@ public unsafe class MemoryManager : IDisposable
     internal bool IsTimeCustom()
     {
         return RenderTimePatch.Enabled;
+    }
+
+    internal bool SetDay(uint newValue)
+    {
+        if(IsDayCustom())
+        {
+            RenderMoonPatch.PointerValue = newValue;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    internal uint GetDay()
+    {
+        return RenderMoonPatch.PointerValue;
+    }
+
+    internal void EnableCustomDay()
+    {
+        if(!IsDayCustom())
+        {
+            RenderMoonPatch.Enable();
+        }
+    }
+
+    internal void DisableCustomDay()
+    {
+        if(IsDayCustom())
+        {
+            RenderMoonPatch.Disable();
+        }
+    }
+
+    internal bool IsDayCustom()
+    {
+        return RenderMoonPatch.Enabled;
     }
 
     public MemoryManager()

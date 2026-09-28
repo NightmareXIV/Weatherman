@@ -34,6 +34,7 @@ public unsafe partial class Weatherman : IDalamudPlugin
 
     internal bool TimeOverride = false;
     internal int TimeOverrideValue = 0;
+    internal byte DayOverrideValue = 1;
 
     public Weatherman(IDalamudPluginInterface pluginInterface)
     {

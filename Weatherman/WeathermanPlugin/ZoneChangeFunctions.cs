@@ -74,4 +74,12 @@ public partial class Weatherman
     {
         return (long)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * DataProvider.ETMult / 1000D);
     }
+
+    internal (byte DayOfMonth, byte MoonPhase) GetEorzeaDate()
+    {
+        var daySeconds = S.MemoryManager.IsDayCustom() ? S.MemoryManager.GetDay() : (uint)(S.MemoryManager.TrueTime % DataProvider.SecondsInMoon);
+        var dayOfMonth = (byte)((daySeconds / DataProvider.SecondsInDay) + 1);
+        var moonPhase = (byte)((dayOfMonth - 1) / 4);
+        return (dayOfMonth, moonPhase);
+    }
 }
