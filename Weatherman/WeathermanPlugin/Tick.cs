@@ -47,7 +47,6 @@ public unsafe partial class Weatherman
                 else
                 {
                     S.MemoryManager.DisableCustomTime();
-                    S.MemoryManager.DisableCustomDay();
                 }
                 if(CanModifyWeather())
                 {
@@ -101,7 +100,6 @@ public unsafe partial class Weatherman
             else
             {
                 S.MemoryManager.DisableCustomTime();
-                S.MemoryManager.DisableCustomDay();
                 S.MemoryManager.DisableCustomWeather();
             }
             if(profiling)

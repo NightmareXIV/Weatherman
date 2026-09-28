@@ -10,13 +10,11 @@ public unsafe partial class Weatherman
         {
             S.MemoryManager.EnableCustomTime();
             S.MemoryManager.SetTime((uint)TimeOverrideValue);
-            S.MemoryManager.EnableCustomDay();
             S.MemoryManager.SetDay((uint)((DayOverrideValue - 1) * DataProvider.SecondsInDay));
         }
         else
         {
-            S.MemoryManager.DisableCustomDay();
-            if(setting == 0) //game managed
+            if(setting == 0 || setting == 2) //game managed
             {
                 S.MemoryManager.DisableCustomTime();
             }
@@ -29,6 +27,7 @@ public unsafe partial class Weatherman
                     et = (long)(et % DataProvider.SecondsInDay * Config.TimeFlowSpeed);
                 }
                 S.MemoryManager.SetTime((uint)(et % DataProvider.SecondsInDay));
+                S.MemoryManager.SetDay((uint)(et % 32) * DataProvider.SecondsInDay);
             }
             else if(setting == 2) //fixed
             {
@@ -45,6 +44,7 @@ public unsafe partial class Weatherman
                     et = (long)(et % DataProvider.SecondsInDay * Config.TimeFlowSpeed);
                 }
                 var timeOfDay = et % DataProvider.SecondsInDay;
+                S.MemoryManager.SetDay(GetDayFromEorzeaTime(et));
                 if(timeOfDay > 18 * 60 * 60 || timeOfDay < 6 * 60 * 60) et += DataProvider.SecondsInDay / 2;
                 S.MemoryManager.SetTime((uint)(et % DataProvider.SecondsInDay));
             }
@@ -57,6 +57,7 @@ public unsafe partial class Weatherman
                     et = (long)(et % DataProvider.SecondsInDay * Config.TimeFlowSpeed);
                 }
                 var timeOfDay = et % DataProvider.SecondsInDay;
+                S.MemoryManager.SetDay(GetDayFromEorzeaTime(et));
                 if(timeOfDay > 18 * 60 * 60) et -= 2 * (timeOfDay - 18 * 60 * 60);
                 if(timeOfDay < 6 * 60 * 60) et += 2 * (6 * 60 * 60 - timeOfDay);
                 S.MemoryManager.SetTime((uint)(et % DataProvider.SecondsInDay));
@@ -70,6 +71,7 @@ public unsafe partial class Weatherman
                     et = (long)(et % DataProvider.SecondsInDay * Config.TimeFlowSpeed);
                 }
                 var timeOfDay = et % DataProvider.SecondsInDay;
+                S.MemoryManager.SetDay(GetDayFromEorzeaTime(et));
                 if(timeOfDay < 18 * 60 * 60 && timeOfDay > 6 * 60 * 60) et += DataProvider.SecondsInDay / 2;
                 S.MemoryManager.SetTime((uint)(et % DataProvider.SecondsInDay));
             }
@@ -82,6 +84,7 @@ public unsafe partial class Weatherman
                     et = (long)(et % DataProvider.SecondsInDay * Config.TimeFlowSpeed);
                 }
                 var timeOfDay = et % DataProvider.SecondsInDay;
+                S.MemoryManager.SetDay(GetDayFromEorzeaTime(et));
                 if(timeOfDay < 18 * 60 * 60 && timeOfDay > 6 * 60 * 60) et -= 2 * (timeOfDay - 6 * 60 * 60);
                 S.MemoryManager.SetTime((uint)(et % DataProvider.SecondsInDay));
             }
@@ -95,9 +98,15 @@ public unsafe partial class Weatherman
                     offset += TimeSpan.FromHours(Config.Offset);
                 }
                 var et = (now + offset).ToUnixTimeSeconds();
+                S.MemoryManager.SetDay(GetDayFromEorzeaTime(et));
                 S.MemoryManager.SetTime((uint)(et % DataProvider.SecondsInDay));
             }
         }
+    }
+
+    private static uint GetDayFromEorzeaTime(long et)
+    {
+        return (uint)(((et + DataProvider.SecondsInDay / 4) / DataProvider.SecondsInDay % 32) * DataProvider.SecondsInDay);
     }
 
     private int GetZoneTimeFlowSetting(ushort terr)

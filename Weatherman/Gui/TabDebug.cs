@@ -57,6 +57,10 @@ internal unsafe partial class Gui
             {
                 ImGui.TextUnformatted("Sunlight shadow asm: " + sunlightAsm.ToHexString());
             }
+            if(SafeMemory.ReadBytes(S.MemoryManager.RenderMoonPatch.Address, S.MemoryManager.RenderMoonPatch.PatchData.PatchData.Count, out var moonPath))
+            {
+                ImGui.TextUnformatted("RenderMoonPatch asm: " + moonPath.ToHexString());
+            }
             ImGui.TextUnformatted($"Mult: {DataProvider.ETMult}");
             ImGui.SetNextItemWidth(100f);
             ImGui.DragFloat("New mult", ref newMult, float.Epsilon);
@@ -79,6 +83,7 @@ internal unsafe partial class Gui
             ImGui.TextColored(diff < 50 ? ImGuiColors.HealerGreen : (diff < 200 ? ImGuiColors.DalamudOrange : ImGuiColors.DalamudRed), $"Difference: {diff}");
             if(S.MemoryManager.IsTimeCustom()) ImGui.TextUnformatted("Time from asm: " + S.MemoryManager.GetTime() + " / " +
                 DateTimeOffset.FromUnixTimeSeconds(S.MemoryManager.GetTime()).ToLocalTime().AlreadyLocal().ToString());
+            if(S.MemoryManager.IsDayCustom()) ImGui.TextUnformatted($"Day from asm: {S.MemoryManager.GetDay()} / {S.MemoryManager.GetDay() / DataProvider.SecondsInDay}");
             ImGui.TextUnformatted("Current zone: " + Svc.ClientState.TerritoryType + " / " +
                 S.DataProvider.Zones[(ushort)Svc.ClientState.TerritoryType].PlaceName.ValueNullable?.Name.ToString());
             ImGui.TextUnformatted("Unblacklisted weather: " + p.UnblacklistedWeather);

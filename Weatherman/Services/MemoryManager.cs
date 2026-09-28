@@ -126,6 +126,10 @@ public unsafe class MemoryManager : IDisposable
         if(!IsTimeCustom())
         {
             RenderTimePatch.Enable();
+            if(!IsDayCustom())
+            {
+                RenderMoonPatch.Enable();
+            }
         }
     }
 
@@ -134,6 +138,10 @@ public unsafe class MemoryManager : IDisposable
         if(IsTimeCustom())
         {
             RenderTimePatch.Disable();
+        }
+        if(IsDayCustom())
+        {
+            RenderMoonPatch.Disable();
         }
     }
 
@@ -160,6 +168,7 @@ public unsafe class MemoryManager : IDisposable
         return RenderMoonPatch.PointerValue;
     }
 
+    [Obsolete("", true)]
     internal void EnableCustomDay()
     {
         if(!IsDayCustom())
@@ -168,6 +177,7 @@ public unsafe class MemoryManager : IDisposable
         }
     }
 
+    [Obsolete("", true)]
     internal void DisableCustomDay()
     {
         if(IsDayCustom())
