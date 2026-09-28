@@ -10,9 +10,9 @@
       },
       "ECommons": {
         "type": "Direct",
-        "requested": "[3.2.0.6, )",
-        "resolved": "3.2.0.6",
-        "contentHash": "ZONTpNsOLTlX0OPhBU/mHK9EWqmxgc2ZPwZtmV0rucsNyARXjeNsaGC9bcumGPBVpICTQBqeg4V1iew3OdmGYQ=="
+        "requested": "[3.2.1.20, )",
+        "resolved": "3.2.1.20",
+        "contentHash": "ftyiWsxzrJPnIHvh3VacdfW1evDqqhFgZ7CLHpq3hstZ1Stgco92vJkR5Y1tb2fnVNW2GFW4JX3FcwLjPIgB8w=="
       }
     }
   }

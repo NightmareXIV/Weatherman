@@ -2,6 +2,7 @@
 using Dalamud.Hooking;
 using ECommons.EzHookManager;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Environment;
+using Weatherman.Utility;
 
 namespace Weatherman.Services;
 
@@ -52,9 +53,12 @@ public unsafe class MemoryManager : IDisposable
     {
         if(IsWeatherCustom())
         {
+            PluginLog.Debug($"Writing into RenderWeatherPatch.PointerValue, address permissions: {MemoryProtectionInfo.QueryRegionFlags(RenderWeatherPatch.PointerRaw)}");
             RenderWeatherPatch.PointerValue = newValue;
             if(RenderSunlightShadowPatch.Enabled)
             {
+
+                PluginLog.Debug($"Writing into RenderSunlightShadowPatch.PointerValue, address permissions: {MemoryProtectionInfo.QueryRegionFlags(RenderSunlightShadowPatch.PointerRaw)}");
                 RenderSunlightShadowPatch.PointerValue = S.DataProvider.ZoneToWeatherIndexMap[Svc.ClientState.TerritoryType][newValue];
             }
             return true;

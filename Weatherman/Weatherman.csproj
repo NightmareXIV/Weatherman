@@ -38,6 +38,10 @@
           <HintPath>$(DalamudLibPath)Newtonsoft.Json.dll</HintPath>
           <Private>False</Private>
       </Reference>
+      <Reference Include="TerraFX.Interop.Windows">
+          <HintPath>$(DalamudLibPath)TerraFX.Interop.Windows.dll</HintPath>
+          <Private>False</Private>
+      </Reference>
       <Reference Include="Dalamud">
           <HintPath>$(DalamudLibPath)Dalamud.dll</HintPath>
           <Private>False</Private>
@@ -82,6 +86,6 @@
 
 	<ItemGroup>
 	  <PackageReference Include="DalamudPackager" Version="15.0.0" />
-	  <PackageReference Include="ECommons" Version="3.2.0.6" />
+	  <PackageReference Include="ECommons" Version="3.2.1.20" />
 	</ItemGroup>
 </Project>
